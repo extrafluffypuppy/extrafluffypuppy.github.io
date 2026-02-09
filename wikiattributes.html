@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WikiAttributes – Entity Metadata Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Linux+Libertine:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--wb:#3366cc;--wb-bg:#eaf3ff;--wg:#14866d;--wg-bg:#d5fdf4;--wr:#d73333;--wr-bg:#fee7e6;--wy:#ac6600;--wy-bg:#fef6e7;--wp:#6b4ba1;--wp-bg:#f0e6ff;--wt:#0d7377;--wt-bg:#e0f5f5;--wo:#b35900;--wo-bg:#fff0e0;--bg:#f8f9fa;--sf:#fff;--bd:#a2a9b1;--bl:#c8ccd1;--tx:#202122;--tl:#54595d;--tlr:#72777d;--rm:4px;--sm:0 1px 2px rgba(0,0,0,.08);--md:0 2px 6px rgba(0,0,0,.1);--lg:0 4px 16px rgba(0,0,0,.12);--tr:200ms ease}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{background:var(--sf);border-bottom:1px solid var(--bl);position:sticky;top:0;z-index:100;box-shadow:var(--sm)}
+.header-inner{max-width:1200px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tx);flex-shrink:0}
+.logo-icon{width:36px;height:36px;background:var(--tx);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Linux Libertine','Georgia',serif;font-size:22px;font-weight:700;line-height:1}
+.logo-text{font-family:'Linux Libertine','Georgia',serif;font-size:22px;font-weight:700;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--tlr);text-transform:uppercase;letter-spacing:1px;margin-left:4px}
+.header-badge{margin-left:auto;font-size:11px;font-weight:600;background:var(--wy-bg);color:var(--wy);padding:3px 10px;border-radius:12px;white-space:nowrap}
+.main{max-width:1200px;margin:0 auto;padding:24px}
+.entity-tabs{display:flex;gap:2px;background:var(--sf);border:1px solid var(--bl);border-radius:var(--rm);overflow:hidden;margin-bottom:20px}
+.entity-tab{flex:1;padding:12px 16px;border:none;background:0 0;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;color:var(--tl);transition:all var(--tr);display:flex;align-items:center;justify-content:center;gap:6px}
+.entity-tab:hover{background:var(--bg);color:var(--tx)}.entity-tab.active{background:var(--wb);color:#fff}
+.selector-row{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.selector-label{font-size:13px;font-weight:600;color:var(--tl);white-space:nowrap}
+.entity-select{font-family:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--bl);border-radius:var(--rm);background:var(--sf);color:var(--tx);min-width:220px;max-width:400px;cursor:pointer}
+.entity-select:focus{outline:none;border-color:var(--wb);box-shadow:0 0 0 2px var(--wb-bg)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;padding:10px 14px;background:var(--sf);border:1px solid var(--bl);border-radius:var(--rm)}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--tl)}
+.source-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.source-dot.extracted{background:var(--wb)}.source-dot.wmf-model{background:var(--wg)}.source-dot.claude{background:var(--wp)}.source-dot.user-page{background:var(--wt)}.source-dot.sample{background:var(--wo)}
+.entity-header{margin-bottom:20px}
+.entity-title{font-family:'Linux Libertine','Georgia',serif;font-size:28px;font-weight:700;line-height:1.2;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.entity-type-badge{font-family:'Source Sans 3',sans-serif;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;padding:3px 10px;border-radius:12px;background:var(--wb-bg);color:var(--wb)}
+.entity-subtitle{font-size:14px;color:var(--tl);margin-top:4px}
+.attributes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.attr-card{background:var(--sf);border:1px solid var(--bl);border-radius:var(--rm);padding:16px;position:relative;animation:fadeIn 300ms ease both;transition:box-shadow var(--tr)}
+.attr-card:hover{box-shadow:var(--md)}.attr-card.full-width{grid-column:1/-1}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.attr-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:8px}
+.attr-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;color:var(--tlr)}
+.attr-source-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:10px;cursor:pointer;transition:all var(--tr);white-space:nowrap;flex-shrink:0;position:relative;z-index:2}
+.attr-source-tag.extracted{background:var(--wb-bg);color:var(--wb)}.attr-source-tag.wmf-model{background:var(--wg-bg);color:var(--wg)}.attr-source-tag.claude{background:var(--wp-bg);color:var(--wp)}.attr-source-tag.user-page{background:var(--wt-bg);color:var(--wt)}.attr-source-tag.sample{background:var(--wo-bg);color:var(--wo)}
+.attr-source-tag:hover{filter:brightness(.95);transform:scale(1.02)}
+.attr-value{font-size:22px;font-weight:700;color:var(--tx);line-height:1.2;margin-bottom:2px}.attr-value.small{font-size:16px}
+.attr-detail{font-size:12.5px;color:var(--tl);margin-top:2px}
+.score-bar-track{height:6px;background:var(--bg);border-radius:3px;overflow:hidden;margin-top:8px}
+.score-bar-fill{height:100%;border-radius:3px;transition:width 600ms cubic-bezier(.34,1.56,.64,1);width:0}
+.score-bar-fill.blue{background:var(--wb)}.score-bar-fill.green{background:var(--wg)}.score-bar-fill.red{background:var(--wr)}.score-bar-fill.yellow{background:var(--wy)}.score-bar-fill.purple{background:var(--wp)}
+.score-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--tlr);margin-top:3px}
+.attr-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.attr-badge{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;background:var(--bg);color:var(--tl);border:1px solid var(--bl)}
+.attr-badge.primary{background:var(--wb-bg);color:var(--wb);border-color:transparent}.attr-badge.success{background:var(--wg-bg);color:var(--wg);border-color:transparent}.attr-badge.warning{background:var(--wy-bg);color:var(--wy);border-color:transparent}.attr-badge.danger{background:var(--wr-bg);color:var(--wr);border-color:transparent}
+.tooltip-popup{display:none;position:fixed;z-index:10000;background:var(--sf);border:1px solid var(--bd);border-radius:var(--rm);box-shadow:var(--lg);padding:14px 16px;width:320px;max-width:90vw;font-size:13px;line-height:1.5;color:var(--tx)}.tooltip-popup.active{display:block}
+.tooltip-popup .tooltip-title{font-weight:700;margin-bottom:6px}.tooltip-popup .tooltip-body{color:var(--tl);font-size:12.5px}
+.tooltip-popup .tooltip-link{display:inline-block;margin-top:8px;font-size:12px;color:var(--wb);text-decoration:none;font-weight:600}.tooltip-popup .tooltip-link:hover{text-decoration:underline}
+.tooltip-popup .tooltip-close{position:absolute;top:8px;right:10px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--tlr);line-height:1}.tooltip-popup .tooltip-close:hover{color:var(--tx)}
+.tooltip-overlay{display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.08)}.tooltip-overlay.active{display:block}
+.section-label{font-size:13px;font-weight:700;color:var(--tl);text-transform:uppercase;letter-spacing:.5px;margin:20px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--bl);grid-column:1/-1}.section-label:first-child{margin-top:0}
+.status-indicator{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:600}
+.status-dot{width:8px;height:8px;border-radius:50%}.status-dot.high{background:var(--wg)}.status-dot.medium{background:var(--wy)}.status-dot.low{background:var(--wr)}
+.quality-stars{display:inline-flex;gap:2px;font-size:18px}.quality-star{color:#ddd}.quality-star.filled{color:#f5c518}
+.sparkline-wrap{margin-top:10px}.sparkline-canvas{width:100%;height:60px;display:block}
+.sparkline-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--tlr);margin-top:2px}
+.section-text-toggle{background:var(--sf);border:1px solid var(--bl);border-radius:var(--rm);margin-bottom:16px;overflow:hidden}
+.section-text-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;font-size:13px;font-weight:600;color:var(--tl);user-select:none;transition:background var(--tr)}
+.section-text-header:hover{background:var(--bg)}
+.section-text-header .chevron{transition:transform var(--tr);font-size:16px}
+.section-text-header.open .chevron{transform:rotate(180deg)}
+.section-text-body{display:none;padding:0 14px 14px;font-size:13.5px;line-height:1.7;color:var(--tx);border-top:1px solid var(--bl)}
+.section-text-body.open{display:block;padding-top:12px}
+.fun-fact-box{background:var(--wy-bg);border-left:3px solid var(--wy);padding:8px 12px;margin-top:8px;font-size:12.5px;border-radius:0 var(--rm) var(--rm) 0;color:var(--tx)}
+.fun-fact-box strong{color:var(--wy)}
+.footer{max-width:1200px;margin:40px auto 20px;padding:20px 24px;text-align:center;font-size:12px;color:var(--tlr);border-top:1px solid var(--bl)}
+.footer a{color:var(--wb);text-decoration:none}.footer a:hover{text-decoration:underline}
+@media(max-width:768px){.header-inner{padding:10px 16px}.logo-sub{display:none}.main{padding:16px}.attributes-grid{grid-template-columns:1fr}.entity-tabs{flex-wrap:wrap}.entity-tab{flex:1 1 45%}.selector-row{flex-direction:column;align-items:stretch}.entity-select{max-width:100%}}
+</style>
+</head>
+<body>
+<header class="header"><div class="header-inner">
+  <a class="logo" href="#"><div class="logo-icon">W</div><span class="logo-text">WikiAttributes</span></a>
+  <span class="logo-sub">Entity Metadata Explorer</span>
+  <span class="header-badge">Prototype v0.5</span>
+</div></header>
+<main class="main">
+  <div class="entity-tabs" role="tablist">
+    <button class="entity-tab active" data-type="user" role="tab" aria-selected="true"><span class="tab-icon">👤</span> User</button>
+    <button class="entity-tab" data-type="article" role="tab" aria-selected="false"><span class="tab-icon">📄</span> Article</button>
+    <button class="entity-tab" data-type="section" role="tab" aria-selected="false"><span class="tab-icon">¶</span> Section</button>
+  </div>
+  <div class="selector-row"><label class="selector-label" for="entitySelect">Select entity:</label><select class="entity-select" id="entitySelect"></select></div>
+  <div id="sectionTextArea"></div>
+  <div class="legend" id="legendBar"></div>
+  <div id="entityHeader"></div>
+  <div class="attributes-grid" id="attributesGrid"></div>
+</main>
+<footer class="footer">WikiAttributes Prototype · Built for Wikipedia product ideation · <a href="https://meta.wikimedia.org/wiki/Machine_learning_models" target="_blank">ML Model Cards</a></footer>
+<div class="tooltip-overlay" id="tooltipOverlay"></div>
+<div class="tooltip-popup" id="tooltipPopup"></div>
+<script>
+const SL={'extracted':'Extracted from Wikipedia','wmf-model':'Predicted by Wikimedia model','claude':'Generated by Claude','user-page':'From user page (self-reported)','sample':'Sample data for prototype'};
+const SLS={'extracted':'Extracted','wmf-model':'WMF Model','claude':'Claude','user-page':'User Page','sample':'Sample Data'};
+const TIPS={};
+function U(id,name,sub,age,ageDet,edits,wikis,wikisDet,talk,talkDet,groups,gBadge,notable,nMethod,rTopics,rCats,eTopics,eCats,eRisk,rColor,rDetail,spark,sLabels,arch,aBadge,aDetail,actSpark,actLabels,actDetail){
+  return {id,name,subtitle:sub,attrs:{
+    _sections:{'Reader Profile':['Account Age','Most-Read Topics','Most-Read Categories'],'Contributor Profile':['Total Edits','Wikis Edited','Talk Page Activity','User Groups','Notable Work','Most-Edited Topics','Most-Edited Categories','Contributor Archetype','Editing Activity','Edit Risk']},
+    'Account Age':{value:age,detail:ageDet,source:'extracted',method:'Extracted from user registration metadata via MediaWiki API.'},
+    'Most-Read Topics':{value:rTopics,type:'badges',badgeClass:'primary',source:'sample',method:'Reading history is not publicly available. Sample data for prototype.'},
+    'Most-Read Categories':{value:rCats,type:'badges',badgeClass:'',source:'sample',method:'Reading history is not publicly available. Sample data for prototype.'},
+    'Total Edits':{value:edits,detail:'Across all namespaces',source:'extracted',method:'Extracted via MediaWiki API.'},
+    'Wikis Edited':{value:wikis,detail:wikisDet,source:'extracted',method:'CentralAuth cross-wiki lookup.'},
+    'Talk Page Activity':{value:talk,detail:talkDet,source:'extracted',method:'Namespace-filtered edit count.'},
+    'User Groups':{value:groups,type:'badges',badgeClass:gBadge,source:'extracted',method:'Extracted from user group membership via MediaWiki API.'},
+    'Notable Work':{value:notable,source:'user-page',method:nMethod},
+    'Most-Edited Topics':{value:eTopics,type:'badges',badgeClass:'primary',source:'wmf-model',method:'Topics predicted by the Language-agnostic link-based article topic model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language_agnostic_link-based_article_topic'},
+    'Most-Edited Categories':{value:eCats,type:'badges',badgeClass:'',source:'extracted',method:'Derived from Wikipedia category membership of most-edited articles.'},
+    'Contributor Archetype':{value:arch,type:'badge-single',badgeClass:aBadge,detail:aDetail,source:'claude',method:'Generated by Claude based on Wikimedia research on editor motivations.'},
+    'Editing Activity':{value:'Activity over time',type:'sparkline-only',color:'blue',detail:actDetail,source:'extracted',method:'Monthly edit counts extracted from MediaWiki user contributions API, aggregated into quarterly buckets over the past 6 years.',sparkline:actSpark,sparkLabels:actLabels},
+    'Edit Risk':{value:eRisk,type:'score',color:rColor,detail:rDetail,source:'wmf-model',method:'Average revert risk predicted by the Language-agnostic revert risk model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_revert_risk',sparkline:spark,sparkLabels:sLabels}
+  }};
+}
+const DATA={user:[
+U('u1','The_ed17','Administrator \u00b7 Bureaucrat \u00b7 en.wikipedia.org','~20 years','Registered c. 2005','~35,000','5+','en.wikipedia, commons, meta, wikidata, others','~4,200','Talk namespace edits',['Administrator','Bureaucrat'],'success','27 Featured Articles on warships; former Signpost editor-in-chief; WMF Communications staff (Ed Erhart)','Derived from user page and publicly stated information.',['STEM.Engineering','History.Military history','Geography.Americas.North_America','Culture.Media'],['Naval warfare','Warships of the US Navy','World War II','Military history of the US'],['History.Military history','STEM.Engineering','Culture.Media','Geography.Americas.North_America'],['World War II destroyers','US Navy ships','Featured articles','Wikipedia Signpost'],8,'green','Very low revert risk \u2014 long-tenured admin',[12,10,9,11,8,7,9,8,7,8,6,8],['2020','2021','2022','2023','2024','2025'],'Established Custodian','success','Longest tenure, admin/bureaucrat roles, tempered motivations, high annual edit count.',[820,780,910,850,720,680,750,810,690,640,580,620,670,710,650,600,550,520,480,510,540,490,460,480],['2020','','','','2022','','','','2024','','','2025'],'Consistent high-volume editor with gradual decline over 6 years, reflecting shift to WMF staff role.'),
+U('u2','Airplaneman','Editor \u00b7 Event organizer \u00b7 en.wikipedia.org','~17 years','Registered c. 2008','~18,000','4','en.wikipedia, commons, meta, wikidata','~2,800','Talk namespace edits',['Extended confirmed'],'','WikiProject Aviation member; co-founded Wikimedians of Chicago; organized Sulzer Library edit-a-thon (WMF Rapid Grant)','Derived from user page and Meta-Wiki grant applications.',['STEM.Engineering','Geography.Americas.North_America','STEM.Technology','Culture.Food and drink'],['Commercial aviation','Airports in the US','Chicago','WikiProject Aviation'],['STEM.Engineering','Geography.Americas.North_America','STEM.Technology','Geography.Geographical'],['Airports in Illinois','Commercial aviation','Airlines of the US','WikiProject Aviation articles'],14,'green','Low revert risk \u2014 experienced focused editor',[22,19,18,16,15,14,13,15,14,12,14,14],['2020','2021','2022','2023','2024','2025'],'Motivated Collaborator','primary','Highly motivated by community engagement and outreach.',[310,280,420,510,380,290,350,480,520,410,360,390,450,380,310,280,420,390,340,310,280,350,320,300],['2020','','','','2022','','','','2024','','','2025'],'Bursty editing pattern \u2014 activity spikes around edit-a-thon events and WikiProject sprints.'),
+U('u3','Jdlrobson','WMF Software Engineer \u00b7 en.wikipedia.org','~14 years','Registered c. 2011','~12,000','8+','en.wikipedia, mediawiki.org, commons, meta, test wikis','~3,500','Talk edits (high due to technical discussions)',['Extended confirmed'],'','Jon Robson \u2014 WMF web developer. Built MobileFrontend, Minerva skin, and Page Previews.','Derived from user page on mediawiki.org and WMF staff info.',['STEM.Technology','STEM.Computing','Culture.Internet culture','STEM.Software'],['MediaWiki extensions','Web development','UI design','Mobile web'],['STEM.Technology','STEM.Computing','Culture.Internet culture','Culture.Media.Software'],['MediaWiki skins','MediaWiki extensions','Mobile web','Wikipedia user interface'],11,'green','Low revert risk \u2014 technical edits rarely contested',[15,14,12,13,11,10,12,11,10,11,11,11],['2020','2021','2022','2023','2024','2025'],'Established Custodian','success','Long WMF tenure, developer roles, infrastructure-focused.',[450,520,480,410,380,510,620,580,490,430,460,520,550,480,420,390,510,470,430,460,490,440,410,380],['2020','','','','2022','','','','2024','','','2025'],'Steady mid-volume editing driven by WMF development cycles. Occasional surges during feature releases.'),
+U('u4','Xeno','Administrator \u00b7 Bureaucrat \u00b7 en.wikipedia.org','~20 years','Registered c. 2005','~55,000','10+','en.wikipedia, meta, commons, wikidata, multiple language wikis','~12,000','Very high \u2014 extensive community governance',['Administrator','Bureaucrat','Global renamer'],'success','Former ArbCom member; global renamer; WMF staff supporting volunteer committees.','Derived from user page and publicly available WMF staff information.',['Culture.Philosophy and religion','History.History*','Geography.Americas.North_America','STEM.Computing'],['Wikipedia governance','Arbitration Committee','Canadian Wikipedians','Global renamers'],['Culture.Philosophy and religion','History.History*','Culture.Media','Geography.Americas.North_America'],['Wikipedia administration','Arbitration Committee','User renaming','Wikipedia policies'],5,'green','Very low revert risk \u2014 governance admin',[9,8,7,6,6,5,5,6,5,5,5,5],['2020','2021','2022','2023','2024','2025'],'Established Custodian','success','Highest governance involvement (ArbCom, bureaucrat, global renamer).',[1200,1150,1080,1020,980,1050,1120,1080,950,920,980,1010,960,910,880,850,920,890,840,810,860,830,800,780],['2020','','','','2022','','','','2024','','','2025'],'Highest volume editor in this sample. Gradual tapering consistent with transition from active editing to governance/staff roles.'),
+U('u5','BrokenSegue','Administrator \u00b7 en.wikipedia.org & Wikidata','~21 years','Registered c. 2004\u20132005','~15,000','6+','en.wikipedia, wikidata, commons, simple.wikipedia, wikibooks, meta','~2,100','Talk namespace edits',['Admin (enwiki)','Admin (Wikidata)','Admin (Commons)'],'success','Cross-project admin. Operates BorkedBot. Active in Wikidata RfD and admin backlogs.','Derived from Meta-Wiki user page and Wikidata RfP discussion.',['STEM.Computing','STEM.Technology','Culture.Internet culture','STEM.Mathematics'],['Wikidata properties','Linked data','Structured data','Wikipedia maintenance'],['STEM.Computing','STEM.Technology','Culture.Internet culture','STEM.Mathematics'],['Wikidata administration','Wikipedia maintenance','Bot operators','Requests for deletion'],7,'green','Very low revert risk \u2014 trusted multi-project admin',[11,10,9,8,8,7,8,7,7,7,7,7],['2020','2021','2022','2023','2024','2025'],'Established Custodian','success','Very long tenure, admin on three projects, bot operator.',[180,160,200,220,190,170,210,240,280,320,350,380,410,390,420,450,480,460,440,470,510,490,520,500],['2020','','','','2022','','','','2024','','','2025'],'Increasing activity trend \u2014 reflects growing involvement in Wikidata admin and cross-project maintenance since 2021.'),
+U('u6','Fox','WMF Staff \u00b7 en.wikipedia.org','~15 years','Registered c. 2010','~8,000','5+','en.wikipedia, meta, commons, mediawiki.org, others','~1,800','Talk namespace edits',['Extended confirmed'],'','Joe ("Fox"). WMF-affiliated. Most active on English Wikipedia. Personal account \u2014 edits are own views.','Derived from user page on Meta-Wiki (User:Fox).',['Culture.Media','STEM.Technology','Culture.Internet culture','Geography.Americas.North_America'],['Wikimedia Foundation','Wikipedia policies','Internet governance','Free knowledge movement'],['Culture.Media','STEM.Technology','Culture.Internet culture','Geography.Americas.North_America'],['Wikimedia Foundation','Wikipedia project pages','Internet culture','Free content'],16,'green','Low revert risk \u2014 experienced WMF-affiliated editor',[24,22,20,19,18,17,18,16,17,16,16,16],['2020','2021','2022','2023','2024','2025'],'Quiet Altruist','primary','Motivated by contribution to social good. Consistent contributor.',[120,110,130,140,120,100,115,125,130,120,110,105,115,120,110,100,95,105,110,100,95,90,100,95],['2020','','','','2022','','','','2024','','','2025'],'Low but consistent editing volume. Steady contributor without major spikes or drops.')
+],
+article:[
+  {id:'a1',name:'Photosynthesis',subtitle:'en.wikipedia.org \u00b7 Featured Article',attrs:{
+    _sections:{'Overview':['Article Age','Contributors','Pageviews','Traffic Patterns','Content Safety'],'Themes':['Topics','Categories','Relevant Countries'],'Trust Indicators':['Predicted Quality','Reference Risk','Completeness','Controversiality','Vandalism Susceptibility'],'Impact':['Readability','Reading Propensity','Editing Propensity','Thanks Received','External Impact']},
+    'Article Age':{value:'23 years',detail:'Created: November 2001',source:'extracted',method:'From page creation date via MediaWiki API.'},
+    'Contributors':{value:'3,412',detail:'Unique editors all-time',source:'extracted',method:'Distinct editor count from page history.'},
+    'Pageviews':{value:'~145,000/mo',detail:'Average monthly (last 12 months)',source:'extracted',method:'Wikimedia Pageviews API.'},
+    'Traffic Patterns':{value:'Stable',type:'status',status:'medium',detail:'+2% vs. last month. Consistent academic/educational traffic with seasonal school-year peaks.',source:'extracted',method:'Pageview trend analysis via Wikimedia Pageviews API.'},
+    'Content Safety':{value:'Safe for all ages',type:'badge-single',badgeClass:'success',detail:'No content requiring adult review identified.',source:'claude',method:'Generated by Claude based on article subject matter analysis.'},
+    'Topics':{value:['STEM.Biology','STEM.Chemistry','STEM.Earth and environment'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by the Language-agnostic link-based article topic model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language_agnostic_link-based_article_topic'},
+    'Categories':{value:['Photosynthesis','Metabolism','Ecosystems','Plant physiology','Carbon fixation'],type:'badges',badgeClass:'',source:'extracted',method:'Extracted from the article\u2019s Wikipedia category taxonomy.'},
+    'Relevant Countries':{value:['Global topic \u2014 not country-specific'],type:'badges',badgeClass:'',source:'wmf-model',method:'Predicted by the Article country model. No strong country association.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Article_country'},
+    'Predicted Quality':{value:'Featured Article',type:'quality',stars:5,detail:'Score: 0.97 \u2014 Highest quality.',source:'wmf-model',method:'Predicted by the Language-agnostic Wikipedia article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:12,type:'score',color:'green',detail:'Very low risk \u2014 predominantly peer-reviewed journals and textbooks.',source:'wmf-model',method:'Predicted by the Language-agnostic reference risk model. Average risk across all article references.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Completeness':{value:92,type:'score',color:'green',detail:'Comprehensive Featured Article. Covers mechanisms, history, research, and ecology.',source:'claude',method:'Generated by Claude based on article structure and subtopic coverage.'},
+    'Controversiality':{value:8,type:'score',color:'green',detail:'Very low \u2014 stable scientific topic.',source:'claude',method:'Estimated from edit war history and talk page disputes.'},
+    'Vandalism Susceptibility':{value:35,type:'score',color:'yellow',detail:'Moderate \u2014 high-traffic educational article attracts occasional school-related vandalism.',source:'claude',method:'Generated by Claude based on traffic patterns and protection history.'},
+    'Readability':{value:38,type:'score',color:'yellow',detail:'College level \u2014 dense scientific vocabulary.',source:'wmf-model',method:'Predicted by the Multilingual readability model (0\u2013100, higher = easier).',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Reading Propensity':{value:72,type:'score',color:'green',detail:'High \u2014 readers frequently continue to related biology and chemistry articles.',source:'claude',method:'Generated by Claude based on internal link density and topic interconnectedness.'},
+    'Editing Propensity':{value:68,type:'score',color:'blue',detail:'Moderate-high \u2014 editors tend to also edit related biology and chemistry articles.',source:'claude',method:'Generated by Claude based on contributor overlap analysis.'},
+    'Thanks Received':{value:'~320',detail:'Total thanks for edits to this article',source:'extracted',method:'Aggregated from MediaWiki Thanks log.'},
+    'External Impact':{value:88,type:'score',color:'green',detail:'Very high \u2014 linked from Khan Academy, Britannica, university course pages, and educational blogs.',source:'claude',method:'Generated by Claude based on external link analysis.'}
+  }},
+  {id:'a2',name:'Beyonc\u00e9',subtitle:'en.wikipedia.org \u00b7 Featured Article',attrs:{
+    _sections:{'Overview':['Article Age','Contributors','Pageviews','Traffic Patterns','Content Safety'],'Themes':['Topics','Categories','Relevant Countries'],'Trust Indicators':['Predicted Quality','Reference Risk','Completeness','Controversiality','Vandalism Susceptibility'],'Impact':['Readability','Reading Propensity','Editing Propensity','Thanks Received','External Impact']},
+    'Article Age':{value:'22 years',detail:'Created: October 2003',source:'extracted',method:'From page creation date.'},
+    'Contributors':{value:'9,200+',detail:'Unique editors',source:'extracted',method:'Distinct editor count.'},
+    'Pageviews':{value:'~980,000/mo',detail:'Very high traffic',source:'extracted',method:'Wikimedia Pageviews API.'},
+    'Traffic Patterns':{value:'Event-driven spikes',type:'status',status:'high',detail:'+12% vs. last month. Surges around album releases, tours, film premieres, and award shows.',source:'extracted',method:'Pageview trend analysis.'},
+    'Content Safety':{value:'Safe for all ages',type:'badge-single',badgeClass:'success',detail:'No content requiring adult review identified.',source:'claude',method:'Generated by Claude based on article subject matter analysis.'},
+    'Topics':{value:['Culture.Biography','Culture.Performing arts.Music','Geography.Americas.North_America'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by outlink topic model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language_agnostic_link-based_article_topic'},
+    'Categories':{value:['American singer-songwriters','Grammy Award winners','Destiny\u2019s Child members','1981 births','People from Houston, Texas'],type:'badges',badgeClass:'',source:'extracted',method:'Extracted from Wikipedia category taxonomy.'},
+    'Relevant Countries':{value:['United States'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by Article country model via Wikidata citizenship.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Article_country'},
+    'Predicted Quality':{value:'Featured Article',type:'quality',stars:5,detail:'Score: 0.96 \u2014 Comprehensive, well-sourced biography.',source:'wmf-model',method:'Predicted by the Language-agnostic article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:15,type:'score',color:'green',detail:'Low risk \u2014 references include Rolling Stone, Billboard, NYT, Grammy.com.',source:'wmf-model',method:'Predicted by the Language-agnostic reference risk model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Completeness':{value:93,type:'score',color:'green',detail:'Very thorough. Covers early life, Destiny\u2019s Child, solo career, acting, business ventures, activism, and cultural impact.',source:'claude',method:'Generated by Claude based on article structure analysis.'},
+    'Controversiality':{value:38,type:'score',color:'yellow',detail:'Moderate \u2014 BLP-related disputes over personal life details, cultural impact framing, and fan-added superlatives.',source:'claude',method:'Estimated from edit war history and page protection logs.'},
+    'Vandalism Susceptibility':{value:75,type:'score',color:'red',detail:'High \u2014 extremely high-traffic celebrity article is a frequent vandalism target.',source:'claude',method:'Generated by Claude based on traffic patterns and celebrity vandalism rates.'},
+    'Readability':{value:70,type:'score',color:'green',detail:'Accessible \u2014 clear biographical prose suitable for general audiences.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Reading Propensity':{value:84,type:'score',color:'green',detail:'Very high \u2014 readers frequently continue to discography, Destiny\u2019s Child, Jay-Z, and related artist pages.',source:'claude',method:'Generated by Claude based on internal link density and celebrity browsing patterns.'},
+    'Editing Propensity':{value:42,type:'score',color:'yellow',detail:'Moderate \u2014 many editors are single-purpose or fan editors who do not edit widely beyond this topic.',source:'claude',method:'Generated by Claude based on contributor editing breadth analysis.'},
+    'Thanks Received':{value:'~920',detail:'High volume \u2014 active editor community maintaining this high-traffic article',source:'extracted',method:'Aggregated from MediaWiki Thanks log.'},
+    'External Impact':{value:96,type:'score',color:'green',detail:'Extremely high \u2014 among the most-viewed Wikipedia articles globally. Referenced by CNN, BBC, NYT, AllMusic, Spotify, IMDb, and social media platforms.',source:'claude',method:'Generated by Claude based on external link analysis.'}
+  }},
+  {id:'a3',name:'Russo-Ukrainian War',subtitle:'en.wikipedia.org \u00b7 B-class',attrs:{
+    _sections:{'Overview':['Article Age','Contributors','Pageviews','Traffic Patterns','Content Safety'],'Themes':['Topics','Categories','Relevant Countries'],'Trust Indicators':['Predicted Quality','Reference Risk','Completeness','Controversiality','Vandalism Susceptibility'],'Impact':['Readability','Reading Propensity','Editing Propensity','Thanks Received','External Impact']},
+    'Article Age':{value:'11 years',detail:'Created: March 2014',source:'extracted',method:'From page creation date.'},
+    'Contributors':{value:'5,892',detail:'Unique editors',source:'extracted',method:'Distinct editor count.'},
+    'Pageviews':{value:'~320,000/mo',detail:'High traffic, event-driven',source:'extracted',method:'Pageviews API.'},
+    'Traffic Patterns':{value:'Volatile',type:'status',status:'low',detail:'Dramatic spikes with breaking news. Traffic can 10x during major developments.',source:'extracted',method:'Pageview trend analysis.'},
+    'Content Safety':{value:'Adult review recommended',type:'badge-single',badgeClass:'warning',detail:'Contains descriptions of armed conflict, casualties, and war crimes. An adult should review before sharing with children.',source:'claude',method:'Generated by Claude. Armed conflict articles flagged for adult discretion.'},
+    'Topics':{value:['History.Military history','Geography.Europe.Eastern_Europe','Culture.Politics and government'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by outlink topic model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language_agnostic_link-based_article_topic'},
+    'Categories':{value:['Russo-Ukrainian War','Conflicts in 2022','Russia\u2013Ukraine relations','European wars','Invasions'],type:'badges',badgeClass:'',source:'extracted',method:'Extracted from Wikipedia category taxonomy.'},
+    'Relevant Countries':{value:['Ukraine','Russia'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by Article country model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Article_country'},
+    'Predicted Quality':{value:'B-class',type:'quality',stars:3,detail:'Score: 0.62 \u2014 Useful but room for improvement.',source:'wmf-model',method:'Predicted by the Language-agnostic article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:28,type:'score',color:'yellow',detail:'Moderate risk \u2014 mix of quality journalism and fast-moving news sources.',source:'wmf-model',method:'Predicted by the Language-agnostic reference risk model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Completeness':{value:58,type:'score',color:'yellow',detail:'Incomplete \u2014 ongoing conflict makes comprehensive coverage challenging.',source:'claude',method:'Generated by Claude based on article structure analysis.'},
+    'Controversiality':{value:89,type:'score',color:'red',detail:'Very high \u2014 active conflict, edit warring, page protection, ArbCom cases.',source:'claude',method:'Estimated from protection logs and ArbCom cases.'},
+    'Vandalism Susceptibility':{value:82,type:'score',color:'red',detail:'Very high \u2014 attracts propaganda, POV-pushing, and state-sponsored editing.',source:'claude',method:'Generated by Claude based on topic sensitivity and geopolitical editing patterns.'},
+    'Readability':{value:52,type:'score',color:'yellow',detail:'Moderate \u2014 complex geopolitical content with military terminology.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Reading Propensity':{value:85,type:'score',color:'green',detail:'Very high \u2014 readers continue to related conflict articles and key figures. Breaking news drives deep browsing.',source:'claude',method:'Generated by Claude based on link density and news-driven reading behavior.'},
+    'Editing Propensity':{value:62,type:'score',color:'blue',detail:'Moderate-high \u2014 editors tend to also work on related conflict and geopolitics articles.',source:'claude',method:'Generated by Claude based on contributor editing patterns.'},
+    'Thanks Received':{value:'~1,450',detail:'Very high \u2014 intensive collaborative effort during ongoing conflict',source:'extracted',method:'Aggregated from MediaWiki Thanks log.'},
+    'External Impact':{value:91,type:'score',color:'green',detail:'Very high \u2014 cited by Reuters, AP, BBC, think tanks (CSIS, RUSI), and government briefings.',source:'claude',method:'Generated by Claude based on external link analysis.'}
+  }},
+  {id:'a4',name:'Kintsugi',subtitle:'en.wikipedia.org \u00b7 C-class',attrs:{
+    _sections:{'Overview':['Article Age','Contributors','Pageviews','Traffic Patterns','Content Safety'],'Themes':['Topics','Categories','Relevant Countries'],'Trust Indicators':['Predicted Quality','Reference Risk','Completeness','Controversiality','Vandalism Susceptibility'],'Impact':['Readability','Reading Propensity','Editing Propensity','Thanks Received','External Impact']},
+    'Article Age':{value:'17 years',detail:'Created: May 2008',source:'extracted',method:'From page creation date.'},
+    'Contributors':{value:'612',detail:'Unique editors',source:'extracted',method:'Distinct editor count.'},
+    'Pageviews':{value:'~78,000/mo',detail:'Steady interest',source:'extracted',method:'Pageviews API.'},
+    'Traffic Patterns':{value:'Stable with cultural spikes',type:'status',status:'medium',detail:'-1% vs. last month. Occasional spikes from media/design trends.',source:'extracted',method:'Pageview trend analysis.'},
+    'Content Safety':{value:'Safe for all ages',type:'badge-single',badgeClass:'success',detail:'No content requiring adult review.',source:'claude',method:'Generated by Claude based on article subject matter analysis.'},
+    'Topics':{value:['Culture.Visual_arts','Culture.Philosophy and religion','Geography.Asia.East_Asia'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by outlink topic model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language_agnostic_link-based_article_topic'},
+    'Categories':{value:['Japanese art','Ceramics','Pottery','Wabi-sabi','Conservation and restoration'],type:'badges',badgeClass:'',source:'extracted',method:'Extracted from Wikipedia category taxonomy.'},
+    'Relevant Countries':{value:['Japan'],type:'badges',badgeClass:'primary',source:'wmf-model',method:'Predicted by Article country model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Article_country'},
+    'Predicted Quality':{value:'C-class',type:'quality',stars:2,detail:'Score: 0.41 \u2014 Needs better structure and sourcing.',source:'wmf-model',method:'Predicted by the Language-agnostic article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:45,type:'score',color:'yellow',detail:'Moderate risk \u2014 mix of academic and popular sources; some blogs.',source:'wmf-model',method:'Predicted by the Language-agnostic reference risk model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Completeness':{value:42,type:'score',color:'yellow',detail:'Partial \u2014 covers philosophy and technique but lacks depth on history and contemporary practice.',source:'claude',method:'Generated by Claude based on article structure analysis.'},
+    'Controversiality':{value:3,type:'score',color:'green',detail:'Very low \u2014 peaceful subject.',source:'claude',method:'Estimated from edit patterns.'},
+    'Vandalism Susceptibility':{value:15,type:'score',color:'green',detail:'Low \u2014 niche cultural topic.',source:'claude',method:'Generated by Claude based on topic characteristics.'},
+    'Readability':{value:65,type:'score',color:'green',detail:'Accessible \u2014 clear prose, some Japanese terminology.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Reading Propensity':{value:58,type:'score',color:'yellow',detail:'Moderate \u2014 some explore related Japanese art articles; many arrive via social media and leave.',source:'claude',method:'Generated by Claude based on traffic source analysis.'},
+    'Editing Propensity':{value:52,type:'score',color:'yellow',detail:'Moderate \u2014 editors tend to also edit Japanese art and culture articles.',source:'claude',method:'Generated by Claude based on contributor editing patterns.'},
+    'Thanks Received':{value:'~45',detail:'Low volume reflecting smaller editor community',source:'extracted',method:'Aggregated from MediaWiki Thanks log.'},
+    'External Impact':{value:62,type:'score',color:'blue',detail:'Moderate \u2014 referenced in Dezeen, Colossal, self-help/wellness, art education, and craft communities.',source:'claude',method:'Generated by Claude based on external link analysis.'}
+  }}
+],
+section:[
+  {id:'s1',name:'Coco Gauff \u2013 Early life',subtitle:'en.wikipedia.org \u00b7 Section',
+   sectionText:'Cori Dionne "Coco" Gauff was born on March 13, 2004, in Delray Beach, Florida. Her father, Corey Gauff, played basketball at Georgia State University, while her mother, Candi Odom Gauff, was a track and field athlete at Florida State University. Both parents gave up their careers to support their daughter\u2019s tennis training. Gauff began playing tennis at the age of six and, by seven, was training with a pro two hours a day. She won the Little Mo 8-under Nationals in 2012. At the age of 10, she began training at the Mouratoglou Tennis Academy in France, run by Patrick Mouratoglou, longtime coach of Serena Williams. Mouratoglou commented: "She was only 10 years old, but you could feel she was already extremely ambitious." Gauff has said that Serena and Venus Williams are her tennis idols and the reason she picked up a racquet. She has two younger brothers, Codey and Cameron. Her family relocated from Georgia to Delray Beach, Florida, to be closer to top-tier tennis training facilities.',
+   attrs:{
+    _sections:{'Publication':['Time Since Publication','Number of Citations'],'Quality Assessment':['Content Quality','Reference Risk','Readability'],'Content Analysis':['Key Entities','Key Dates','Sentiment','Common Knowledge Score','Fun Fact Score','Controversiality']},
+    'Time Since Publication':{value:'~5 years',detail:'This section text has been largely stable since c. 2020, with minor edits.',source:'extracted',method:'Determined by comparing current section wikitext against historical revisions via MediaWiki API to find when the current text substantially appeared.'},
+    'Number of Citations':{value:'8',detail:'Inline references in this section',source:'extracted',method:'Count of <ref> tags in this section\u2019s wikitext.'},
+    'Content Quality':{value:'B-class',type:'quality',stars:3,detail:'Score: 0.65 \u2014 Well-structured biographical section with good sourcing.',source:'wmf-model',method:'Predicted by the Language-agnostic Wikipedia article quality model applied to this section.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:20,type:'score',color:'green',detail:'Low risk \u2014 sources include Sports Illustrated, UPI, and official WTA records.',source:'wmf-model',method:'Average reference risk across citations in this section.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Readability':{value:72,type:'score',color:'green',detail:'Easy to read \u2014 clear biographical narrative accessible to general audiences.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Key Entities':{value:['Coco Gauff','Corey Gauff','Candi Odom Gauff','Georgia State University','Florida State University','Mouratoglou Tennis Academy','Patrick Mouratoglou','Serena Williams','Venus Williams','Delray Beach'],type:'badges',badgeClass:'primary',source:'claude',method:'Named entity recognition by Claude.'},
+    'Key Dates':{value:['March 13, 2004 (birth)','2012 (Little Mo title)','Age 10 / 2014 (Mouratoglou Academy)'],type:'badges',badgeClass:'',source:'claude',method:'Temporal entity extraction by Claude.'},
+    'Sentiment':{value:['Inspirational','Admiring','Aspirational'],type:'badges',badgeClass:'success',source:'claude',method:'Sentiment analysis by Claude. This section conveys admiration for Gauff\u2019s early determination, family sacrifice, and ambitious spirit.'},
+    'Common Knowledge Score':{value:35,type:'score',color:'yellow',detail:'Moderate \u2014 many details (family background, training at Mouratoglou, childhood wins) are not widely known outside tennis fans.',source:'claude',method:'Generated by Claude. Estimates what percentage of content would be considered common knowledge by an average reader.'},
+    'Fun Fact Score':{value:72,type:'score',color:'green',detail:'High density of fun-fact-worthy details.',source:'claude',method:'Generated by Claude based on density of surprising, memorable, or share-worthy statements.',funFacts:['Both of Gauff\u2019s parents gave up their careers entirely to train and homeschool their daughter.','Gauff began training at Serena Williams\u2019 coach\u2019s academy in France at just 10 years old.','She won a national tennis title at age 8, which she credits as the moment she decided to pursue tennis for life.']},
+    'Controversiality':{value:5,type:'score',color:'green',detail:'Very low \u2014 standard biographical content with no editorial disputes.',source:'claude',method:'Estimated from talk page activity and edit patterns for this section.'}
+  }},
+  {id:'s2',name:'Atmosphere of Jupiter \u2013 Chemical composition',subtitle:'en.wikipedia.org \u00b7 Section',
+   sectionText:'The composition of Jupiter\u2019s atmosphere is similar to that of the planet as a whole. The two main constituents are molecular hydrogen (H\u2082) and helium. The helium abundance is 0.157 \u00b1 0.0036 relative to molecular hydrogen by number of molecules, and its mass fraction is 0.234 \u00b1 0.005, which is slightly lower than the primordial solar value. The atmosphere contains various simple compounds such as water, methane (CH\u2084), hydrogen sulfide (H\u2082S), ammonia (NH\u2083) and phosphine (PH\u2083). Their abundances in the deep troposphere imply that Jupiter is enriched in carbon, nitrogen, sulfur and possibly oxygen by a factor of 2\u20134 relative to the Sun. The noble gases argon, krypton and xenon appear enriched relative to solar abundances as well, while neon is scarcer. The upper atmosphere contains small amounts of simple hydrocarbons such as ethane, acetylene, and diacetylene, which form from methane under the influence of solar ultraviolet radiation and charged particles from Jupiter\u2019s magnetosphere. Carbon dioxide, carbon monoxide and water present in the upper atmosphere are thought to originate from impacting comets, such as Shoemaker-Levy 9.',
+   attrs:{
+    _sections:{'Publication':['Time Since Publication','Number of Citations'],'Quality Assessment':['Content Quality','Reference Risk','Readability'],'Content Analysis':['Key Entities','Key Dates','Sentiment','Common Knowledge Score','Fun Fact Score','Controversiality']},
+    'Time Since Publication':{value:'~8 years',detail:'Core text stable since c. 2017; minor updates for precision.',source:'extracted',method:'Historical revision comparison.'},
+    'Number of Citations':{value:'12',detail:'Inline references including Galileo probe data and spectroscopic studies',source:'extracted',method:'Count of <ref> tags.'},
+    'Content Quality':{value:'Good Article',type:'quality',stars:4,detail:'Score: 0.82 \u2014 Well-sourced, detailed scientific content.',source:'wmf-model',method:'Predicted by the Language-agnostic Wikipedia article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:8,type:'score',color:'green',detail:'Very low risk \u2014 all references are peer-reviewed journals and NASA mission data.',source:'wmf-model',method:'Average reference risk for this section.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Readability':{value:28,type:'score',color:'red',detail:'Difficult \u2014 heavy use of chemical formulas, scientific notation, and technical terminology.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Key Entities':{value:['Jupiter','molecular hydrogen','helium','methane','ammonia','phosphine','Shoemaker-Levy 9','magnetosphere','solar nebula'],type:'badges',badgeClass:'primary',source:'claude',method:'Named entity recognition by Claude.'},
+    'Key Dates':{value:['December 7, 1995 (Galileo probe entry, referenced in sources)'],type:'badges',badgeClass:'',source:'claude',method:'Temporal entity extraction by Claude.'},
+    'Sentiment':{value:['Neutral / scientific','Informational','Precise'],type:'badges',badgeClass:'success',source:'claude',method:'Sentiment analysis by Claude. Encyclopedic, data-driven, objective scientific tone.'},
+    'Common Knowledge Score':{value:15,type:'score',color:'red',detail:'Low \u2014 highly specialized content. Most readers would not know the specific chemical ratios or enrichment factors.',source:'claude',method:'Generated by Claude. Estimates common knowledge percentage.'},
+    'Fun Fact Score':{value:55,type:'score',color:'yellow',detail:'Moderate \u2014 some surprising details embedded in technical content.',source:'claude',method:'Generated by Claude based on density of surprising statements.',funFacts:['Jupiter\u2019s atmosphere gets carbon dioxide and water from comet impacts, including the famous Shoemaker-Levy 9 collision.','Neon on Jupiter is about 10 times scarcer than in the Sun, because it rains down as helium-rich droplets deep inside the planet.']},
+    'Controversiality':{value:3,type:'score',color:'green',detail:'Very low \u2014 well-established scientific consensus.',source:'claude',method:'Estimated from edit patterns for this section.'}
+  }},
+  {id:'s3',name:'Giant panda \u2013 Behavior',subtitle:'en.wikipedia.org \u00b7 Section',
+   sectionText:'The giant panda is a solitary animal which gathers only during mating season. It spends 10\u201316 hours a day feeding, mainly on bamboo. Despite being classified as a carnivore, its diet is over 99% bamboo. It can consume 12 to 38 kilograms of bamboo per day to compensate for the low energy content of its food. Giant pandas are good swimmers and surprisingly agile tree climbers. Cubs begin climbing at around five months old, sometimes practicing by climbing on their mother. The panda relies heavily on olfactory communication, using scent marks deposited on trees, rocks, and the ground as chemical cues. Both males and females mark their territory with urine and glandular secretions. During breeding season, females secrete chemical cues including civetone and decanoic acid, which are considered pheromones and promote behavioral responses in males. Giant pandas do not hibernate, as their low-calorie bamboo diet prevents them from building sufficient fat reserves. Pandas have been observed rolling in fresh horse manure, which scientists believe may help numb them to cold temperatures due to sesquiterpenes found in the dung.',
+   attrs:{
+    _sections:{'Publication':['Time Since Publication','Number of Citations'],'Quality Assessment':['Content Quality','Reference Risk','Readability'],'Content Analysis':['Key Entities','Key Dates','Sentiment','Common Knowledge Score','Fun Fact Score','Controversiality']},
+    'Time Since Publication':{value:'~4 years',detail:'Section substantially revised c. 2021\u20132022 with new behavioral research.',source:'extracted',method:'Historical revision comparison.'},
+    'Number of Citations':{value:'18',detail:'Mix of field studies, zoo observations, and chemical analysis papers',source:'extracted',method:'Count of <ref> tags.'},
+    'Content Quality':{value:'B-class',type:'quality',stars:3,detail:'Score: 0.68 \u2014 Good coverage with strong sourcing from field research.',source:'wmf-model',method:'Predicted by the Language-agnostic article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:14,type:'score',color:'green',detail:'Low risk \u2014 primarily peer-reviewed zoological studies and conservation reports.',source:'wmf-model',method:'Average reference risk for section citations.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Readability':{value:68,type:'score',color:'green',detail:'Accessible \u2014 engaging natural history writing with some scientific terms explained in context.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Key Entities':{value:['giant panda','bamboo','civetone','decanoic acid','sesquiterpenes','magnetosphere'],type:'badges',badgeClass:'primary',source:'claude',method:'Named entity recognition by Claude.'},
+    'Key Dates':{value:['No specific dates mentioned in this section'],type:'badges',badgeClass:'',source:'claude',method:'Temporal entity extraction by Claude.'},
+    'Sentiment':{value:['Informative','Endearing','Mildly humorous'],type:'badges',badgeClass:'success',source:'claude',method:'Sentiment analysis by Claude. The section blends scientific detail with charming behavioral observations.'},
+    'Common Knowledge Score':{value:40,type:'score',color:'yellow',detail:'Mixed \u2014 most people know pandas eat bamboo, but details about pheromones, horse manure rolling, and non-hibernation are not widely known.',source:'claude',method:'Generated by Claude.'},
+    'Fun Fact Score':{value:88,type:'score',color:'green',detail:'Very high \u2014 packed with surprising and delightful facts.',source:'claude',method:'Generated by Claude based on density of memorable statements.',funFacts:['Despite being classified as carnivores, giant pandas eat a diet that is over 99% bamboo.','Pandas roll in fresh horse manure to stay warm \u2014 chemicals in the dung numb their sensitivity to cold.','Pandas don\u2019t hibernate because their bamboo diet doesn\u2019t give them enough calories to build fat reserves.','Female pandas secrete civetone (also used in perfumes) as a pheromone during mating season.']},
+    'Controversiality':{value:2,type:'score',color:'green',detail:'Very low \u2014 non-controversial natural history content.',source:'claude',method:'Estimated from edit patterns.'}
+  }},
+  {id:'s4',name:'Nestl\u00e9 \u2013 Controversies',subtitle:'en.wikipedia.org \u00b7 Section',
+   sectionText:'Nestl\u00e9 has been involved in a significant number of controversies and has been criticized for its business practices since the 1970s. The company has faced criticism for its aggressive marketing of breast milk substitutes in developing countries, where it was accused of discouraging mothers from breastfeeding by distributing free formula samples in maternity wards and dressing salespeople as nurses. This led to a boycott launched in 1977 which spread internationally. Nestl\u00e9 has also been accused of using child labor in its cocoa supply chains; in 2021, the company was sued by eight former child workers who alleged Nestl\u00e9 aided and abetted illegal enslavement on Ivory Coast cocoa farms. The company has faced criticism for its water extraction practices, including pumping from drought-affected watersheds in California, Michigan, and Canada, paying minimal fees for water it bottles and sells under brands like Poland Spring and Arrowhead. In China, six Nestl\u00e9 employees were given prison sentences for bribing hospital staff to obtain patient records and promote infant formula. The company has also been criticized for contaminated food products, plastic pollution, and environmental damage.',
+   attrs:{
+    _sections:{'Publication':['Time Since Publication','Number of Citations'],'Quality Assessment':['Content Quality','Reference Risk','Readability'],'Content Analysis':['Key Entities','Key Dates','Sentiment','Common Knowledge Score','Fun Fact Score','Controversiality']},
+    'Time Since Publication':{value:'~2 years',detail:'Section is frequently updated as new controversies emerge. Most recent substantial revision c. 2023.',source:'extracted',method:'Historical revision comparison.'},
+    'Number of Citations':{value:'42',detail:'Dense referencing from investigative journalism, court documents, NGO reports, and WHO publications',source:'extracted',method:'Count of <ref> tags.'},
+    'Content Quality':{value:'B-class',type:'quality',stars:3,detail:'Score: 0.71 \u2014 Well-sourced investigative content, though structure could be improved.',source:'wmf-model',method:'Predicted by the Language-agnostic article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:32,type:'score',color:'yellow',detail:'Moderate risk \u2014 mix of quality investigative journalism and advocacy organization reports which may carry inherent bias.',source:'wmf-model',method:'Average reference risk for section citations.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Readability':{value:62,type:'score',color:'green',detail:'Moderately accessible \u2014 straightforward language but complex corporate and legal subject matter.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Key Entities':{value:['Nestl\u00e9','WHO','Baby Milk Action','Ivory Coast','Poland Spring','Arrowhead','War On Want','IBFAN','California','Michigan'],type:'badges',badgeClass:'primary',source:'claude',method:'Named entity recognition by Claude.'},
+    'Key Dates':{value:['1970s (formula marketing criticism begins)','1977 (boycott launched)','2021 (child labor lawsuit)','2017 (China prison sentences)'],type:'badges',badgeClass:'',source:'claude',method:'Temporal entity extraction by Claude.'},
+    'Sentiment':{value:['Critical','Accusatory','Investigative'],type:'badges',badgeClass:'danger',source:'claude',method:'Sentiment analysis by Claude. Tone is strongly critical of Nestl\u00e9\u2019s corporate practices, consistent with investigative reporting.'},
+    'Common Knowledge Score':{value:55,type:'score',color:'yellow',detail:'Moderate \u2014 the baby formula controversy is relatively well-known; child labor and water extraction less so.',source:'claude',method:'Generated by Claude.'},
+    'Fun Fact Score':{value:18,type:'score',color:'red',detail:'Low \u2014 this section is serious investigative content, not conducive to lighthearted fun facts.',source:'claude',method:'Generated by Claude. Serious corporate misconduct content.'},
+    'Controversiality':{value:92,type:'score',color:'red',detail:'Extremely high \u2014 this section is itself about controversies and is subject to frequent editing by corporate interests, activist editors, and neutrality disputes. Active talk page discussions.',source:'claude',method:'Estimated from edit war frequency, talk page volume, and page protection logs for this section.'}
+  }},
+  {id:'s5',name:'Moo Deng',subtitle:'en.wikipedia.org \u00b7 Article',
+   sectionText:'Moo Deng (Thai: \u0e2b\u0e21\u0e39\u0e40\u0e14\u0e49\u0e07, meaning "bouncy pork" or "bouncy pig") is a female pygmy hippopotamus born on July 10, 2024, at Khao Kheow Open Zoo in Si Racha, Chonburi Province, Thailand. She is the offspring of Tony and Jonah. Moo Deng went viral on social media in September 2024 after photos and videos of her were shared widely, particularly on platforms like X (formerly Twitter), Instagram, and TikTok. Her round body, expressive face, and playful interactions with her zookeepers captured the public\u2019s attention globally. The zoo reported a 300% increase in visitors following her viral fame. Moo Deng\u2019s popularity led to a range of merchandise and fan art, and she was referenced in a Saturday Night Live sketch in October 2024. The zoo installed surveillance cameras after visitors threw objects at her to try to wake her or get a reaction. A Thai law protecting wildlife was invoked to deter harassment of the animal. Moo Deng\u2019s fame also brought attention to pygmy hippopotamus conservation; the species is classified as Endangered on the IUCN Red List, with only an estimated 2,000\u20133,000 remaining in the wild in West Africa.',
+   attrs:{
+    _sections:{'Publication':['Time Since Publication','Number of Citations'],'Quality Assessment':['Content Quality','Reference Risk','Readability'],'Content Analysis':['Key Entities','Key Dates','Sentiment','Common Knowledge Score','Fun Fact Score','Controversiality']},
+    'Time Since Publication':{value:'~5 months',detail:'Article created September 2024; content still being actively expanded.',source:'extracted',method:'Article creation date from MediaWiki API.'},
+    'Number of Citations':{value:'28',detail:'Mix of news articles, social media reports, and zoo press releases',source:'extracted',method:'Count of <ref> tags.'},
+    'Content Quality':{value:'C-class',type:'quality',stars:2,detail:'Score: 0.45 \u2014 Rapidly written article about a current event; structure and depth still developing.',source:'wmf-model',method:'Predicted by the Language-agnostic article quality model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality'},
+    'Reference Risk':{value:40,type:'score',color:'yellow',detail:'Moderate risk \u2014 many references are news/social media coverage rather than authoritative sources.',source:'wmf-model',method:'Average reference risk for article citations.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk'},
+    'Readability':{value:78,type:'score',color:'green',detail:'Very easy to read \u2014 light, engaging topic with simple vocabulary.',source:'wmf-model',method:'Predicted by the Multilingual readability model.',link:'https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card'},
+    'Key Entities':{value:['Moo Deng','pygmy hippopotamus','Khao Kheow Open Zoo','Si Racha','Chonburi Province','Thailand','Tony','Jonah','Saturday Night Live','IUCN Red List'],type:'badges',badgeClass:'primary',source:'claude',method:'Named entity recognition by Claude.'},
+    'Key Dates':{value:['July 10, 2024 (born)','September 2024 (went viral)','October 2024 (SNL sketch)'],type:'badges',badgeClass:'',source:'claude',method:'Temporal entity extraction by Claude.'},
+    'Sentiment':{value:['Lighthearted','Endearing','Celebratory'],type:'badges',badgeClass:'success',source:'claude',method:'Sentiment analysis by Claude. The article conveys warmth, humor, and internet-era affection for a charismatic baby animal.'},
+    'Common Knowledge Score':{value:62,type:'score',color:'blue',detail:'Moderate-high \u2014 Moo Deng was a major viral phenomenon in 2024; most internet users would recognize the name, though details about pygmy hippo conservation are less known.',source:'claude',method:'Generated by Claude.'},
+    'Fun Fact Score':{value:92,type:'score',color:'green',detail:'Extremely high \u2014 the entire article is essentially a collection of delightful facts.',source:'claude',method:'Generated by Claude based on density of surprising and shareable statements.',funFacts:['Moo Deng\u2019s name means "bouncy pork" in Thai.','Her viral fame caused a 300% increase in zoo visitors.','She was featured in a Saturday Night Live sketch just weeks after going viral.','The zoo installed surveillance cameras because visitors kept throwing things at her to wake her up.','Pygmy hippos are one of the rarest large mammals on Earth, with only 2,000\u20133,000 left in the wild.']},
+    'Controversiality':{value:18,type:'score',color:'green',detail:'Low \u2014 minor disputes about notability (whether a baby hippo warrants a Wikipedia article) and weight given to social media sourcing, but generally lighthearted topic.',source:'claude',method:'Estimated from talk page discussions about notability and sourcing.'}
+  }}
+]};
+let currentType='user',currentEntityIndex=0,activeTooltip=null,tipN=0;
+function init(){
+  document.querySelectorAll('.entity-tab').forEach(t=>t.addEventListener('click',()=>{currentType=t.dataset.type;currentEntityIndex=0;updateTabs();populateSelect();renderEntity()}));
+  document.getElementById('entitySelect').addEventListener('change',e=>{currentEntityIndex=parseInt(e.target.value);renderEntity()});
+  document.getElementById('tooltipOverlay').addEventListener('click',closeTooltips);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTooltips()});
+  populateSelect();renderEntity();
+}
+function updateTabs(){document.querySelectorAll('.entity-tab').forEach(t=>{const a=t.dataset.type===currentType;t.classList.toggle('active',a);t.setAttribute('aria-selected',a)})}
+function updateLegend(){
+  const e=DATA[currentType][currentEntityIndex];if(!e)return;
+  const s=new Set();Object.entries(e.attrs).forEach(([k,v])=>{if(k!=='_sections'&&v.source)s.add(v.source)});
+  document.getElementById('legendBar').innerHTML=[...s].map(x=>`<div class="legend-item"><span class="source-dot ${x}"></span> ${SL[x]||x}</div>`).join('');
+}
+function populateSelect(){
+  const sel=document.getElementById('entitySelect'),ents=DATA[currentType];
+  sel.innerHTML=ents.map((e,i)=>`<option value="${i}">${e.name}</option>`).join('');sel.value=currentEntityIndex;
+}
+function renderEntity(){
+  closeTooltips();
+  const entity=DATA[currentType][currentEntityIndex];if(!entity)return;updateLegend();
+  const tl={user:'User',article:'Article',section:'Section'};
+  document.getElementById('entityHeader').innerHTML=`<div class="entity-header"><div class="entity-title">${entity.name}<span class="entity-type-badge">${tl[currentType]}</span></div>${entity.subtitle?`<div class="entity-subtitle">${entity.subtitle}</div>`:''}</div>`;
+  // Section text toggle
+  const sta=document.getElementById('sectionTextArea');
+  if(currentType==='section'&&entity.sectionText){
+    sta.innerHTML=`<div class="section-text-toggle"><div class="section-text-header" id="sectionToggleBtn"><span>\ud83d\udcc4 View section text</span><span class="chevron">\u25bc</span></div><div class="section-text-body" id="sectionToggleBody">${entity.sectionText}</div></div>`;
+    document.getElementById('sectionToggleBtn').addEventListener('click',function(){this.classList.toggle('open');document.getElementById('sectionToggleBody').classList.toggle('open')});
+  }else{sta.innerHTML=''}
+  const grid=document.getElementById('attributesGrid'),attrs=entity.attrs,sections=attrs._sections;
+  let html='',ci=0;
+  if(sections){Object.entries(sections).forEach(([sn,keys])=>{html+=`<div class="section-label">${sn}</div>`;keys.forEach(k=>{if(attrs[k])html+=renderCard(k,attrs[k],ci++)})})}
+  else{Object.entries(attrs).forEach(([k,a])=>{if(k==='_sections')return;html+=renderCard(k,a,ci++)})}
+  grid.innerHTML=html;
+  requestAnimationFrame(()=>setTimeout(()=>{document.querySelectorAll('.score-bar-fill').forEach(b=>{b.style.width=b.dataset.width})},50));
+  document.querySelectorAll('.sparkline-canvas').forEach(c=>drawSparkline(c));
+  document.querySelectorAll('.attr-source-tag').forEach(t=>t.addEventListener('click',function(e){e.stopPropagation();showTooltipPopup(this,TIPS[this.dataset.tooltip])}));
+}
+function renderCard(key,attr,idx){
+  const delay=Math.min(idx*30,300),tid=`t${++tipN}`,fw=((key==='Edit Risk'&&attr.sparkline)||(key==='Editing Activity'&&attr.sparkline))?' full-width':'';
+  TIPS[tid]={method:attr.method||'',link:attr.link||''};
+  let vh='';
+  if(attr.type==='score'){
+    const c=attr.color||'blue';
+    vh=`<div class="attr-value">${attr.value}<span style="font-size:14px;font-weight:400;color:var(--tlr)"> / 100</span></div>${attr.detail?`<div class="attr-detail">${attr.detail}</div>`:''}<div class="score-bar-track"><div class="score-bar-fill ${c}" data-width="${attr.value}%"></div></div><div class="score-labels"><span>0</span><span>100</span></div>`;
+    if(attr.sparkline)vh+=`<div class="sparkline-wrap"><div class="attr-detail" style="margin-bottom:4px;font-weight:600">Risk trend over time</div><canvas class="sparkline-canvas" data-points="${attr.sparkline.join(',')}" data-color="${c}" width="500" height="60"></canvas><div class="sparkline-labels">${attr.sparkLabels.map(l=>`<span>${l}</span>`).join('')}</div></div>`;
+    if(attr.funFacts&&attr.funFacts.length>0)vh+=`<div class="fun-fact-box"><strong>\u2728 Fun facts from this section:</strong><ul style="margin:6px 0 0 16px;padding:0">${attr.funFacts.map(f=>`<li style="margin-bottom:4px">${f}</li>`).join('')}</ul></div>`;
+  }else if(attr.type==='sparkline-only'){
+    const c=attr.color||'blue';
+    vh=`${attr.detail?`<div class="attr-detail">${attr.detail}</div>`:''}<div class="sparkline-wrap"><canvas class="sparkline-canvas" data-points="${attr.sparkline.join(',')}" data-color="${c}" width="500" height="60"></canvas><div class="sparkline-labels">${attr.sparkLabels.map(l=>`<span>${l}</span>`).join('')}</div></div>`;
+  }else if(attr.type==='badges'){
+    vh=`<div class="attr-badges">${attr.value.map(v=>`<span class="attr-badge ${attr.badgeClass||''}">${v}</span>`).join('')}</div>`;
+  }else if(attr.type==='badge-single'){
+    vh=`<span class="attr-badge ${attr.badgeClass||''}" style="font-size:14px;padding:4px 14px">${attr.value}</span>${attr.detail?`<div class="attr-detail" style="margin-top:6px">${attr.detail}</div>`:''}`;
+  }else if(attr.type==='quality'){
+    const s=attr.stars||0;
+    vh=`<div style="display:flex;align-items:center;gap:10px"><span class="attr-value" style="margin-bottom:0">${attr.value}</span><span class="quality-stars">${Array.from({length:5},(_,i)=>`<span class="quality-star ${i<s?'filled':''}">★</span>`).join('')}</span></div>${attr.detail?`<div class="attr-detail">${attr.detail}</div>`:''}`;
+  }else if(attr.type==='status'){
+    vh=`<div class="status-indicator"><span class="status-dot ${attr.status}"></span><span class="attr-value small" style="margin-bottom:0">${attr.value}</span></div>${attr.detail?`<div class="attr-detail">${attr.detail}</div>`:''}`;
+  }else{
+    vh=`<div class="attr-value small">${attr.value}</div>${attr.detail?`<div class="attr-detail">${attr.detail}</div>`:''}`;
+  }
+  return `<div class="attr-card${fw}" style="animation-delay:${delay}ms"><div class="attr-card-top"><span class="attr-label">${key}</span><span class="attr-source-tag ${attr.source}" data-tooltip="${tid}" title="Click for details">${SLS[attr.source]||attr.source}</span></div>${vh}</div>`;
+}
+function showTooltipPopup(el,data){
+  if(!data)return;closeTooltips();
+  const popup=document.getElementById('tooltipPopup'),overlay=document.getElementById('tooltipOverlay');
+  let h=`<button class="tooltip-close" aria-label="Close">&times;</button><div class="tooltip-title">How this is determined</div><div class="tooltip-body">${data.method}</div>`;
+  if(data.link)h+=`<a class="tooltip-link" href="${data.link}" target="_blank" rel="noopener">View model card \u2197</a>`;
+  popup.innerHTML=h;
+  const r=el.getBoundingClientRect(),pw=320;
+  let top=r.bottom+8,left=r.right-pw;
+  if(left<8)left=8;if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
+  popup.style.top=top+'px';popup.style.left=left+'px';
+  popup.classList.add('active');overlay.classList.add('active');
+  const pr=popup.getBoundingClientRect();
+  if(pr.bottom>window.innerHeight-8){top=r.top-pr.height-8;if(top<8)top=8;popup.style.top=top+'px'}
+  activeTooltip=true;
+  popup.querySelector('.tooltip-close').addEventListener('click',closeTooltips);
+  popup.addEventListener('click',e=>e.stopPropagation());
+}
+function closeTooltips(){document.getElementById('tooltipPopup').classList.remove('active');document.getElementById('tooltipOverlay').classList.remove('active');activeTooltip=null}
+function drawSparkline(canvas){
+  const pts=canvas.dataset.points.split(',').map(Number),cn=canvas.dataset.color||'green';
+  const colors={green:'#14866d',blue:'#3366cc',red:'#d73333',yellow:'#ac6600',purple:'#6b4ba1'};
+  const color=colors[cn]||colors.green,ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,p=4;
+  const mx=Math.max(...pts,1),mn=Math.min(...pts,0),r=mx-mn||1;
+  ctx.clearRect(0,0,w,h);
+  ctx.beginPath();pts.forEach((v,i)=>{const x=p+(i/(pts.length-1))*(w-2*p),y=h-p-((v-mn)/r)*(h-2*p);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.lineTo(p+(w-2*p),h-p);ctx.lineTo(p,h-p);ctx.closePath();ctx.fillStyle=color+'18';ctx.fill();
+  ctx.beginPath();pts.forEach((v,i)=>{const x=p+(i/(pts.length-1))*(w-2*p),y=h-p-((v-mn)/r)*(h-2*p);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
+  pts.forEach((v,i)=>{const x=p+(i/(pts.length-1))*(w-2*p),y=h-p-((v-mn)/r)*(h-2*p);ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=1.5;ctx.stroke()});
+}
+document.addEventListener('DOMContentLoaded',init);
+</script></body></html>
