@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WikiLifecycle — Article Evolution Explorer</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #fafaf8;
+  --surface: #ffffff;
+  --surface-2: #f2f1ee;
+  --surface-3: #e8e7e3;
+  --border: rgba(0,0,0,0.07);
+  --border-bright: rgba(0,0,0,0.13);
+  --text: #1a1a1a;
+  --text-muted: #5c5c5c;
+  --text-dim: #9a9a9a;
+  --accent: #c8840c;
+  --accent-bg: #fdf6e8;
+  --accent-soft: rgba(200,132,12,0.08);
+  --teal: #0d8a7e;
+  --teal-soft: rgba(13,138,126,0.08);
+  --red: #c4403a;
+  --red-soft: rgba(196,64,58,0.08);
+  --wiki-blue: #3366cc;
+  --wiki-blue-soft: rgba(51,102,204,0.07);
+  --ga-green: #1a8a4a;
+  --ga-green-soft: rgba(26,138,74,0.08);
+  --purple: #7040b0;
+  --purple-soft: rgba(112,64,176,0.08);
+  --orange: #c06020;
+  --orange-soft: rgba(192,96,32,0.08);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'DM Sans', sans-serif; line-height: 1.65;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+
+/* NAV */
+nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(250,250,248,0.85);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border); padding: 0 32px;
+}
+nav .nav-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+.nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--text); }
+.nav-logo { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), #e8a020); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14px; color: #fff; font-family: 'Instrument Serif', serif; }
+.nav-title { font-weight: 600; font-size: 15px; letter-spacing: -0.02em; }
+.nav-subtitle { font-size: 12px; color: var(--text-muted); margin-left: 8px; padding-left: 8px; border-left: 1px solid var(--border-bright); }
+.nav-tag { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; background: var(--surface-2); padding: 3px 10px; border-radius: 100px; border: 1px solid var(--border); }
+
+/* SELECTOR */
+.selector-bar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 32px; position: sticky; top: 56px; z-index: 99; }
+.selector-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.selector-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; font-family: 'JetBrains Mono', monospace; white-space: nowrap; }
+.selector-btn { padding: 7px 16px; border-radius: 100px; border: 1px solid var(--border); background: var(--bg); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+.selector-btn:hover { border-color: var(--border-bright); color: var(--text); }
+.selector-btn.active { background: var(--text); color: #fff; border-color: var(--text); }
+
+/* HERO */
+.hero { position: relative; padding: 72px 32px 56px; text-align: center; overflow: hidden; }
+.hero::before { content: ''; position: absolute; top: -200px; left: 50%; transform: translateX(-50%); width: 800px; height: 800px; border-radius: 50%; background: radial-gradient(circle, var(--accent-soft) 0%, transparent 70%); pointer-events: none; }
+.hero-kicker { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 14px; position: relative; }
+.hero h1 { font-family: 'Instrument Serif', serif; font-size: clamp(34px, 5.5vw, 56px); line-height: 1.12; letter-spacing: -0.03em; max-width: 820px; margin: 0 auto 14px; position: relative; }
+.hero h1 em { font-style: italic; color: var(--accent); }
+.hero-article-link { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; color: var(--wiki-blue); text-decoration: none; font-weight: 500; margin-bottom: 18px; position: relative; border-bottom: 1px solid rgba(51,102,204,0.3); padding-bottom: 1px; transition: all 0.2s; }
+.hero-article-link:hover { color: #224488; border-color: #224488; }
+.hero-article-link svg { width: 14px; height: 14px; }
+.hero-desc { font-size: 15px; color: var(--text-muted); max-width: 680px; margin: 0 auto 32px; line-height: 1.75; text-align: left; }
+.hero-stats { display: flex; justify-content: center; gap: 36px; flex-wrap: wrap; position: relative; }
+.hero-stat-num { font-family: 'Instrument Serif', serif; font-size: 32px; color: var(--text); letter-spacing: -0.02em; }
+.hero-stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+
+/* SECTIONS */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+.section { padding: 68px 0; border-top: 1px solid var(--border); }
+.section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 8px; }
+.section-title { font-family: 'Instrument Serif', serif; font-size: 30px; letter-spacing: -0.02em; margin-bottom: 8px; }
+.section-desc { font-size: 14px; color: var(--text-muted); max-width: 600px; margin-bottom: 40px; }
+
+/* TIMELINE */
+.timeline { position: relative; padding-left: 42px; }
+.timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: linear-gradient(to bottom, var(--accent) 0%, var(--border-bright) 30%, var(--border-bright) 70%, transparent 100%); }
+.tl-item { position: relative; margin-bottom: 36px; opacity: 0; transform: translateY(14px); animation: fadeUp 0.4s ease forwards; }
+@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+.tl-dot { position: absolute; left: -34px; top: 5px; width: 13px; height: 13px; border-radius: 50%; border: 2.5px solid var(--bg); }
+.tl-dot.major { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); width: 15px; height: 15px; left: -35px; top: 4px; }
+.tl-dot.delete { background: var(--red); box-shadow: 0 0 0 3px var(--red-soft); }
+.tl-dot.ga { background: var(--ga-green); box-shadow: 0 0 0 3px var(--ga-green-soft); }
+.tl-dot.viral { background: var(--teal); box-shadow: 0 0 0 3px var(--teal-soft); }
+.tl-dot.minor { background: var(--text-dim); }
+.tl-dot.wiki { background: var(--wiki-blue); box-shadow: 0 0 0 3px var(--wiki-blue-soft); }
+.tl-dot.arb { background: var(--purple); box-shadow: 0 0 0 3px var(--purple-soft); }
+.tl-date { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--text-dim); margin-bottom: 3px; }
+.tl-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.tl-body { font-size: 13px; color: var(--text-muted); line-height: 1.7; max-width: 640px; }
+.tl-tag { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 8px; border-radius: 4px; margin-top: 6px; font-family: 'JetBrains Mono', monospace; font-weight: 500; }
+.tl-tag.creation { background: var(--accent-soft); color: var(--accent); }
+.tl-tag.deletion { background: var(--red-soft); color: var(--red); }
+.tl-tag.quality { background: var(--ga-green-soft); color: var(--ga-green); }
+.tl-tag.viral { background: var(--teal-soft); color: var(--teal); }
+.tl-tag.community { background: var(--wiki-blue-soft); color: var(--wiki-blue); }
+.tl-tag.sourcing { background: var(--purple-soft); color: var(--purple); }
+.tl-tag.content { background: var(--orange-soft); color: var(--orange); }
+.tl-tag.arbitration { background: var(--purple-soft); color: var(--purple); }
+.tl-tag.spelling { background: var(--orange-soft); color: var(--orange); }
+
+/* VOICES */
+.voices-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+.voice-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 24px; transition: all 0.25s; position: relative; overflow: hidden; }
+.voice-card::before { content: '\201C'; position: absolute; top: -10px; right: 14px; font-family: 'Instrument Serif', serif; font-size: 100px; color: var(--surface-2); pointer-events: none; line-height: 1; }
+.voice-card:hover { border-color: var(--border-bright); box-shadow: 0 4px 20px rgba(0,0,0,0.04); transform: translateY(-1px); }
+.voice-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.voice-avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; flex-shrink: 0; color: #fff; }
+.voice-avatar.a1 { background: #0d8a7e; } .voice-avatar.a2 { background: #c4403a; }
+.voice-avatar.a3 { background: #c8840c; } .voice-avatar.a4 { background: #7040b0; }
+.voice-avatar.a5 { background: #3366cc; } .voice-avatar.a6 { background: #c06020; }
+.voice-avatar.a7 { background: #1a8a4a; } .voice-avatar.a8 { background: #b04070; }
+.voice-name { font-weight: 600; font-size: 13px; }
+.voice-handle { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-dim); }
+.voice-quote { font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.7; position: relative; z-index: 1; color: var(--text); }
+
+/* CHART */
+.arc-container { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 28px; margin-bottom: 28px; }
+.arc-title { font-family: 'Instrument Serif', serif; font-size: 19px; margin-bottom: 3px; }
+.arc-subtitle { font-size: 12px; color: var(--text-dim); margin-bottom: 24px; }
+.arc-chart { display: flex; align-items: flex-end; gap: 3px; height: 170px; padding: 0 0 26px; position: relative; }
+.arc-chart::after { content: ''; position: absolute; bottom: 22px; left: 0; right: 0; height: 1px; background: var(--border); }
+.arc-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; position: relative; z-index: 1; }
+.arc-bar-stack { display: flex; flex-direction: column; align-items: stretch; width: 100%; justify-content: flex-end; height: 100%; gap: 1px; }
+.arc-bar { width: 100%; border-radius: 2px 2px 0 0; min-height: 1px; transition: all 0.3s; cursor: pointer; }
+.arc-bar:hover { opacity: 0.7; }
+.arc-bar.edits { background: var(--teal); }
+.arc-bar.talk { background: var(--accent); }
+.arc-year { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--text-dim); position: absolute; bottom: -20px; transform: rotate(-45deg); white-space: nowrap; }
+.arc-legend { display: flex; gap: 18px; margin-top: 10px; }
+.arc-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+.arc-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+.arc-legend-dot.edits { background: var(--teal); }
+.arc-legend-dot.talk { background: var(--accent); }
+
+/* METER */
+.controversy-meter { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; margin-top: 18px; }
+.meter-bar-track { height: 7px; background: var(--surface-2); border-radius: 4px; overflow: hidden; margin: 12px 0 5px; }
+.meter-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--ga-green), var(--accent), var(--red)); }
+.meter-labels { display: flex; justify-content: space-between; font-size: 10px; font-family: 'JetBrains Mono', monospace; color: var(--text-dim); }
+
+/* FACTS */
+.facts-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
+.fact-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; transition: all 0.25s; }
+.fact-card:hover { border-color: var(--border-bright); }
+.fact-emoji { font-size: 24px; margin-bottom: 8px; }
+.fact-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+.fact-body { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* REVEAL */
+.reveal { opacity: 0; transform: translateY(20px); transition: all 0.5s cubic-bezier(0.16,1,0.3,1); }
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* FOOTER */
+footer { padding: 36px 32px; text-align: center; border-top: 1px solid var(--border); }
+footer p { font-size: 13px; color: var(--text-dim); }
+footer a { color: var(--text-muted); text-decoration: underline; text-underline-offset: 2px; }
+
+@media (max-width: 768px) {
+  .voices-grid { grid-template-columns: 1fr; }
+  .hero-stats { gap: 20px; }
+  .arc-chart { height: 120px; }
+  nav .nav-subtitle { display: none; }
+  .selector-inner { gap: 6px; }
+  .selector-btn { padding: 6px 12px; font-size: 12px; }
+  .hero-desc { padding: 0 4px; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <div class="nav-logo">W</div>
+      <span class="nav-title">WikiLifecycle</span>
+      <span class="nav-subtitle">Article Evolution Explorer</span>
+    </a>
+    <span class="nav-tag">Prototype v0.2</span>
+  </div>
+</nav>
+
+<div class="selector-bar">
+  <div class="selector-inner">
+    <span class="selector-label">Article:</span>
+    <button class="selector-btn active" data-article="tp" onclick="loadArticle('tp')">Toilet Paper Orientation</button>
+    <button class="selector-btn" data-article="yogurt" onclick="loadArticle('yogurt')">Yogurt</button>
+    <button class="selector-btn" data-article="id" onclick="loadArticle('id')">Intelligent Design</button>
+  </div>
+</div>
+
+<div class="hero" id="hero"></div>
+
+<div class="section">
+  <div class="container">
+    <div class="section-label">01 \u2014 Timeline</div>
+    <h2 class="section-title">The Life of an Article</h2>
+    <p class="section-desc">Every Wikipedia article has a story \u2014 inflection points where editors shaped its identity through debate, deletion, quality review, and public attention.</p>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <div class="section-label">02 \u2014 Edit Activity</div>
+    <h2 class="section-title">The Rhythm of Collaboration</h2>
+    <p class="section-desc">Wikipedia articles have heartbeats \u2014 periods of intense activity followed by quiet maintenance.</p>
+    <div class="arc-container reveal">
+      <div class="arc-title">Article & Talk Page Activity by Year</div>
+      <div class="arc-subtitle">Approximate relative edit volume \u2014 spikes correspond to major events</div>
+      <div class="arc-chart" id="activityChart"></div>
+      <div class="arc-legend">
+        <div class="arc-legend-item"><div class="arc-legend-dot edits"></div> Article edits</div>
+        <div class="arc-legend-item"><div class="arc-legend-dot talk"></div> Talk page activity</div>
+      </div>
+    </div>
+    <div class="controversy-meter reveal" id="controversy"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <div class="section-label">03 \u2014 Voices from the Talk Page</div>
+    <h2 class="section-title">What the Editors Said</h2>
+    <p class="section-desc">Real quotes from the talk page \u2014 moments of passion, humor, frustration, and philosophical reflection from the Wikipedians who shaped this article.</p>
+    <div class="voices-grid" id="voices"></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <div class="section-label">04 \u2014 By the Numbers</div>
+    <h2 class="section-title">Article Artifacts</h2>
+    <p class="section-desc">Snapshots and curiosities from this article\u2019s collaborative history.</p>
+    <div class="facts-grid" id="facts"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <p>WikiLifecycle Prototype \u00b7 Built for Wikipedia product ideation \u00b7 Part of the <a href="https://extrafluffypuppy.github.io/attributes">WikiAttributes</a> family</p>
+  </div>
+</footer>
+
+<script>
+const DATA = {
+  tp: {
+    title: '<em>Toilet Paper Orientation</em> on Wikipedia',
+    kicker: 'Case Study \u00b7 Article Lifecycle',
+    url: 'https://en.wikipedia.org/wiki/Toilet_paper_orientation',
+    urlLabel: 'Toilet paper orientation \u2014 Wikipedia',
+    desc: 'The Wikipedia article on <strong>toilet paper orientation</strong> documents the question of whether toilet paper should hang with the loose end over or under the roll. Created in 2003, the article has been edited over 1,300 times by more than 670 editors across its 22-year history. Its talk page has hosted extended discussions about notability, sourcing standards, and editorial scope. The article survived a 2005 Articles for Deletion nomination, where editors debated whether the topic merited encyclopedia coverage. It subsequently passed Good Article review in September 2010 after a detailed assessment of prose quality, sourcing, and neutral point of view. Multiple external events \u2014 including viral social media posts in 2011 and 2015 \u2014 drove significant traffic spikes and prompted periods of semi-protection against vandalism.',
+    stats: [
+      { num: '1,345+', label: 'Revisions' }, { num: '674', label: 'Unique Editors' },
+      { num: '22', label: 'Years Active' }, { num: '2', label: 'Talk Archives' },
+    ],
+    timeline: [
+      { date: '2003', title: 'Article Created', body: 'The article \u201CToilet paper orientation\u201D is created on Wikipedia, initially as a brief entry describing the over-vs-under debate and its presence in popular culture.', dot: 'major', tag: 'creation', tagLabel: 'Creation' },
+      { date: '2005', title: 'Articles for Deletion (AfD) Nomination', body: 'The article is nominated for deletion. Editors discuss whether toilet paper orientation qualifies as encyclopedic. After deliberation, the community reaches consensus to keep the article, citing its documented cultural significance.', dot: 'delete', tag: 'deletion', tagLabel: 'Deletion Debate' },
+      { date: '2007\u20132009', title: 'Sourcing Campaign', body: 'Editor Melchoir undertakes a systematic effort to locate newspaper archives, advice columns, and academic references through databases such as Factiva. The article grows from a stub into a well-organized, comprehensively sourced entry.', dot: 'minor', tag: 'sourcing', tagLabel: 'Sourcing' },
+      { date: 'August 2010', title: 'Good Article Nomination & Review', body: 'Reviewer SilkTork begins a detailed review, noting the article is entertaining and informative while identifying areas for improvement in prose tone, source quality, and the scope of the celebrity opinions section.', dot: 'ga', tag: 'quality', tagLabel: 'GA Review' },
+      { date: 'September 2010', title: 'Good Article Status Achieved', body: 'After revisions addressing prose, sourcing, and structural concerns raised during review, the article passes Good Article assessment \u2014 one of the more unconventional topics to achieve this quality designation.', dot: 'ga', tag: 'quality', tagLabel: 'GA Passed' },
+      { date: 'January 2011', title: 'Social Media Attention', body: 'The article receives widespread attention on Reddit and Fark.com, leading to a significant traffic spike. It is semi-protected to manage increased editing volume. A widely shared infographic about the talk page\u2019s length is later found to be inaccurate.', dot: 'viral', tag: 'viral', tagLabel: 'Viral Event' },
+      { date: 'October 2013', title: 'Sourcing Discussion', body: 'Editors engage in extended discussion about the article\u2019s lead claim regarding Ann Landers\u2019 column, debating the strength of the available sources and how to characterize the claim accurately.', dot: 'wiki', tag: 'community', tagLabel: 'Editorial Discussion' },
+      { date: 'March 2015', title: '1891 Patent Gains Attention', body: 'Seth Wheeler\u2019s 1891 toilet paper patent, which depicts the paper in the \u201Cover\u201D position, circulates widely on social media, driving another traffic spike to the article.', dot: 'viral', tag: 'viral', tagLabel: 'Viral Event' },
+      { date: 'October 2021', title: 'Maintenance and Cleanup', body: 'SilkTork returns to trim the \u201CFurther Reading\u201D section and raises questions about whether a standalone article remains warranted or whether content could be merged.', dot: 'wiki', tag: 'community', tagLabel: 'Cleanup' },
+      { date: 'July 2025', title: 'Notability Discussion', body: 'An editor raises questions about the article\u2019s long-term standing. Other editors respond by reaffirming its compliance with notability guidelines and the depth of available sourcing.', dot: 'wiki', tag: 'community', tagLabel: 'Notability Debate' },
+    ],
+    activity: [
+      {year:"'03",e:8,t:2},{year:"'05",e:25,t:18},{year:"'07",e:22,t:8},{year:"'08",e:30,t:12},{year:"'09",e:40,t:15},{year:"'10",e:95,t:85},{year:"'11",e:80,t:60},{year:"'12",e:35,t:25},{year:"'13",e:40,t:45},{year:"'14",e:25,t:20},{year:"'15",e:65,t:30},{year:"'16",e:50,t:20},{year:"'17",e:30,t:12},{year:"'18",e:20,t:8},{year:"'19",e:18,t:10},{year:"'20",e:22,t:12},{year:"'21",e:35,t:30},{year:"'22",e:15,t:8},{year:"'23",e:12,t:6},{year:"'24",e:20,t:18},{year:"'25",e:10,t:8}
+    ],
+    controversy: { score: 7.2, label: 'Relative level of talk page dispute activity compared to other Wikipedia articles' },
+    voices: [
+      { avatar:'a7',initials:'ST',name:'SilkTork',handle:'GA Reviewer \u00b7 Aug 2010',quote:'This should be good. My second wife had a thing about hanging the loo paper the correct way (dropping away from the wall), which I\u2019ve picked up! Be good to read some analysis and history of this social absurdity!' },
+      { avatar:'a3',initials:'M',name:'Melchoir',handle:'Principal Author \u00b7 Aug 2010',quote:'I beg of you, for similar concerns in the future, please open the discussion by asking a question rather than delivering a judgement. It turns out that I\u2019m a human being, and accusing me of policy violations takes a toll on my health that is quite unnecessary and harsher than I suspect you realize.' },
+      { avatar:'a2',initials:'L',name:'Lovetinkle',handle:'Editor \u00b7 Apr 2011',quote:'If levity isn\u2019t a valid reason for content then this entire article should be flushed.' },
+      { avatar:'a5',initials:'DM',name:'DMacks',handle:'Editor \u00b7 Apr 2011',quote:'Levity isn\u2019t a valid reason, but WP:N is the standard, and this article meets it. Just because it\u2019s funny doesn\u2019t mean it doesn\u2019t get actual WP:RS coverage. But the funny is incidental.' },
+      { avatar:'a4',initials:'?',name:'Anonymous Editor',handle:'Talk page \u00b7 Sep 2012',quote:'This is the most well-researched, community-uniting, excellently-edited article I have seen on Wikipedia and I am 100% baffled as to why it exists!' },
+      { avatar:'a1',initials:'HL',name:'HiLo48',handle:'Editor \u00b7 Oct 2013',quote:'Gronky, please just ease off. You think it\u2019s a stupid topic. Others don\u2019t. The world would be boring if we all thought the same way.' },
+      { avatar:'a3',initials:'M',name:'Melchoir',handle:'Principal Author \u00b7 Aug 2010',quote:'On the topic of toilet paper orientation, there is no privileged class of \u201Cexpert opinions\u201D. Everyone is an expert, and I just added a citation saying so.' },
+      { avatar:'a6',initials:'96',name:'96.228.159.27',handle:'IP Editor \u00b7 Jul 2010',quote:'I am doubtful that this is real. It reminds me of the old \u201CUpper Peninsula War\u201D article. I love how all the external links magically happen to require subscriptions.' },
+    ],
+    facts: [
+      { emoji:'\ud83d\udcec',title:'15,000 Letters',body:'Advice columnist Ann Landers reported receiving 15,000 letters about toilet paper orientation, which she described as the most responded-to topic in her column\u2019s history.' },
+      { emoji:'\ud83d\udcdc',title:'The 1891 Patent',body:'Seth Wheeler\u2019s 1891 toilet paper patent depicts the paper in the \u201Cover\u201D position. The patent gained renewed attention when it circulated widely on social media in 2015.' },
+      { emoji:'\ud83c\udfd4',title:'South Pole Disputes',body:'At the Amundsen\u2013Scott Research Station at the South Pole, complaints have reportedly been raised over toilet paper installation orientation.' },
+      { emoji:'\ud83d\udcda',title:'Sociology Teaching Tool',body:'Professor Edgar Alan Burns has cited toilet paper orientation as a classroom example when introducing concepts of social constructionism to students.' },
+      { emoji:'\ud83d\udc08',title:'The Cat Photo Discussion',body:'Editors discussed whether a photograph of a cat interacting with toilet paper was appropriate for the article, ultimately concluding the roll\u2019s orientation was not sufficiently visible.' },
+      { emoji:'\ud83c\udf10',title:'Talk Page Length Claim',body:'A widely shared infographic claimed the article\u2019s talk page was longer than that for the Iraq War. Editors investigated and found the claim to be inaccurate.' },
+    ],
+  },
+  yogurt: {
+    title: '<em>Yogurt</em> on Wikipedia',
+    kicker: 'Case Study \u00b7 Article Lifecycle',
+    url: 'https://en.wikipedia.org/wiki/Yogurt',
+    urlLabel: 'Yogurt \u2014 Wikipedia',
+    desc: 'The Wikipedia article on <strong>yogurt</strong> has been the subject of one of the encyclopedia\u2019s most protracted title disputes, centered on whether the article should be titled \u201CYogurt\u201D or \u201CYoghurt.\u201D The article was originally created in 2003 using the spelling \u201CYogurt.\u201D Later that year, the spelling was changed to \u201CYoghurt,\u201D and this edit became the starting point for a debate that spanned eight years, more than 20 formal move requests, and over 10 talk page archives. Editors on both sides cited Wikipedia\u2019s Manual of Style guidelines regarding English-language varieties (WP:ENGVAR), though they reached differing conclusions about whether the guideline favored the original spelling or the established one. The article was moved to \u201CYogurt\u201D in 2011. The dispute is listed on Wikipedia\u2019s \u201CLamest edit wars\u201D page. Since the title was resolved, editorial focus has shifted to content quality, including the article\u2019s coverage of yogurt\u2019s history, production, and regional variations.',
+    stats: [
+      { num:'7,800+',label:'Revisions' },{ num:'10+',label:'Talk Archives' },
+      { num:'20+',label:'Move Requests' },{ num:'8',label:'Years of Title Debate' },
+    ],
+    timeline: [
+      { date:'2003',title:'Article Created as \u201CYogurt\u201D',body:'The first substantial version of the article is created using the spelling \u201CYogurt.\u201D Under Wikipedia\u2019s WP:ENGVAR guidelines, the variety of English used by the original contributor is typically retained.',dot:'major',tag:'creation',tagLabel:'Creation' },
+      { date:'December 2003',title:'Spelling Changed to \u201CYoghurt\u201D',body:'On December 25, an editor changes all instances of \u201Cyogurt\u201D to \u201Cyoghurt,\u201D describing the edit as a standardisation. The change goes unnoticed for several months.',dot:'delete',tag:'spelling',tagLabel:'Spelling Change' },
+      { date:'2004\u20132005',title:'First Title Discussions',body:'Editors notice the 2003 change and begin discussing whether it was consistent with WP:ENGVAR. The first of many formal Requested Move discussions is opened. Editors hold differing views on whether the guideline supports the original spelling or the one that had become established.',dot:'wiki',tag:'community',tagLabel:'Title Dispute' },
+      { date:'2006\u20132007',title:'Repeated Move Requests',body:'Multiple move requests are filed and closed without consensus. The page is protected to prevent unilateral changes. Editors express frustration with the length and recurrence of the debate.',dot:'delete',tag:'community',tagLabel:'No Consensus' },
+      { date:'May 2007',title:'Mediation Request Filed',body:'A formal mediation request is submitted. Several editors note the toll the debate has taken on community energy, with one comparing the dispute\u2019s intractability to other long-running policy disagreements.',dot:'arb',tag:'arbitration',tagLabel:'Mediation' },
+      { date:'2009',title:'Additional Move Request',body:'Another move request to restore the original \u201CYogurt\u201D spelling receives substantial support but is closed as \u201Cnot moved.\u201D New discussions begin shortly afterward.',dot:'wiki',tag:'spelling',tagLabel:'Move Request' },
+      { date:'2011',title:'Article Moved to \u201CYogurt\u201D',body:'Following discussion that cited major English-language dictionaries, international manufacturer naming conventions, and WP:COMMONNAME guidelines, the article is moved from \u201CYoghurt\u201D to \u201CYogurt.\u201D',dot:'ga',tag:'quality',tagLabel:'Title Resolved' },
+      { date:'2011 (later)',title:'Listed on WP:LAME',body:'The yogurt/yoghurt title debate is added to Wikipedia\u2019s \u201CLamest edit wars\u201D page, which documents notable editing disputes across the encyclopedia.',dot:'viral',tag:'viral',tagLabel:'WP:LAME' },
+      { date:'2014',title:'Dual-Title Proposal Declined',body:'An editor proposes using both spellings in the title. The proposal is quickly closed, with the closing administrator citing WP:SNOW (a shorthand for proposals with no realistic chance of passing).',dot:'wiki',tag:'community',tagLabel:'Proposal Declined' },
+      { date:'2022\u20132024',title:'Content Development',body:'With the title question settled, editorial activity shifts to content: sourcing the history of yogurt production, clarifying regional terminology such as \u201CSwiss-style,\u201D and discussing the article\u2019s treatment of yogurt\u2019s origins.',dot:'minor',tag:'content',tagLabel:'Content Focus' },
+    ],
+    activity: [
+      {year:"'03",e:15,t:5},{year:"'04",e:20,t:25},{year:"'05",e:40,t:60},{year:"'06",e:55,t:75},{year:"'07",e:70,t:95},{year:"'08",e:35,t:40},{year:"'09",e:50,t:80},{year:"'10",e:30,t:35},{year:"'11",e:65,t:90},{year:"'12",e:35,t:30},{year:"'13",e:25,t:20},{year:"'14",e:20,t:30},{year:"'15",e:18,t:12},{year:"'16",e:15,t:10},{year:"'17",e:12,t:8},{year:"'18",e:14,t:8},{year:"'19",e:10,t:6},{year:"'20",e:12,t:5},{year:"'21",e:10,t:4},{year:"'22",e:15,t:10},{year:"'23",e:12,t:8},{year:"'24",e:14,t:10}
+    ],
+    controversy: { score: 8.8, label: 'One of the most frequently cited examples on Wikipedia\u2019s \u201CLamest edit wars\u201D page' },
+    voices: [
+      { avatar:'a6',initials:'GH',name:'G. Hurt',handle:'Editor \u00b7 Jun 2005',quote:'Personally, I\u2019ve tried it both ways, and this food definitely tastes better when the container is labeled Yogurt. The H character somehow seeps through the plastic walls of the container.' },
+      { avatar:'a5',initials:'GT',name:'GTBacchus',handle:'Admin \u00b7 May 2007',quote:'I reiterate that I am an American, born and raised in Texas, and that I would never personally spell yogurt with an \u2018h\u2019 unless I were trying to pass myself off as a European, or maybe just a communist.' },
+      { avatar:'a2',initials:'df',name:'danielfolsom',handle:'Editor \u00b7 May 2007',quote:'This article has missing citations - why isn\u2019t that being talked about on the talk page. I\u2019d much rather have a well written fully sourced article called youghouert then an article with missing citations called yogurt or yoghurt.' },
+      { avatar:'a1',initials:'B1',name:'Barts1a',handle:'Editor \u00b7 Dec 2011',quote:'You pronounce yoghurt with a silent h. You don\u2019t say it as \u201Cyo\u201D with \u201Cgurt\u201D tacked onto the end. Now that I have gotten that out of the way how about a nice cup of tea and a good sit down before we end up having the first world flame war?' },
+      { avatar:'a4',initials:'K4',name:'Kai445',handle:'Editor \u00b7 Dec 2011',quote:'It\u2019s not there because it\u2019s a silent H, it is there because of a shitty ancient transliteration that has largely fallen out of use, but people insist on keeping. #firstworldproblems' },
+      { avatar:'a7',initials:'AJ',name:'AliceJMarkham',handle:'Editor \u00b7 Oct 2006',quote:'I believe that this debate is unnecessarily divisive and it is a genuine waste of time. Changing the name back and forth is totally inappropriate. I believe that this article should be permanently move locked and further debate banned.' },
+      { avatar:'a3',initials:'Se',name:'Serge',handle:'Editor \u00b7 May 2007',quote:'Unlike the situation in Iraq, there is a clear and obvious exit strategy in this turmoil: follow Wikipedia\u2019s Manual of Style.' },
+      { avatar:'a8',initials:'BD',name:'BDD',handle:'Admin \u00b7 Apr 2014',quote:'WP:SNOW. So much snow. I really don\u2019t have the words for how not moved this is.' },
+    ],
+    facts: [
+      { emoji:'\ud83d\udd24',title:'1 Letter, 8 Years',body:'The discussion about whether the title should include the letter \u201Ch\u201D lasted from 2003 to 2011, spanning over 10 talk page archives and more than 20 formal move requests.' },
+      { emoji:'\ud83c\udf84',title:'The December 25 Edit',body:'The spelling change that initiated the title dispute occurred on December 25, 2003, and went unnoticed for several months before editors began discussing it.' },
+      { emoji:'\ud83c\udfc6',title:'WP:LAME Listing',body:'The dispute is documented on Wikipedia\u2019s \u201CLamest edit wars\u201D page, which catalogs notable editing disagreements across the encyclopedia.' },
+      { emoji:'\ud83d\udcd6',title:'Dictionary Evidence',body:'During the debate, editors cited multiple major English-language dictionaries \u2014 including Oxford, Merriam-Webster, and Britannica \u2014 which list \u201Cyogurt\u201D as the primary spelling.' },
+      { emoji:'\ud83c\udf0d',title:'International Usage',body:'Editors noted that major international yogurt manufacturers \u2014 including Danone, Yoplait, and Chobani \u2014 use \u201Cyogurt\u201D on their packaging across markets.' },
+      { emoji:'\u2615',title:'The Ceasefire Metaphor',body:'One editor described WP:ENGVAR as a \u201Cceasefire\u201D that should be \u201Cvenerated,\u201D comparing the spelling guideline to a peace treaty designed to prevent recurring disputes.' },
+    ],
+  },
+  id: {
+    title: '<em>Intelligent Design</em> on Wikipedia',
+    kicker: 'Case Study \u00b7 Article Lifecycle',
+    url: 'https://en.wikipedia.org/wiki/Intelligent_design',
+    urlLabel: 'Intelligent design \u2014 Wikipedia',
+    desc: 'The Wikipedia article on <strong>intelligent design</strong> has been one of the most heavily edited and discussed articles in the encyclopedia\u2019s history, with over 10,000 revisions and more than 60 talk page archives. The central editorial debate has concerned how the article should characterize intelligent design in relation to the scientific community\u2019s consensus view. Some editors have argued that the article should describe intelligent design as pseudoscience in Wikipedia\u2019s own voice, consistent with the position of major scientific organizations. Others have contended that doing so represents a point-of-view violation, and that the article should present the perspectives of both proponents and critics without Wikipedia itself taking a position. The 2005 <em>Kitzmiller v. Dover Area School District</em> ruling, in which a federal court found that intelligent design is not science, became a significant source in the article. In December 2006, Wikipedia\u2019s Arbitration Committee issued a ruling establishing guidelines for the presentation of pseudoscience topics across the encyclopedia. The article remains under discretionary sanctions and carries a permanent contentious topics notice on its talk page.',
+    stats: [
+      { num:'10,000+',label:'Revisions' },{ num:'60+',label:'Talk Archives' },
+      { num:'1',label:'ArbCom Ruling' },{ num:'20+',label:'Years of Discussion' },
+    ],
+    timeline: [
+      { date:'2004',title:'Article Created and Actively Discussed',body:'The article on intelligent design is created and immediately becomes a focus of editorial discussion. Editors hold differing views on whether the article should describe intelligent design as pseudoscience or present the topic with greater deference to the views of its proponents.',dot:'major',tag:'creation',tagLabel:'Creation' },
+      { date:'2004 (ongoing)',title:'Debates Over Characterization in the Lead',body:'Extended discussions take place over the article\u2019s opening paragraph. Editors who favored describing ID as pseudoscience cited scientific organizations and published research; editors who opposed this characterization argued it represented a point-of-view violation under Wikipedia\u2019s neutrality policy.',dot:'delete',tag:'community',tagLabel:'Editorial Debate' },
+      { date:'December 2005',title:'Kitzmiller v. Dover Ruling',body:'A federal court rules in <em>Kitzmiller v. Dover Area School District</em> that intelligent design is \u201Cnot science\u201D and is \u201Cessentially religious in nature.\u201D The ruling becomes a widely cited source in the article and contributes to subsequent editorial discussions.',dot:'viral',tag:'viral',tagLabel:'Legal Ruling' },
+      { date:'2005\u20132006',title:'Post-Ruling Article Development',body:'The article undergoes significant revision following the court decision. Editors discuss how to incorporate the ruling alongside other sources. The article is semi-protected during periods of high editing volume.',dot:'wiki',tag:'content',tagLabel:'Major Revision' },
+      { date:'December 2006',title:'ArbCom Pseudoscience Ruling',body:'Wikipedia\u2019s Arbitration Committee issues a ruling establishing guidelines for the editorial treatment of topics identified as pseudoscience by the scientific community. The intelligent design article falls under this framework.',dot:'arb',tag:'arbitration',tagLabel:'ArbCom Ruling' },
+      { date:'2007\u20132010',title:'Continued Discussion Under New Guidelines',body:'Editorial discussions continue under the ArbCom framework. External organizations, including the Discovery Institute, publish commentary about Wikipedia\u2019s coverage. Some editors receive topic bans for conduct-related issues during this period.',dot:'wiki',tag:'community',tagLabel:'Ongoing Discussion' },
+      { date:'2010',title:'Featured Article Status',body:'The article achieves Featured Article status, Wikipedia\u2019s highest quality designation, following a review of its sourcing, prose quality, and compliance with content policies.',dot:'ga',tag:'quality',tagLabel:'Featured Article' },
+      { date:'2015',title:'Decade After Kitzmiller',body:'Ten years after the Dover ruling, the article has largely stabilized. The intelligent design movement has shifted its public advocacy language, and editing pressure on the article decreases.',dot:'minor',tag:'content',tagLabel:'Stabilization' },
+      { date:'2020s',title:'Contentious Topics Designation',body:'The article continues to operate under discretionary sanctions. Its talk page carries a permanent notice advising editors to familiarize themselves with contentious topics procedures before making changes.',dot:'wiki',tag:'community',tagLabel:'Standing Designation' },
+    ],
+    activity: [
+      {year:"'04",e:70,t:80},{year:"'05",e:95,t:95},{year:"'06",e:85,t:90},{year:"'07",e:70,t:75},{year:"'08",e:55,t:60},{year:"'09",e:45,t:50},{year:"'10",e:40,t:45},{year:"'11",e:30,t:35},{year:"'12",e:25,t:28},{year:"'13",e:20,t:22},{year:"'14",e:18,t:15},{year:"'15",e:22,t:18},{year:"'16",e:15,t:12},{year:"'17",e:12,t:10},{year:"'18",e:10,t:8},{year:"'19",e:10,t:8},{year:"'20",e:8,t:6},{year:"'21",e:8,t:5},{year:"'22",e:6,t:5},{year:"'23",e:6,t:4},{year:"'24",e:7,t:5}
+    ],
+    controversy: { score: 9.6, label: 'Subject to ArbCom ruling and permanent discretionary sanctions \u2014 among the most discussed articles in Wikipedia history' },
+    voices: [
+      { avatar:'a2',initials:'FM',name:'FeloniousMonk',handle:'Editor \u00b7 Oct 2004',quote:'I am going to have to insist that you cease your mendacious campaign to promote your biased POV on wikipedia, that you stop restructuring the Talk pages, and that you cease continually resurrecting previously settled NPOV topics.' },
+      { avatar:'a4',initials:'Anon',name:'Anonymous Reader',handle:'Talk page \u00b7 Nov 2004',quote:'I\u2019m just a commoner, and have been enjoying wikipedia, but I was shocked to read intelligent design page as I think its so negative towards the concept. I don\u2019t get the \u201Cneutrality\u201D feeling as when reading other controversial articles.' },
+      { avatar:'a5',initials:'FM',name:'FeloniousMonk',handle:'Editor \u00b7 Oct 2004',quote:'Intelligent Design is not testable by any known or anticipated method of science, asserts claims without supporting experimental evidence, asserts claims which contradict experimentally established results... This places Intelligent Design squarely in the realm of pseudoscience.' },
+      { avatar:'a1',initials:'PR',name:'Philip J. Rayment',handle:'Editor \u00b7 Nov 2004',quote:'The fact that most scientists are on the same side of the controversy doesn\u2019t mean that it is not controversial. And that anti-ID people keep claiming that it is pseudoscience does not make it any more so.' },
+      { avatar:'a6',initials:'BB',name:'Bobby D. Bryant',handle:'Editor \u00b7 Oct 2004',quote:'NPOV is not a justification for removing facts inconvenient to your personal beliefs.' },
+      { avatar:'a3',initials:'DI',name:'Discovery Institute',handle:'External Commentary \u00b7 2015',quote:'The editors choose not to follow the rules. They call ID \u201Cpseudoscientific\u201D in Wikipedia\u2019s own voice. The page fails to point out how ID proponents respond to such charges.' },
+      { avatar:'a7',initials:'AC',name:'ArbCom',handle:'Ruling \u00b7 Dec 2006',quote:'Editors are advised to familiarise themselves with the contentious topics procedures before editing this page.' },
+      { avatar:'a8',initials:'An',name:'Anonymous Editor',handle:'Talk Archive 4',quote:'What\u2019s the point of phrasing the article as if there might be some valid reasons to consider ID as not being pseudo-science. That everybody does not agree that it\u2019s pseudoscience, does not make it any less so.' },
+    ],
+    facts: [
+      { emoji:'\u2696\ufe0f',title:'Kitzmiller v. Dover',body:'The 2005 federal court ruling found that intelligent design is \u201Cnot science\u201D and is \u201Cessentially religious in nature.\u201D The decision became one of the article\u2019s most frequently cited sources.' },
+      { emoji:'\ud83d\udd12',title:'Discretionary Sanctions',body:'The article operates under ArbCom discretionary sanctions. Editors are expected to familiarize themselves with contentious topics procedures before contributing.' },
+      { emoji:'\ud83d\udcc1',title:'60+ Talk Page Archives',body:'With more than 60 archived talk page discussions, the article is among the most discussed entries in Wikipedia\u2019s history.' },
+      { emoji:'\ud83d\udcf0',title:'External Commentary',body:'The Discovery Institute has published commentary about Wikipedia\u2019s treatment of intelligent design, characterizing the article\u2019s approach as not following Wikipedia\u2019s own editorial policies.' },
+      { emoji:'\ud83c\udfc5',title:'Featured Article Status',body:'Despite \u2014 or perhaps as a result of \u2014 the level of editorial scrutiny, the article achieved Featured Article status following a review of its sourcing and content quality.' },
+      { emoji:'\ud83d\udd04',title:'Shifting Terminology',body:'Following the Kitzmiller ruling, public advocacy for intelligent design increasingly shifted toward terminology such as \u201Cacademic freedom\u201D and \u201Cteach the controversy.\u201D' },
+    ],
+  },
+};
+
+// Scroll reveal observer
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+}, { threshold: 0.08, rootMargin: '0px 0px -30px 0px' });
+
+function loadArticle(key) {
+  const d = DATA[key];
+  document.querySelectorAll('.selector-btn').forEach(b => b.classList.toggle('active', b.dataset.article === key));
+
+  // Hero
+  document.getElementById('hero').innerHTML = `
+    <div class="hero-kicker">${d.kicker}</div>
+    <h1>${d.title}</h1>
+    <a href="${d.url}" target="_blank" class="hero-article-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      ${d.urlLabel}
+    </a>
+    <p class="hero-desc">${d.desc}</p>
+    <div class="hero-stats">${d.stats.map(s => `<div class="hero-stat"><div class="hero-stat-num">${s.num}</div><div class="hero-stat-label">${s.label}</div></div>`).join('')}</div>
+  `;
+
+  // Timeline
+  document.getElementById('timeline').innerHTML = d.timeline.map((item, i) => `
+    <div class="tl-item" style="animation-delay:${0.05 + i * 0.04}s">
+      <div class="tl-dot ${item.dot}"></div>
+      <div class="tl-date">${item.date}</div>
+      <div class="tl-title">${item.title}</div>
+      <div class="tl-body">${item.body}</div>
+      <span class="tl-tag ${item.tag}">${item.tagLabel}</span>
+    </div>
+  `).join('');
+
+  // Chart
+  const chart = document.getElementById('activityChart');
+  chart.innerHTML = '';
+  const maxVal = Math.max(...d.activity.map(y => y.e + y.t));
+  d.activity.forEach((y, i) => {
+    const g = document.createElement('div');
+    g.className = 'arc-bar-group';
+    g.innerHTML = `<div class="arc-bar-stack"><div class="arc-bar talk" style="height:${y.t/maxVal*140}px" title="${y.year} Talk: ~${y.t}"></div><div class="arc-bar edits" style="height:${y.e/maxVal*140}px" title="${y.year} Edits: ~${y.e}"></div></div>${i%2===0?`<div class="arc-year">${y.year}</div>`:''}`;
+    chart.appendChild(g);
+  });
+
+  // Controversy
+  document.getElementById('controversy').innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      <div><div style="font-weight:600;font-size:14px;margin-bottom:2px;">Community Discussion Index</div><div style="font-size:12px;color:var(--text-dim);">${d.controversy.label}</div></div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;color:var(--accent);">${d.controversy.score}<span style="font-size:12px;color:var(--text-dim);font-weight:400;">/10</span></div>
+    </div>
+    <div class="meter-bar-track"><div class="meter-bar-fill" style="width:${d.controversy.score*10}%;"></div></div>
+    <div class="meter-labels"><span>Routine</span><span>Active</span><span>Highly Discussed</span></div>`;
+
+  // Voices
+  document.getElementById('voices').innerHTML = d.voices.map(v => `
+    <div class="voice-card reveal">
+      <div class="voice-meta"><div class="voice-avatar ${v.avatar}">${v.initials}</div><div><div class="voice-name">${v.name}</div><div class="voice-handle">${v.handle}</div></div></div>
+      <div class="voice-quote">\u201C${v.quote}\u201D</div>
+    </div>`).join('');
+
+  // Facts
+  document.getElementById('facts').innerHTML = d.facts.map(f => `
+    <div class="fact-card reveal"><div class="fact-emoji">${f.emoji}</div><div class="fact-title">${f.title}</div><div class="fact-body">${f.body}</div></div>`).join('');
+
+  // Re-observe reveals
+  document.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+loadArticle('tp');
+</script>
+</body>
+</html>
