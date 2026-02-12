@@ -1,0 +1,1923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WikiSuggest</title>
+<link href="https://fonts.googleapis.com/css2?family=Linux+Libertine:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Source+Code+Pro:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --wp-blue: #3366cc;
+  --wp-blue-light: #447ff5;
+  --wp-blue-dark: #2a4b8d;
+  --wp-green: #00af89;
+  --wp-green-light: #d5fdf4;
+  --wp-green-bg: #f0faf7;
+  --wp-red: #d33;
+  --wp-red-light: #fee7e6;
+  --wp-yellow: #fc3;
+  --wp-yellow-light: #fef6e7;
+  --wp-gray-100: #f8f9fa;
+  --wp-gray-200: #eaecf0;
+  --wp-gray-300: #c8ccd1;
+  --wp-gray-400: #a2a9b1;
+  --wp-gray-500: #72777d;
+  --wp-gray-600: #54595d;
+  --wp-gray-700: #404244;
+  --wp-gray-800: #27292d;
+  --wp-bg: #ffffff;
+  --wp-surface: #f8f9fa;
+  --wp-border: #a7d7f9;
+  --wp-link: #3366cc;
+  --wp-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --wp-shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  --wp-shadow-lg: 0 8px 30px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+  --wp-radius: 2px;
+  --wp-radius-md: 4px;
+  --font-serif: 'Linux Libertine', 'Georgia', 'Times', serif;
+  --font-sans: 'Source Sans 3', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: 'Source Code Pro', monospace;
+  --transition: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-sans);
+  color: var(--wp-gray-800);
+  background: var(--wp-gray-100);
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* === HEADER === */
+.site-header {
+  background: var(--wp-bg);
+  border-bottom: 1px solid var(--wp-gray-200);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mark {
+  width: 40px;
+  height: 40px;
+  background: var(--wp-gray-800);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 700;
+  border-radius: 4px;
+}
+
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.logo-text .title {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--wp-gray-800);
+}
+
+.logo-text .subtitle {
+  font-size: 11.5px;
+  color: var(--wp-gray-500);
+  letter-spacing: 0.3px;
+}
+
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.version-badge {
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--wp-gray-200);
+  color: var(--wp-gray-600);
+  padding: 3px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+}
+
+.header-link {
+  font-size: 13px;
+  color: var(--wp-link);
+  text-decoration: none;
+}
+.header-link:hover { text-decoration: underline; }
+
+/* === MAIN LAYOUT === */
+.main-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 24px 60px;
+}
+
+/* === INTRO === */
+.intro-section {
+  margin-bottom: 32px;
+}
+
+.intro-section h1 {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 400;
+  color: var(--wp-gray-800);
+  margin-bottom: 8px;
+}
+
+.intro-section .lead {
+  font-size: 15px;
+  color: var(--wp-gray-600);
+  max-width: 700px;
+  line-height: 1.65;
+}
+
+/* === PIPELINE DIAGRAM === */
+.pipeline-overview {
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  padding: 20px 24px;
+  margin-bottom: 32px;
+}
+
+.pipeline-overview h3 {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--wp-gray-500);
+  margin-bottom: 16px;
+}
+
+.pipeline-steps {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.pipeline-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.pipeline-step-content {
+  flex: 1;
+  background: var(--wp-gray-100);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  padding: 12px 14px;
+  text-align: center;
+  transition: all var(--transition);
+  position: relative;
+}
+
+.pipeline-step-content.active {
+  background: #eaf3ff;
+  border-color: var(--wp-blue);
+  box-shadow: 0 0 0 2px rgba(51,102,204,0.15);
+}
+
+.pipeline-step-content.complete {
+  background: var(--wp-green-light);
+  border-color: var(--wp-green);
+}
+
+.pipeline-step-content.rejected {
+  background: var(--wp-red-light);
+  border-color: var(--wp-red);
+}
+
+.pipeline-step-content.rejected .pipeline-step-num { color: var(--wp-red); }
+
+.pipeline-step-content.skipped {
+  background: var(--wp-gray-100);
+  border-color: var(--wp-gray-200);
+  opacity: 0.45;
+}
+
+.pipeline-step-num {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--wp-gray-400);
+  margin-bottom: 4px;
+}
+
+.pipeline-step-content.active .pipeline-step-num { color: var(--wp-blue); }
+.pipeline-step-content.complete .pipeline-step-num { color: var(--wp-green); }
+
+.pipeline-step-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--wp-gray-700);
+  line-height: 1.3;
+}
+
+.pipeline-arrow {
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--wp-gray-300);
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* === INPUT SECTION === */
+.input-section {
+  margin-bottom: 32px;
+}
+
+.input-section h2 {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--wp-gray-800);
+  margin-bottom: 14px;
+}
+
+.sample-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.sample-card {
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--transition);
+  position: relative;
+}
+
+.sample-card:hover {
+  border-color: var(--wp-blue-light);
+  box-shadow: var(--wp-shadow);
+}
+
+.sample-card.selected {
+  border-color: var(--wp-blue);
+  box-shadow: 0 0 0 2px rgba(51,102,204,0.2);
+  background: #f8fbff;
+}
+
+.sample-type {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.sample-type.paper { background: #ede0f7; color: #7b3aad; }
+.sample-type.prompt { background: #fef3cd; color: #856404; }
+.sample-type.news { background: #d4edda; color: #155724; }
+.sample-type.speech { background: #d1ecf1; color: #0c5460; }
+.sample-type.advice { background: #f8d7da; color: #721c24; }
+
+.sample-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wp-gray-800);
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.sample-source {
+  font-size: 12px;
+  color: var(--wp-gray-500);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sample-source .domain {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* === PROCESSING AREA === */
+.processing-area {
+  display: none;
+}
+
+.processing-area.visible {
+  display: block;
+}
+
+/* === STEP PANELS === */
+.step-panel {
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  margin-bottom: 16px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 400ms ease, transform 400ms ease;
+}
+
+.step-panel.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.step-header {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--wp-gray-200);
+  background: var(--wp-surface);
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--wp-gray-300);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+
+.step-panel.processing .step-number { background: var(--wp-blue); }
+.step-panel.complete .step-number { background: var(--wp-green); }
+
+.step-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wp-gray-700);
+  flex: 1;
+}
+
+.step-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.step-panel.processing .step-status {
+  background: #eaf3ff;
+  color: var(--wp-blue);
+}
+
+.step-panel.complete .step-status {
+  background: var(--wp-green-light);
+  color: var(--wp-green);
+}
+
+.step-body {
+  padding: 16px 20px;
+}
+
+/* === LOADING ANIMATION === */
+.loading-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.loading-dots span {
+  width: 6px;
+  height: 6px;
+  background: var(--wp-blue);
+  border-radius: 50%;
+  animation: dotPulse 1.2s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+  0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* === SOURCE VALIDATION === */
+.source-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  border-radius: var(--wp-radius-md);
+  margin-bottom: 10px;
+}
+
+.source-check.reliable { background: var(--wp-green-bg); }
+.source-check.caution { background: var(--wp-yellow-light); }
+.source-check.unreliable { background: var(--wp-red-light); }
+.source-check.needs-source { background: var(--wp-yellow-light); }
+
+.source-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.source-check.reliable .source-icon { background: var(--wp-green); color: white; }
+.source-check.caution .source-icon { background: var(--wp-yellow); color: #333; }
+.source-check.needs-source .source-icon { background: #e0a800; color: white; }
+.source-check.unreliable .source-icon { background: var(--wp-red); color: white; }
+
+.rejection-box {
+  background: var(--wp-red-light);
+  border: 1px solid #f5c6cb;
+  border-radius: var(--wp-radius-md);
+  padding: 16px 18px;
+  margin-top: 14px;
+}
+
+.rejection-box h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #721c24;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rejection-box p {
+  font-size: 13px;
+  color: #856;
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+.rejection-box ul {
+  font-size: 12.5px;
+  color: #856;
+  line-height: 1.6;
+  padding-left: 20px;
+  margin-bottom: 8px;
+}
+
+.rejection-box .suggestion {
+  font-size: 12.5px;
+  color: var(--wp-gray-600);
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  padding: 10px 12px;
+  margin-top: 10px;
+}
+
+.rejection-box .suggestion strong {
+  color: var(--wp-gray-800);
+}
+
+.step-panel.rejected .step-number { background: var(--wp-red); }
+.step-panel.rejected .step-status { background: var(--wp-red-light); color: var(--wp-red); }
+
+.source-details h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+
+.source-details p {
+  font-size: 12.5px;
+  color: var(--wp-gray-600);
+  line-height: 1.5;
+}
+
+.source-domain {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--wp-gray-500);
+  margin-top: 4px;
+}
+
+.model-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-family: var(--font-mono);
+  background: var(--wp-gray-200);
+  color: var(--wp-gray-600);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+.model-tag a {
+  color: var(--wp-link);
+  text-decoration: none;
+}
+.model-tag a:hover { text-decoration: underline; }
+
+/* === RISK SCORE BAR === */
+.risk-bar-container {
+  margin-top: 8px;
+}
+
+.risk-bar-label {
+  font-size: 11px;
+  color: var(--wp-gray-500);
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.risk-bar {
+  height: 6px;
+  background: var(--wp-gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.risk-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 600ms ease;
+}
+
+.risk-bar-fill.low { background: var(--wp-green); }
+.risk-bar-fill.medium { background: var(--wp-yellow); }
+.risk-bar-fill.high { background: var(--wp-red); }
+
+/* === PROMPT INTERACTION === */
+.prompt-dialog {
+  background: var(--wp-yellow-light);
+  border: 1px solid #f0d68a;
+  border-radius: var(--wp-radius-md);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+
+.prompt-dialog p {
+  font-size: 13px;
+  color: #856404;
+  margin-bottom: 10px;
+}
+
+.prompt-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.prompt-input-row input {
+  flex: 1;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  border: 1px solid #ddd;
+  border-radius: var(--wp-radius-md);
+  outline: none;
+}
+
+.prompt-input-row input:focus {
+  border-color: var(--wp-blue);
+  box-shadow: 0 0 0 2px rgba(51,102,204,0.15);
+}
+
+.btn {
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--wp-radius-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-sans);
+}
+
+.btn-primary {
+  background: var(--wp-blue);
+  color: white;
+}
+.btn-primary:hover { background: var(--wp-blue-dark); }
+
+.btn-sm {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+/* === KEY FACTS === */
+.fact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.fact-item.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.fact-bullet {
+  width: 6px;
+  height: 6px;
+  background: var(--wp-blue);
+  border-radius: 50%;
+  margin-top: 7px;
+  flex-shrink: 0;
+}
+
+.fact-text {
+  font-size: 13.5px;
+  color: var(--wp-gray-700);
+  line-height: 1.5;
+}
+
+.fact-text .highlight {
+  background: #fff4b8;
+  padding: 0 3px;
+  border-radius: 2px;
+  font-weight: 600;
+}
+
+/* === ARTICLE MATCHES === */
+.match-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.match-card {
+  display: flex;
+  gap: 14px;
+  padding: 14px;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+.match-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.match-relevance {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.match-relevance.high { background: #d5fdf4; color: #00796b; }
+.match-relevance.medium { background: #fef6e7; color: #8a6d3b; }
+.match-relevance.low { background: var(--wp-gray-200); color: var(--wp-gray-600); }
+
+.match-info { flex: 1; }
+
+.match-article-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--wp-link);
+  margin-bottom: 3px;
+}
+
+.match-article-title a {
+  color: inherit;
+  text-decoration: none;
+}
+.match-article-title a:hover { text-decoration: underline; }
+
+.match-reason {
+  font-size: 12.5px;
+  color: var(--wp-gray-600);
+  line-height: 1.5;
+}
+
+.match-tags {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.match-tag {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  background: var(--wp-gray-200);
+  color: var(--wp-gray-600);
+  border-radius: 3px;
+}
+
+/* === OPPORTUNITIES === */
+.opportunity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.opportunity-card {
+  padding: 14px 16px;
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-gray-200);
+  border-left: 3px solid var(--wp-blue);
+  border-radius: var(--wp-radius-md);
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+
+.opportunity-card.visible { opacity: 1; }
+
+.opportunity-card.high-impact { border-left-color: var(--wp-green); }
+.opportunity-card.medium-impact { border-left-color: var(--wp-yellow); }
+
+.opp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.opp-type {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.opp-type.add { background: #d5fdf4; color: #00796b; }
+.opp-type.update { background: #eaf3ff; color: var(--wp-blue); }
+.opp-type.expand { background: #fef6e7; color: #8a6d3b; }
+
+.opp-impact {
+  font-size: 10.5px;
+  color: var(--wp-gray-500);
+}
+
+.opp-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--wp-gray-800);
+  margin-bottom: 4px;
+}
+
+.opp-desc {
+  font-size: 12.5px;
+  color: var(--wp-gray-600);
+  line-height: 1.5;
+}
+
+.opp-article {
+  font-size: 11.5px;
+  color: var(--wp-link);
+  margin-top: 4px;
+}
+
+/* === SUGGESTED EDITS === */
+.edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.edit-card {
+  background: var(--wp-surface);
+  border: 1px solid var(--wp-gray-200);
+  border-radius: var(--wp-radius-md);
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 400ms ease;
+}
+
+.edit-card.visible { opacity: 1; }
+
+.edit-card-header {
+  padding: 12px 16px;
+  background: var(--wp-bg);
+  border-bottom: 1px solid var(--wp-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-article {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--wp-link);
+}
+
+.edit-section {
+  font-size: 12px;
+  color: var(--wp-gray-500);
+}
+
+.edit-diff {
+  padding: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  overflow-x: auto;
+}
+
+.diff-context {
+  color: var(--wp-gray-500);
+  padding: 2px 0;
+}
+
+.diff-add {
+  background: #d4edda;
+  color: #155724;
+  padding: 2px 4px;
+  border-radius: 2px;
+  display: block;
+  margin: 2px 0;
+}
+
+.diff-remove {
+  background: #fee;
+  color: #a33;
+  text-decoration: line-through;
+  padding: 2px 4px;
+  border-radius: 2px;
+  display: block;
+  margin: 2px 0;
+}
+
+.edit-card-footer {
+  padding: 10px 16px;
+  background: var(--wp-bg);
+  border-top: 1px solid var(--wp-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-ref {
+  font-size: 11px;
+  color: var(--wp-gray-500);
+  font-family: var(--font-mono);
+  max-width: 60%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-edit {
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--wp-gray-300);
+  background: var(--wp-bg);
+  color: var(--wp-gray-700);
+  border-radius: var(--wp-radius-md);
+  cursor: pointer;
+  transition: all var(--transition);
+  font-family: var(--font-sans);
+}
+
+.btn-edit:hover {
+  border-color: var(--wp-blue);
+  color: var(--wp-blue);
+}
+
+.btn-edit.primary {
+  background: var(--wp-blue);
+  border-color: var(--wp-blue);
+  color: white;
+}
+
+.btn-edit.primary:hover {
+  background: var(--wp-blue-dark);
+}
+
+/* === FOOTER === */
+.site-footer {
+  text-align: center;
+  padding: 24px;
+  font-size: 12px;
+  color: var(--wp-gray-400);
+  border-top: 1px solid var(--wp-gray-200);
+  margin-top: 40px;
+}
+
+.site-footer a {
+  color: var(--wp-link);
+  text-decoration: none;
+}
+.site-footer a:hover { text-decoration: underline; }
+
+/* === RESPONSIVE === */
+@media (max-width: 700px) {
+  .pipeline-steps { flex-direction: column; }
+  .pipeline-arrow { transform: rotate(90deg); width: auto; height: 20px; }
+  .sample-grid { grid-template-columns: 1fr; }
+  .header-meta { display: none; }
+}
+
+/* === RESET BUTTON === */
+.reset-bar {
+  display: none;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.reset-bar.visible {
+  display: flex;
+}
+
+.btn-reset {
+  padding: 6px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--wp-bg);
+  border: 1px solid var(--wp-gray-300);
+  color: var(--wp-gray-600);
+  border-radius: 16px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: all var(--transition);
+}
+
+.btn-reset:hover {
+  border-color: var(--wp-gray-400);
+  background: var(--wp-gray-100);
+}
+
+/* === THINKING LOG === */
+.thinking-log {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--wp-gray-500);
+  line-height: 1.7;
+  padding: 8px 0;
+}
+
+.thinking-log .log-line {
+  opacity: 0;
+  transition: opacity 250ms ease;
+}
+
+.thinking-log .log-line.visible {
+  opacity: 1;
+}
+
+.thinking-log .log-line::before {
+  content: "›";
+  margin-right: 6px;
+  color: var(--wp-gray-400);
+}
+
+/* === SUMMARY STATS === */
+.summary-bar {
+  display: flex;
+  gap: 20px;
+  padding: 12px 16px;
+  background: #eaf3ff;
+  border-radius: var(--wp-radius-md);
+  margin-bottom: 14px;
+}
+
+.summary-stat {
+  text-align: center;
+}
+
+.summary-stat .num {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--wp-blue-dark);
+  font-family: var(--font-serif);
+}
+
+.summary-stat .label {
+  font-size: 10.5px;
+  color: var(--wp-gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="logo-mark">W</div>
+      <div class="logo-text">
+        <span class="title">WikiSuggest</span>
+        <span class="subtitle">Source-First Editing Tool</span>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="version-badge">Prototype v0.1</span>
+      <a class="header-link" href="https://meta.wikimedia.org/wiki/Machine_learning_models" target="_blank" rel="noopener">ML Model Cards</a>
+    </div>
+  </div>
+</header>
+
+<!-- MAIN -->
+<main class="main-container">
+
+  <!-- INTRO -->
+  <section class="intro-section">
+    <h1>Add knowledge to Wikipedia from your sources</h1>
+    <p class="lead">Start with a source you trust — a research paper, news article, or historical document — and this tool will find where it can improve Wikipedia. Select a sample artifact below, or paste your own URL.</p>
+  </section>
+
+  <!-- PIPELINE -->
+  <div class="pipeline-overview">
+    <h3>Processing pipeline</h3>
+    <div class="pipeline-steps">
+      <div class="pipeline-step">
+        <div class="pipeline-step-content" id="pip-1">
+          <div class="pipeline-step-num">Step 1</div>
+          <div class="pipeline-step-label">Validate source</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-content" id="pip-2">
+          <div class="pipeline-step-num">Step 2</div>
+          <div class="pipeline-step-label">Extract key facts</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-content" id="pip-3">
+          <div class="pipeline-step-num">Step 3</div>
+          <div class="pipeline-step-label">Match articles</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-content" id="pip-4">
+          <div class="pipeline-step-num">Step 4</div>
+          <div class="pipeline-step-label">Find opportunities</div>
+        </div>
+      </div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-step">
+        <div class="pipeline-step-content" id="pip-5">
+          <div class="pipeline-step-num">Step 5</div>
+          <div class="pipeline-step-label">Suggest edits</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUT SELECTION -->
+  <section class="input-section" id="input-section">
+    <h2>Select a sample artifact</h2>
+    <div class="sample-grid">
+      <div class="sample-card" data-artifact="paper" onclick="selectArtifact('paper')">
+        <span class="sample-type paper">Research Paper</span>
+        <div class="sample-title">Division of labor enables efficient collective decision-making under uncertainty</div>
+        <div class="sample-source"><span class="domain">arxiv.org</span></div>
+      </div>
+      <div class="sample-card" data-artifact="prompt" onclick="selectArtifact('prompt')">
+        <span class="sample-type prompt">User Prompt</span>
+        <div class="sample-title">"I just read that the US has reached a new low in its anti-corruption score…"</div>
+        <div class="sample-source"><span class="domain">user input</span></div>
+      </div>
+      <div class="sample-card" data-artifact="news" onclick="selectArtifact('news')">
+        <span class="sample-type news">News Article</span>
+        <div class="sample-title">Lopez v. Apple: $95M Siri Settlement Claims</div>
+        <div class="sample-source"><span class="domain">usatoday.com</span></div>
+      </div>
+      <div class="sample-card" data-artifact="speech" onclick="selectArtifact('speech')">
+        <span class="sample-type speech">WikiSource Document</span>
+        <div class="sample-title">Philippine Intervention at CSW67 on Bridging the Gender Digital Divide</div>
+        <div class="sample-source"><span class="domain">en.wikisource.org</span></div>
+      </div>
+      <div class="sample-card" data-artifact="reddit" onclick="selectArtifact('reddit')">
+        <span class="sample-type advice">User Prompt</span>
+        <div class="sample-title">"My recommendation is to use mouthwash after meals if you feel like you have bad breath…"</div>
+        <div class="sample-source"><span class="domain">reddit.com</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESET -->
+  <div class="reset-bar" id="reset-bar">
+    <button class="btn-reset" onclick="resetAll()">← Choose a different artifact</button>
+  </div>
+
+  <!-- PROCESSING OUTPUT -->
+  <div class="processing-area" id="processing-area">
+
+    <!-- Step 1: Source Validation -->
+    <div class="step-panel" id="step1">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <div class="step-title">Source Validation</div>
+        <div class="step-status"></div>
+      </div>
+      <div class="step-body" id="step1-body"></div>
+    </div>
+
+    <!-- Step 2: Key Facts -->
+    <div class="step-panel" id="step2">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <div class="step-title">Key Facts Extraction</div>
+        <div class="step-status"></div>
+      </div>
+      <div class="step-body" id="step2-body"></div>
+    </div>
+
+    <!-- Step 3: Article Matching -->
+    <div class="step-panel" id="step3">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <div class="step-title">Article Matching</div>
+        <div class="step-status"></div>
+      </div>
+      <div class="step-body" id="step3-body"></div>
+    </div>
+
+    <!-- Step 4: Opportunity Analysis -->
+    <div class="step-panel" id="step4">
+      <div class="step-header">
+        <div class="step-number">4</div>
+        <div class="step-title">Opportunity Analysis</div>
+        <div class="step-status"></div>
+      </div>
+      <div class="step-body" id="step4-body"></div>
+    </div>
+
+    <!-- Step 5: Suggested Edits -->
+    <div class="step-panel" id="step5">
+      <div class="step-header">
+        <div class="step-number">5</div>
+        <div class="step-title">Suggested Edits</div>
+        <div class="step-status"></div>
+      </div>
+      <div class="step-body" id="step5-body"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer class="site-footer">
+  WikiSuggest Prototype · Built for Wikipedia product ideation · Uses <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk" target="_blank" rel="noopener">Reference Risk Model</a>
+</footer>
+
+<script>
+// ============================================================
+// PRE-GENERATED DATA FOR ALL ARTIFACTS
+// ============================================================
+
+const ARTIFACTS = {
+
+// === 1. RESEARCH PAPER ===
+paper: {
+  sourceValidation: {
+    type: 'reliable',
+    domain: 'arxiv.org',
+    title: 'Source appears reliable',
+    description: 'arxiv.org is a widely-used open-access preprint repository maintained by Cornell University. It is cited extensively on Wikipedia and has a high domain survival rate across all language editions.',
+    riskScore: 0.12,
+    survivalRate: 0.94,
+    pageCount: 12840,
+    editorsCount: 5231,
+    psl: 'Generally Reliable'
+  },
+  facts: [
+    { text: 'Decentralized collectives can match the performance of <span class="highlight">centrally controlled groups</span> through a division of labor strategy.' },
+    { text: 'A small, <span class="highlight">heterogeneous subset</span> of the group explores even when expected rewards are negative, while the synchronized majority forages only when rewards are positive.' },
+    { text: 'The model addresses <span class="highlight">collective foraging</span> in which individuals choose whether to invest in costly exploration or remain idle, while sharing information and rewards.' },
+    { text: 'In changing environments, communication delays can <span class="highlight">outweigh the benefits of centralized control</span>, making decentralized strategies advantageous in large groups.' },
+    { text: 'The paper provides a mathematical framework connecting <span class="highlight">division of labor</span> with optimal collective decision-making under uncertainty.' }
+  ],
+  matches: [
+    { title: 'Collective intelligence', url: 'https://en.wikipedia.org/wiki/Collective_intelligence', relevance: 92, relevanceClass: 'high', reason: 'Paper directly addresses how collectives make decisions without central coordination — a core topic of this article.', tags: ['decision-making', 'group behavior', 'decentralization'] },
+    { title: 'Swarm behaviour', url: 'https://en.wikipedia.org/wiki/Swarm_behaviour', relevance: 87, relevanceClass: 'high', reason: 'The foraging model with heterogeneous roles maps closely to swarm behavior research, including scout/worker dynamics.', tags: ['foraging', 'animal behavior', 'emergent behavior'] },
+    { title: 'Division of labour', url: 'https://en.wikipedia.org/wiki/Division_of_labour', relevance: 78, relevanceClass: 'medium', reason: 'Paper extends the concept of division of labor into decentralized decision-making contexts, offering a new theoretical connection.', tags: ['specialization', 'economics', 'biology'] },
+    { title: 'Collective decision-making', url: 'https://en.wikipedia.org/wiki/Collective_decision-making', relevance: 95, relevanceClass: 'high', reason: 'The paper is specifically about collective decision-making under uncertainty — this is the most direct match.', tags: ['group decisions', 'uncertainty', 'coordination'] }
+  ],
+  opportunities: [
+    { type: 'add', impact: 'high-impact', title: 'Add new research findings on decentralized vs. centralized performance', desc: 'The article on Collective decision-making currently lacks recent research showing mathematical conditions under which decentralized groups can match centrally controlled ones.', article: 'Collective decision-making § Mathematical models' },
+    { type: 'expand', impact: 'high-impact', title: 'Expand the biological basis section with foraging model', desc: 'Swarm behaviour article discusses foraging but doesn\'t address how heterogeneous role assignment (explorers vs. followers) emerges as an optimal strategy.', article: 'Swarm behaviour § Collective foraging' },
+    { type: 'add', impact: 'medium-impact', title: 'Add cross-reference to biological division of labor', desc: 'The Division of labour article primarily covers economic and sociological perspectives. A new section or cross-reference to biological/computational models would enrich the article.', article: 'Division of labour § See also' },
+    { type: 'update', impact: 'medium-impact', title: 'Update research references in Collective intelligence', desc: 'The Collective intelligence article references older research on group decision-making. This 2025 paper provides a more rigorous mathematical framework.', article: 'Collective intelligence § In animals' }
+  ],
+  edits: [
+    {
+      article: 'Collective decision-making',
+      section: '§ Mathematical models',
+      diff: {
+        context: '...Various mathematical models have been proposed to explain collective decision-making processes.',
+        add: 'A 2025 study demonstrated that decentralized collectives can match the performance of centrally controlled groups through a division of labor mechanism, where a small heterogeneous subset of explorers maintains costly search even during unfavorable conditions, while a synchronized majority responds only to positive signals. This suggests that optimal collective decisions do not require centralized coordination in dynamic environments.<ref>{{cite arXiv |last1=<!-- authors --> |title=Division of labor enables efficient collective decision-making under uncertainty |eprint=2602.08840 |year=2025}}</ref>',
+      },
+      refUrl: 'https://arxiv.org/abs/2602.08840'
+    },
+    {
+      article: 'Swarm behaviour',
+      section: '§ Collective foraging',
+      diff: {
+        context: '...In collective foraging, organisms must balance exploration of new food sources with exploitation of known ones.',
+        add: 'Recent theoretical work has shown that heterogeneous role assignment — where a minority of individuals persistently explores while the majority follows a foraging-only-when-profitable strategy — can be an optimal solution to the exploration-exploitation trade-off in changing environments. In this model, communication delays that arise in larger groups make decentralized strategies with built-in division of labor more effective than centralized control.<ref>{{cite arXiv |title=Division of labor enables efficient collective decision-making under uncertainty |eprint=2602.08840 |year=2025}}</ref>',
+      },
+      refUrl: 'https://arxiv.org/abs/2602.08840'
+    }
+  ]
+},
+
+// === 2. USER PROMPT (CORRUPTION) ===
+prompt: {
+  needsSource: true,
+  userPrompt: "I just read that the US has reached a new low in its anti-corruption score, and I'd like to add that to Wikipedia. Where should I add it?",
+  sourceUrl: 'https://www.latimes.com/world-nation/story/2026-02-10/survey-says-democracies-anti-corruption-efforts-are-slipping-raises-concern-about-u-s',
+  sourceValidation: {
+    type: 'reliable',
+    domain: 'latimes.com',
+    title: 'Source appears reliable',
+    description: 'The Los Angeles Times (latimes.com) is a major US newspaper of record with a high survival rate on Wikipedia. It is listed as "Generally Reliable" on Wikipedia\'s perennial sources list.',
+    riskScore: 0.08,
+    survivalRate: 0.96,
+    pageCount: 28450,
+    editorsCount: 9120,
+    psl: 'Generally Reliable'
+  },
+  facts: [
+    { text: 'The United States scored <span class="highlight">64 out of 100</span> on the 2025 Corruption Perceptions Index (CPI), its <span class="highlight">lowest-ever score</span>.' },
+    { text: 'The US fell to <span class="highlight">29th place</span> out of 182 countries, its lowest rank since the CPI was relaunched in 2012.' },
+    { text: 'The <span class="highlight">global CPI average dropped to 42</span>, the first decline in more than a decade.' },
+    { text: 'Transparency International cited the <span class="highlight">freeze and weakening of FCPA enforcement</span> and cuts to US aid for overseas civil society as key concerns.' },
+    { text: '<span class="highlight">Denmark topped the index</span> for the eighth year with a score of 89. Only five countries now score above 80, down from twelve a decade ago.' },
+    { text: '2025 saw a <span class="highlight">wave of anti-corruption protests led by Gen Z</span>, notably in Nepal and Madagascar.' }
+  ],
+  matches: [
+    { title: 'Corruption Perceptions Index', url: 'https://en.wikipedia.org/wiki/Corruption_Perceptions_Index', relevance: 98, relevanceClass: 'high', reason: 'The article directly covers the CPI. The 2025 edition data needs to be added.', tags: ['CPI', 'Transparency International', 'annual update'] },
+    { title: 'Corruption in the United States', url: 'https://en.wikipedia.org/wiki/Corruption_in_the_United_States', relevance: 88, relevanceClass: 'high', reason: 'US-specific CPI decline and FCPA enforcement changes are directly relevant to this article.', tags: ['US politics', 'FCPA', 'governance'] },
+    { title: 'Transparency International', url: 'https://en.wikipedia.org/wiki/Transparency_International', relevance: 72, relevanceClass: 'medium', reason: 'The organization published the 2025 CPI with notable commentary on democratic decline.', tags: ['NGO', 'anti-corruption', 'organization'] },
+    { title: 'Foreign Corrupt Practices Act', url: 'https://en.wikipedia.org/wiki/Foreign_Corrupt_Practices_Act', relevance: 65, relevanceClass: 'medium', reason: 'The article noted the freeze and weakening of FCPA enforcement as a concern specific to the US.', tags: ['law', 'enforcement', 'corruption'] }
+  ],
+  opportunities: [
+    { type: 'update', impact: 'high-impact', title: 'Update CPI article with 2025 results', desc: 'The Corruption Perceptions Index article needs to be updated with the 2025 data: global average of 42, US score of 64, Denmark leading at 89, and the overall finding of democratic decline.', article: 'Corruption Perceptions Index § Rankings' },
+    { type: 'add', impact: 'high-impact', title: 'Add 2025 CPI findings to US corruption article', desc: 'Corruption in the United States article should reflect the lowest-ever CPI score (64) and rank (29th), with context about FCPA enforcement concerns.', article: 'Corruption in the United States § Indices and surveys' },
+    { type: 'update', impact: 'medium-impact', title: 'Note global democratic decline trend', desc: 'The CPI article and Transparency International pages should note the broader trend: number of countries scoring above 80 fell from 12 to 5 in a decade.', article: 'Transparency International § Activities' },
+    { type: 'add', impact: 'medium-impact', title: 'Document FCPA enforcement freeze', desc: 'The FCPA article could note the temporary freeze and weakening of enforcement highlighted by TI as a significant recent development.', article: 'Foreign Corrupt Practices Act § Enforcement' }
+  ],
+  edits: [
+    {
+      article: 'Corruption Perceptions Index',
+      section: '§ Rankings (2025)',
+      diff: {
+        context: '...The 2024 Corruption Perceptions Index was released on 11 February 2025.',
+        add: 'The 2025 Corruption Perceptions Index was released on 10 February 2026 and ranked 182 countries and territories. The global average score dropped to 42, the first decline in more than a decade. Denmark topped the index for the eighth consecutive year with a score of 89, followed by Finland and Singapore. The number of countries scoring above 80 fell from 12 a decade ago to just five. The United States scored 64, its lowest-ever score, and fell to 29th place. Transparency International noted a "worrying decline in performance" among established democracies including the US, Canada (75), the United Kingdom (70), and New Zealand (81).<ref>{{cite web |title=Corruption Perceptions Index 2025 |url=https://www.transparency.org/en/cpi/2025 |publisher=Transparency International |date=10 February 2026}}</ref>',
+      },
+      refUrl: 'https://www.transparency.org/en/cpi/2025'
+    },
+    {
+      article: 'Corruption in the United States',
+      section: '§ Indices and surveys',
+      diff: {
+        context: '...The United States has seen a general decline in its CPI scores over the past decade.',
+        add: 'In the 2025 CPI, the United States scored 64 out of 100, its lowest-ever score, and dropped to 29th place among 182 countries. Transparency International raised concerns that the "temporary freeze and weakening of enforcement of the Foreign Corrupt Practices Act signal tolerance for corrupt business practices," and noted that cuts to US foreign aid had "weakened global anti-corruption efforts."<ref>{{cite news |title=Survey says democracies\' anti-corruption efforts are slipping |url=https://www.latimes.com/world-nation/story/2026-02-10/survey-says-democracies-anti-corruption-efforts-are-slipping-raises-concern-about-u-s |work=Los Angeles Times |date=10 February 2026}}</ref>',
+      },
+      refUrl: 'https://www.latimes.com/world-nation/story/2026-02-10/survey-says-democracies-anti-corruption-efforts-are-slipping-raises-concern-about-u-s'
+    }
+  ]
+},
+
+// === 3. NEWS ARTICLE (LOPEZ v. APPLE) ===
+news: {
+  sourceValidation: {
+    type: 'reliable',
+    domain: 'usatoday.com',
+    title: 'Source appears reliable',
+    description: 'USA Today (usatoday.com) is a major nationally distributed US newspaper. It is listed as "Generally Reliable" on Wikipedia\'s perennial sources list and has a very high domain survival rate.',
+    riskScore: 0.09,
+    survivalRate: 0.95,
+    pageCount: 22100,
+    editorsCount: 7840,
+    psl: 'Generally Reliable'
+  },
+  facts: [
+    { text: 'Apple agreed to a <span class="highlight">$95 million class-action settlement</span> in <em>Lopez v. Apple Inc.</em> (Case No. 4:19-cv-04577).' },
+    { text: 'The lawsuit alleged that Siri <span class="highlight">recorded private conversations</span> during unintended activations and shared them with third-party advertisers.' },
+    { text: 'U.S. District Judge Jeffrey S. White <span class="highlight">granted final approval</span> of the settlement in November 2025.' },
+    { text: 'Eligible devices included iPhones, iPads, Apple Watches, Macs, Apple TV, HomePod, and iPod touch purchased between <span class="highlight">September 17, 2014 and December 31, 2024</span>.' },
+    { text: 'Payments of <span class="highlight">$8 to $40</span> per claimant began distribution in late January 2026, with up to $20 per device and a maximum of 5 devices per claim.' },
+    { text: 'Apple <span class="highlight">denied all allegations</span> and the settlement was not an admission of wrongdoing.' }
+  ],
+  matches: [
+    { title: 'Siri', url: 'https://en.wikipedia.org/wiki/Siri', relevance: 93, relevanceClass: 'high', reason: 'The settlement directly involves Siri\'s alleged eavesdropping behavior. The article\'s Privacy section is most relevant.', tags: ['voice assistant', 'privacy', 'Apple'] },
+    { title: 'Apple Inc. litigation', url: 'https://en.wikipedia.org/wiki/Apple_Inc._litigation', relevance: 90, relevanceClass: 'high', reason: 'This page catalogs Apple\'s legal proceedings and should include the Lopez settlement as a significant privacy case.', tags: ['class action', 'settlement', 'litigation'] },
+    { title: 'Apple Inc.', url: 'https://en.wikipedia.org/wiki/Apple_Inc.', relevance: 55, relevanceClass: 'medium', reason: 'As Apple\'s main article, it may reference major legal outcomes, though detailed coverage belongs on the litigation page.', tags: ['company', 'overview'] }
+  ],
+  opportunities: [
+    { type: 'update', impact: 'high-impact', title: 'Update Siri privacy section with settlement outcome', desc: 'The Siri article discusses the privacy controversy but may not have the final settlement approval and payment details from late 2025 and early 2026.', article: 'Siri § Privacy' },
+    { type: 'add', impact: 'high-impact', title: 'Add Lopez v. Apple to litigation catalog', desc: 'The Apple Inc. litigation article should include this $95M settlement as one of the company\'s major class-action outcomes.', article: 'Apple Inc. litigation § Privacy' },
+    { type: 'update', impact: 'medium-impact', title: 'Note settlement payment distribution', desc: 'Add details about the payment distribution that began in January 2026, including the per-device amounts and total class size.', article: 'Siri § Privacy' }
+  ],
+  edits: [
+    {
+      article: 'Siri',
+      section: '§ Privacy',
+      diff: {
+        context: '...In 2019, it was reported that Siri recordings were being reviewed by human contractors.',
+        add: 'In 2019, a class-action lawsuit (<em>Lopez v. Apple Inc.</em>) was filed alleging that Siri recorded private conversations during unintended activations, which were then shared with third-party advertisers. Apple denied all allegations. In November 2025, U.S. District Judge Jeffrey S. White granted final approval of a $95 million settlement. Payments of between $8 and $40, depending on the number of devices claimed (up to five), began distribution to eligible class members in January 2026.<ref>{{cite news |title=Lopez v. Apple lawsuit settlement claims |url=https://www.usatoday.com/story/tech/2025/05/14/lopez-v-apple-lawsuit-settlement-claims/83621869007/ |work=USA Today |date=14 May 2025}}</ref>',
+      },
+      refUrl: 'https://www.usatoday.com/story/tech/2025/05/14/lopez-v-apple-lawsuit-settlement-claims/83621869007/'
+    },
+    {
+      article: 'Apple Inc. litigation',
+      section: '§ Privacy',
+      diff: {
+        context: '...Apple has faced multiple lawsuits regarding privacy and data collection.',
+        add: 'In <em>Lopez v. Apple Inc.</em> (Case No. 4:19-cv-04577, N.D. Cal.), consumers alleged that Apple\'s Siri voice assistant recorded confidential conversations during unintended activations and shared the data with third-party advertisers. Apple denied the allegations. A $95 million class-action settlement was preliminarily approved in February 2025 and received final approval in November 2025. The settlement covered owners of Siri-enabled devices purchased between September 2014 and December 2024.<ref>{{cite web |title=Court Grants Final Approval of $95M Apple Siri Settlement |url=https://scott-scott.com/court-grants-final-approval-of-95m-apple-siri-settlement/ |publisher=Scott+Scott |date=17 November 2025}}</ref>',
+      },
+      refUrl: 'https://scott-scott.com/court-grants-final-approval-of-95m-apple-siri-settlement/'
+    }
+  ]
+},
+
+// === 4. WIKISOURCE SPEECH ===
+speech: {
+  sourceValidation: {
+    type: 'reliable',
+    domain: 'en.wikisource.org',
+    title: 'Source is a Wikimedia project',
+    description: 'WikiSource is a Wikimedia sister project that hosts free-content source texts. This is a transcription of a speech delivered by DICT Undersecretary Anna Mae Yu Lamentillo at the 67th Session of the UN Commission on the Status of Women (CSW67), held in March 2023.',
+    riskScore: 0.05,
+    survivalRate: 0.98,
+    pageCount: null,
+    editorsCount: null,
+    psl: 'Wikimedia project'
+  },
+  facts: [
+    { text: 'The Philippines ranked <span class="highlight">19th globally</span> in the 2022 Global Gender Gap Report, <span class="highlight">leading among Asian countries</span> in closing the gender gap.' },
+    { text: 'According to the Alliance for Affordable Internet, women\'s full participation in the digital economy could add <span class="highlight">$524 billion in economic activity by 2025</span>.' },
+    { text: 'The Philippine government had over <span class="highlight">4,000 live free Wi-Fi sites</span> in 2022 and aimed for <span class="highlight">100,000 sites by 2025</span>.' },
+    { text: 'The Philippine IT-BPM sector saw <span class="highlight">8.4% growth</span> with 121,000 new full-time employees and revenues reaching <span class="highlight">$32.5 billion in 2022</span>.' },
+    { text: 'The <span class="highlight">Women and ICT Development Index (WIDI) Survey 2022</span> was the first-ever national survey generating indicators on how Filipino women access and use ICTs.' },
+    { text: 'The <span class="highlight">Digital Cities 2025 Program</span> aims to expand the IT-BPM sector into the Philippine countryside.' }
+  ],
+  matches: [
+    { title: 'Commission on the Status of Women', url: 'https://en.wikipedia.org/wiki/Commission_on_the_Status_of_Women', relevance: 82, relevanceClass: 'high', reason: 'The speech was delivered at CSW67. The Wikipedia article can be updated with details about country-specific interventions and outcomes.', tags: ['UN', 'gender equality', 'CSW67'] },
+    { title: 'Digital divide in the Philippines', url: 'https://en.wikipedia.org/wiki/Digital_divide_in_the_Philippines', relevance: 90, relevanceClass: 'high', reason: 'The speech directly addresses the Philippines\' efforts to bridge the digital divide with concrete programs and statistics.', tags: ['ICT', 'Wi-Fi', 'rural access'] },
+    { title: 'Gender inequality in the Philippines', url: 'https://en.wikipedia.org/wiki/Gender_inequality_in_the_Philippines', relevance: 76, relevanceClass: 'medium', reason: 'The gender-focused digital inclusion programs and the WIDI survey data are relevant to this article.', tags: ['gender gap', 'policy', 'women'] },
+    { title: 'Business process outsourcing in the Philippines', url: 'https://en.wikipedia.org/wiki/Business_process_outsourcing_in_the_Philippines', relevance: 68, relevanceClass: 'medium', reason: 'The speech cites specific IT-BPM sector growth figures from 2022 that can update or verify data in this article.', tags: ['BPO', 'IT', 'economy'] }
+  ],
+  opportunities: [
+    { type: 'add', impact: 'high-impact', title: 'Document Philippine digital divide bridging initiatives', desc: 'The Digital divide in the Philippines article can be enriched with specific government programs mentioned in the CSW67 speech: free Wi-Fi expansion targets, Tech4ED, DigitalJobsPH, and the Digital Cities 2025 Program.', article: 'Digital divide in the Philippines § Government initiatives' },
+    { type: 'add', impact: 'medium-impact', title: 'Add WIDI Survey to gender inequality article', desc: 'The Women and ICT Development Index (WIDI) Survey 2022 is the first national survey measuring women\'s ICT access in the Philippines and deserves mention.', article: 'Gender inequality in the Philippines § Technology' },
+    { type: 'expand', impact: 'medium-impact', title: 'Update BPO article with 2022 sector figures', desc: 'The speech cites 2022 revenue figures ($32.5B) and employment growth (121,000 new FTEs) for the IT-BPM sector that can update the article.', article: 'Business process outsourcing in the Philippines § Growth' },
+    { type: 'update', impact: 'medium-impact', title: 'Add CSW67 Philippine participation details', desc: 'The CSW article could note country-specific interventions like the Philippines\' presentation on bridging the gender digital divide.', article: 'Commission on the Status of Women § 67th session' }
+  ],
+  edits: [
+    {
+      article: 'Digital divide in the Philippines',
+      section: '§ Government initiatives',
+      diff: {
+        context: '...The Department of Information and Communications Technology (DICT) has implemented various programs to address digital access.',
+        add: 'At the 67th Session of the UN Commission on the Status of Women (March 2023), DICT Undersecretary Anna Mae Yu Lamentillo reported that the Philippines had over 4,000 live free Wi-Fi sites as of 2022, with a target of 100,000 sites by 2025, prioritizing geographically isolated and disadvantaged areas, including indigenous communities. The government\'s Tech4ED Project and DigitalJobsPH Program focus on improving ICT services in rural areas, while the Digital Cities 2025 Program aims to expand the IT-BPM sector into the countryside.<ref>{{cite wikisource |title=Philippine Intervention during the 67th Session of the Commission on the Status of Women (CSW67) |author=Anna Mae Yu Lamentillo |year=2023}}</ref>',
+      },
+      refUrl: 'https://en.wikisource.org/wiki/Philippine_Intervention_during_the_67th_Session_of_the_Commission_on_the_Status_of_Women_(CSW67)'
+    },
+    {
+      article: 'Business process outsourcing in the Philippines',
+      section: '§ Industry growth',
+      diff: {
+        context: '...The Philippine IT-BPM industry has been one of the fastest-growing sectors in the country\'s economy.',
+        add: 'In 2022, the sector saw 8.4% growth in employment, adding 121,000 full-time employees, and revenues grew 10.3% to reach $32.5 billion, up from $29.5 billion in 2021.<ref>{{cite wikisource |title=Philippine Intervention during the 67th Session of the Commission on the Status of Women (CSW67) |author=Anna Mae Yu Lamentillo |year=2023}}</ref>',
+      },
+      refUrl: 'https://en.wikisource.org/wiki/Philippine_Intervention_during_the_67th_Session_of_the_Commission_on_the_Status_of_Women_(CSW67)'
+    }
+  ]
+},
+
+// === 5. REDDIT COMMENT (REJECTED) ===
+reddit: {
+  needsSource: true,
+  isRejection: true,
+  userPrompt: "My recommendation is to use mouthwash after meals if you feel like you have bad breath, or if your dentist specifically recommends it to you. For healthy teeth and gums, focus mainly on brushing and flossing.",
+  sourceUrl: 'https://www.reddit.com/r/explainlikeimfive/comments/1ozebek/comment/npazu73/',
+  sourceValidation: {
+    type: 'unreliable',
+    domain: 'reddit.com',
+    title: 'Source is generally unreliable',
+    description: 'reddit.com is listed as "Generally Unreliable" on Wikipedia\'s perennial sources list. Reddit is a user-generated content platform where anyone can post without editorial oversight or fact-checking. Individual Reddit comments are not considered reliable sources for Wikipedia.',
+    riskScore: 0.82,
+    survivalRate: 0.31,
+    pageCount: 4210,
+    editorsCount: 2870,
+    psl: 'Generally Unreliable'
+  },
+  rejectionReasons: [
+    '<strong>Unreliable source:</strong> reddit.com is classified as "Generally Unreliable" on Wikipedia\'s perennial sources list. User-generated forum comments lack editorial review, credentials, or fact-checking.',
+    '<strong>Not encyclopedic content:</strong> The submission is personal advice ("My recommendation is…"), which constitutes original research and opinion. Wikipedia requires verifiable claims from published, reliable sources — not personal recommendations.',
+    '<strong>No verifiable claims:</strong> The text contains general health advice that isn\'t attributed to any study, institution, or expert. Even if the advice is medically sound, it cannot be added to Wikipedia without a reliable source backing the specific claim.'
+  ],
+  suggestion: 'If you\'d like to improve Wikipedia\'s coverage of this topic, look for a peer-reviewed dental study, a health authority guideline (e.g. from the ADA or NHS), or a published article from a reliable news source about mouthwash usage. You could then use that source to suggest edits to articles like <a href="https://en.wikipedia.org/wiki/Mouthwash" target="_blank">Mouthwash</a> or <a href="https://en.wikipedia.org/wiki/Oral_hygiene" target="_blank">Oral hygiene</a>.'
+}
+};
+
+// ============================================================
+// UI CONTROLLER
+// ============================================================
+
+let currentArtifact = null;
+let animationTimeouts = [];
+
+function clearTimeouts() {
+  animationTimeouts.forEach(t => clearTimeout(t));
+  animationTimeouts = [];
+}
+
+function resetAll() {
+  clearTimeouts();
+  currentArtifact = null;
+
+  // Reset cards
+  document.querySelectorAll('.sample-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('input-section').style.display = '';
+  document.getElementById('reset-bar').classList.remove('visible');
+  document.getElementById('processing-area').classList.remove('visible');
+
+  // Reset pipeline
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById('pip-' + i).className = 'pipeline-step-content';
+  }
+
+  // Reset steps
+  for (let i = 1; i <= 5; i++) {
+    const panel = document.getElementById('step' + i);
+    panel.className = 'step-panel';
+    panel.querySelector('.step-status').textContent = '';
+    document.getElementById('step' + i + '-body').innerHTML = '';
+  }
+}
+
+function selectArtifact(key) {
+  if (currentArtifact === key) return;
+  resetAll();
+  currentArtifact = key;
+
+  const card = document.querySelector(`.sample-card[data-artifact="${key}"]`);
+  card.classList.add('selected');
+
+  document.getElementById('reset-bar').classList.add('visible');
+  document.getElementById('processing-area').classList.add('visible');
+
+  const data = ARTIFACTS[key];
+
+  if (data.needsSource) {
+    runPromptFlow(data);
+  } else {
+    runStandardFlow(data);
+  }
+}
+
+function runStandardFlow(data) {
+  runStep1(data, () => {
+    runStep2(data, () => {
+      runStep3(data, () => {
+        runStep4(data, () => {
+          runStep5(data);
+        });
+      });
+    });
+  });
+}
+
+// ============================================================
+// STEP RUNNERS
+// ============================================================
+
+function activateStep(num, state) {
+  const panel = document.getElementById('step' + num);
+  const pip = document.getElementById('pip-' + num);
+  const status = panel.querySelector('.step-status');
+
+  if (state === 'processing') {
+    panel.className = 'step-panel visible processing';
+    pip.className = 'pipeline-step-content active';
+    status.textContent = 'Processing…';
+  } else if (state === 'complete') {
+    panel.className = 'step-panel visible complete';
+    pip.className = 'pipeline-step-content complete';
+    status.textContent = 'Complete';
+  } else if (state === 'rejected') {
+    panel.className = 'step-panel visible rejected';
+    pip.className = 'pipeline-step-content rejected';
+    status.textContent = 'Rejected';
+  } else if (state === 'skipped') {
+    pip.className = 'pipeline-step-content skipped';
+  }
+}
+
+// --- STEP 1: SOURCE VALIDATION ---
+function runStep1(data, callback) {
+  activateStep(1, 'processing');
+  const body = document.getElementById('step1-body');
+  body.innerHTML = '<div class="thinking-log" id="log1"></div>';
+
+  const sv = data.sourceValidation;
+  const logs = [
+    `Fetching source URL…`,
+    `Extracting domain: ${sv.domain}`,
+    `Querying Reference Risk model for domain survival data…`,
+    `Checking Wikipedia perennial sources list…`,
+    `Classification: ${sv.psl}`
+  ];
+
+  animateLogs('log1', logs, 400, () => {
+    animationTimeouts.push(setTimeout(() => {
+      body.innerHTML = renderSourceValidation(sv);
+      activateStep(1, 'complete');
+      animationTimeouts.push(setTimeout(callback, 500));
+    }, 600));
+  });
+}
+
+function renderSourceValidation(sv) {
+  const riskPct = Math.round(sv.riskScore * 100);
+  const survPct = sv.survivalRate ? Math.round(sv.survivalRate * 100) : null;
+  const riskClass = riskPct < 20 ? 'low' : (riskPct < 50 ? 'medium' : 'high');
+
+  let statsHtml = '';
+  if (sv.pageCount) {
+    statsHtml = `<div class="risk-bar-container">
+      <div class="risk-bar-label"><span>Reference risk score</span><span>${riskPct}%</span></div>
+      <div class="risk-bar"><div class="risk-bar-fill ${riskClass}" style="width:${riskPct}%"></div></div>
+    </div>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:11.5px;color:var(--wp-gray-500)">
+      <span>Survival rate: <strong>${survPct}%</strong></span>
+      <span>Pages citing: <strong>${sv.pageCount.toLocaleString()}</strong></span>
+      <span>Editors citing: <strong>${sv.editorsCount.toLocaleString()}</strong></span>
+    </div>`;
+  } else {
+    statsHtml = `<div class="risk-bar-container">
+      <div class="risk-bar-label"><span>Reference risk score</span><span>${riskPct}%</span></div>
+      <div class="risk-bar"><div class="risk-bar-fill ${riskClass}" style="width:${riskPct}%"></div></div>
+    </div>`;
+  }
+
+  return `<div class="source-check ${sv.type}">
+    <div class="source-icon">${sv.type === 'reliable' ? '✓' : sv.type === 'unreliable' ? '✗' : '⚠'}</div>
+    <div class="source-details">
+      <h4>${sv.title}</h4>
+      <p>${sv.description}</p>
+      <div class="source-domain">${sv.domain} · Perennial sources: <strong>${sv.psl}</strong></div>
+      ${statsHtml}
+      <div class="model-tag">⚙ <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk" target="_blank" rel="noopener">reference-risk model</a></div>
+    </div>
+  </div>`;
+}
+
+// --- STEP 2: KEY FACTS ---
+function runStep2(data, callback) {
+  activateStep(2, 'processing');
+  const body = document.getElementById('step2-body');
+  body.innerHTML = '<div class="thinking-log" id="log2"></div>';
+
+  const logs = [
+    'Analyzing source content…',
+    'Extracting verifiable factual claims…',
+    `Found ${data.facts.length} key facts`
+  ];
+
+  animateLogs('log2', logs, 500, () => {
+    animationTimeouts.push(setTimeout(() => {
+      body.innerHTML = `<div class="fact-list" id="facts-list">${data.facts.map((f, i) =>
+        `<div class="fact-item" data-idx="${i}"><div class="fact-bullet"></div><div class="fact-text">${f.text}</div></div>`
+      ).join('')}</div>`;
+      animateChildren('facts-list', 'fact-item', 200, () => {
+        activateStep(2, 'complete');
+        animationTimeouts.push(setTimeout(callback, 400));
+      });
+    }, 400));
+  });
+}
+
+// --- STEP 3: ARTICLE MATCHING ---
+function runStep3(data, callback) {
+  activateStep(3, 'processing');
+  const body = document.getElementById('step3-body');
+  body.innerHTML = '<div class="thinking-log" id="log3"></div>';
+
+  const logs = [
+    'Comparing extracted facts with Wikipedia article index…',
+    'Querying Wikidata for entity matching…',
+    `Identified ${data.matches.length} relevant Wikipedia articles`
+  ];
+
+  animateLogs('log3', logs, 600, () => {
+    animationTimeouts.push(setTimeout(() => {
+      body.innerHTML = `<div class="match-list" id="match-list">${data.matches.map((m, i) =>
+        `<div class="match-card" data-idx="${i}">
+          <div class="match-relevance ${m.relevanceClass}">${m.relevance}%</div>
+          <div class="match-info">
+            <div class="match-article-title"><a href="${m.url}" target="_blank" rel="noopener">${m.title}</a></div>
+            <div class="match-reason">${m.reason}</div>
+            <div class="match-tags">${m.tags.map(t => `<span class="match-tag">${t}</span>`).join('')}</div>
+          </div>
+        </div>`
+      ).join('')}</div>`;
+      animateChildren('match-list', 'match-card', 250, () => {
+        activateStep(3, 'complete');
+        animationTimeouts.push(setTimeout(callback, 400));
+      });
+    }, 400));
+  });
+}
+
+// --- STEP 4: OPPORTUNITIES ---
+function runStep4(data, callback) {
+  activateStep(4, 'processing');
+  const body = document.getElementById('step4-body');
+  body.innerHTML = '<div class="thinking-log" id="log4"></div>';
+
+  const logs = [
+    'Scanning matched articles for content gaps…',
+    'Comparing article sections with extracted facts…',
+    'Assessing edit impact and relevance…',
+    `Found ${data.opportunities.length} improvement opportunities`
+  ];
+
+  animateLogs('log4', logs, 500, () => {
+    animationTimeouts.push(setTimeout(() => {
+      const highCount = data.opportunities.filter(o => o.impact === 'high-impact').length;
+      const medCount = data.opportunities.length - highCount;
+      body.innerHTML = `<div class="summary-bar">
+        <div class="summary-stat"><div class="num">${data.opportunities.length}</div><div class="label">Total Opportunities</div></div>
+        <div class="summary-stat"><div class="num">${highCount}</div><div class="label">High Impact</div></div>
+        <div class="summary-stat"><div class="num">${medCount}</div><div class="label">Medium Impact</div></div>
+        <div class="summary-stat"><div class="num">${data.edits.length}</div><div class="label">Suggested Edits</div></div>
+      </div>
+      <div class="opportunity-list" id="opp-list">${data.opportunities.map((o, i) =>
+        `<div class="opportunity-card ${o.impact}" data-idx="${i}">
+          <div class="opp-header">
+            <span class="opp-type ${o.type}">${o.type === 'add' ? '+ Add' : o.type === 'update' ? '↻ Update' : '◈ Expand'}</span>
+            <span class="opp-impact">${o.impact.replace('-', ' ')}</span>
+          </div>
+          <div class="opp-title">${o.title}</div>
+          <div class="opp-desc">${o.desc}</div>
+          <div class="opp-article">→ ${o.article}</div>
+        </div>`
+      ).join('')}</div>`;
+      animateChildren('opp-list', 'opportunity-card', 200, () => {
+        activateStep(4, 'complete');
+        animationTimeouts.push(setTimeout(callback, 400));
+      });
+    }, 400));
+  });
+}
+
+// --- STEP 5: SUGGESTED EDITS ---
+function runStep5(data) {
+  activateStep(5, 'processing');
+  const body = document.getElementById('step5-body');
+  body.innerHTML = '<div class="thinking-log" id="log5"></div>';
+
+  const logs = [
+    'Generating wikitext for suggested edits…',
+    'Formatting references…',
+    `Prepared ${data.edits.length} suggested edits for review`
+  ];
+
+  animateLogs('log5', logs, 500, () => {
+    animationTimeouts.push(setTimeout(() => {
+      body.innerHTML = `<div class="edit-list" id="edit-list">${data.edits.map((e, i) =>
+        `<div class="edit-card" data-idx="${i}">
+          <div class="edit-card-header">
+            <span class="edit-article">${e.article}</span>
+            <span class="edit-section">${e.section}</span>
+          </div>
+          <div class="edit-diff">
+            <span class="diff-context">${escapeHtml(e.diff.context)}</span>
+            ${e.diff.remove ? `<span class="diff-remove">${escapeHtml(e.diff.remove)}</span>` : ''}
+            <span class="diff-add">+ ${escapeHtml(e.diff.add)}</span>
+          </div>
+          <div class="edit-card-footer">
+            <span class="edit-ref" title="${e.refUrl}">${e.refUrl}</span>
+            <div class="edit-actions">
+              <button class="btn-edit" onclick="alert('In a production system, this would dismiss the suggestion.')">Skip</button>
+              <button class="btn-edit primary" onclick="alert('In a production system, this would open the Wikipedia editor with the suggested edit pre-filled.')">Apply edit →</button>
+            </div>
+          </div>
+        </div>`
+      ).join('')}</div>`;
+      animateChildren('edit-list', 'edit-card', 350, () => {
+        activateStep(5, 'complete');
+      });
+    }, 400));
+  });
+}
+
+// --- PROMPT FLOW (needs source first) ---
+function runPromptFlow(data) {
+  activateStep(1, 'processing');
+  const body = document.getElementById('step1-body');
+
+  // Show the user prompt
+  body.innerHTML = `
+    <div style="background:var(--wp-surface);border:1px solid var(--wp-gray-200);border-radius:4px;padding:12px 14px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:600;color:var(--wp-gray-500);margin-bottom:6px;">USER INPUT</div>
+      <div style="font-size:14px;color:var(--wp-gray-700);font-style:italic;">"${data.userPrompt}"</div>
+    </div>
+    <div class="prompt-dialog">
+      <p>⚠ <strong>No source URL detected.</strong> Wikipedia requires reliable sources for all claims. Please provide a URL to the source you're referencing.</p>
+      <div class="prompt-input-row">
+        <input type="text" id="source-url-input" placeholder="Paste source URL here…" value="">
+        <button class="btn btn-primary" id="submit-source-btn" onclick="submitSource()">Validate source</button>
+      </div>
+    </div>
+  `;
+
+  // Pre-fill the URL after a short delay to simulate user action
+  animationTimeouts.push(setTimeout(() => {
+    const input = document.getElementById('source-url-input');
+    if (input) {
+      typeText(input, data.sourceUrl, 30, () => {
+        animationTimeouts.push(setTimeout(() => {
+          submitSource();
+        }, 800));
+      });
+    }
+  }, 1500));
+}
+
+function submitSource() {
+  const data = ARTIFACTS[currentArtifact];
+  const body = document.getElementById('step1-body');
+
+  // Show thinking
+  const existingContent = body.innerHTML;
+  body.innerHTML = existingContent + '<div class="thinking-log" id="log1"></div>';
+
+  const sv = data.sourceValidation;
+  const logs = [
+    `Fetching source URL…`,
+    `Extracting domain: ${sv.domain}`,
+    `Querying Reference Risk model…`,
+    `Checking perennial sources list…`,
+    `Classification: ${sv.psl}`
+  ];
+
+  animateLogs('log1', logs, 400, () => {
+    animationTimeouts.push(setTimeout(() => {
+      if (data.isRejection) {
+        // REJECTION FLOW
+        body.innerHTML = `
+          <div style="background:var(--wp-surface);border:1px solid var(--wp-gray-200);border-radius:4px;padding:12px 14px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--wp-gray-500);margin-bottom:6px;">USER INPUT</div>
+            <div style="font-size:14px;color:var(--wp-gray-700);font-style:italic;">"${data.userPrompt}"</div>
+          </div>
+          ${renderSourceValidation(sv)}
+          <div class="rejection-box">
+            <h4>⛔ This submission cannot be used to edit Wikipedia</h4>
+            <p>The system identified multiple issues that prevent this source and content from being used:</p>
+            <ul>${data.rejectionReasons.map(r => `<li>${r}</li>`).join('')}</ul>
+            <div class="suggestion"><strong>💡 Suggestion:</strong> ${data.suggestion}</div>
+          </div>
+        `;
+        activateStep(1, 'rejected');
+        // Mark remaining steps as skipped
+        for (let i = 2; i <= 5; i++) {
+          activateStep(i, 'skipped');
+        }
+      } else {
+        // NORMAL FLOW (prompt artifact)
+        body.innerHTML = `
+          <div style="background:var(--wp-surface);border:1px solid var(--wp-gray-200);border-radius:4px;padding:12px 14px;margin-bottom:12px;">
+            <div style="font-size:11px;font-weight:600;color:var(--wp-gray-500);margin-bottom:6px;">USER INPUT</div>
+            <div style="font-size:14px;color:var(--wp-gray-700);font-style:italic;">"${data.userPrompt}"</div>
+          </div>
+          ${renderSourceValidation(sv)}
+        `;
+        activateStep(1, 'complete');
+        animationTimeouts.push(setTimeout(() => {
+          runStep2(data, () => {
+            runStep3(data, () => {
+              runStep4(data, () => {
+                runStep5(data);
+              });
+            });
+          });
+        }, 500));
+      }
+    }, 600));
+  });
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+
+function animateLogs(containerId, lines, interval, callback) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = lines.map((l, i) => `<div class="log-line" data-idx="${i}">${l}</div>`).join('');
+
+  lines.forEach((_, i) => {
+    animationTimeouts.push(setTimeout(() => {
+      const el = container.querySelector(`.log-line[data-idx="${i}"]`);
+      if (el) el.classList.add('visible');
+      if (i === lines.length - 1 && callback) {
+        animationTimeouts.push(setTimeout(callback, interval));
+      }
+    }, i * interval));
+  });
+}
+
+function animateChildren(containerId, childClass, interval, callback) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const items = container.querySelectorAll('.' + childClass);
+  items.forEach((el, i) => {
+    animationTimeouts.push(setTimeout(() => {
+      el.classList.add('visible');
+      if (i === items.length - 1 && callback) {
+        animationTimeouts.push(setTimeout(callback, interval));
+      }
+    }, i * interval));
+  });
+}
+
+function typeText(input, text, interval, callback) {
+  let idx = 0;
+  function next() {
+    if (idx < text.length) {
+      input.value = text.substring(0, idx + 1);
+      idx++;
+      animationTimeouts.push(setTimeout(next, interval));
+    } else if (callback) {
+      callback();
+    }
+  }
+  next();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+</body>
+</html>
