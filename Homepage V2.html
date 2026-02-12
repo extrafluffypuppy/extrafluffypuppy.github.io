@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI &amp; Machine Learning for Wikipedia</title>
+<link href="https://fonts.googleapis.com/css2?family=Linux+Libertine:ital,wght@0,400;0,700;1,400&family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --wiki-blue: #3366cc;
+    --wiki-border: #a2a9b1;
+    --wiki-bg: #f8f9fa;
+    --wiki-text: #202122;
+    --wiki-red-link: #ba0000;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Linux Libertine', 'Georgia', 'Times', serif;
+    color: var(--wiki-text);
+    background: #fff;
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .top-bar {
+    background: var(--wiki-bg);
+    border-bottom: 1px solid var(--wiki-border);
+    padding: 0.5em 1.5em;
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 12px;
+    color: #54595d;
+  }
+
+  .content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2em 1.5em 4em;
+  }
+
+  .page-title {
+    font-family: 'Linux Libertine', serif;
+    font-size: 32px;
+    font-weight: 400;
+    border-bottom: 1px solid var(--wiki-border);
+    padding-bottom: 0.2em;
+    margin-bottom: 1.6em;
+  }
+
+  .option {
+    border-bottom: 1px solid var(--wiki-border);
+    padding: 1.3em 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 1em;
+  }
+
+  .option:first-child {
+    border-top: 1px solid var(--wiki-border);
+  }
+
+  .option-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    margin-top: 2px;
+    color: #72777d;
+  }
+
+  .option-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .option-body {
+    flex: 1;
+  }
+
+  .option-title {
+    font-family: 'Linux Libertine', serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 0.15em;
+  }
+
+  .option-desc {
+    font-size: 15px;
+    color: #54595d;
+    margin-bottom: 0.5em;
+  }
+
+  .option-demo {
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 13px;
+  }
+
+  .option-demo a {
+    color: var(--wiki-blue);
+    text-decoration: none;
+  }
+
+  .option-demo a:hover {
+    text-decoration: underline;
+  }
+
+  .option-demo .pending {
+    color: var(--wiki-red-link);
+    font-style: italic;
+  }
+
+  .footer {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1em 1.5em;
+    border-top: 1px solid var(--wiki-border);
+    font-family: 'Noto Sans', sans-serif;
+    font-size: 11.5px;
+    color: #72777d;
+  }
+
+  @media (max-width: 640px) {
+    .page-title { font-size: 26px; }
+    .option-title { font-size: 22px; }
+    .option-icon { width: 28px; height: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">A portfolio of AI/ML models for Wikimedia</div>
+
+<div class="content">
+  <h1 class="page-title">What can AI and machine learning do for Wikipedia?</h1>
+
+  <!-- Describe: tag/label icon for classifying & categorizing -->
+  <div class="option">
+    <div class="option-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+        <circle cx="7" cy="7" r="1.5" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <div class="option-body">
+      <div class="option-title">Describe</div>
+      <div class="option-desc">How classifier models can help us understand and categorize content</div>
+      <div class="option-demo">Demo: <a href="https://extrafluffypuppy.github.io/attributes">WikiAttributes</a></div>
+    </div>
+  </div>
+
+  <!-- Curate: sliders/tuning icon for finely tuned feeds -->
+  <div class="option">
+    <div class="option-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="4" y1="6" x2="20" y2="6"/>
+        <line x1="4" y1="12" x2="20" y2="12"/>
+        <line x1="4" y1="18" x2="20" y2="18"/>
+        <circle cx="9" cy="6" r="2.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="16" cy="12" r="2.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="11" cy="18" r="2.5" fill="#fff" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+    </div>
+    <div class="option-body">
+      <div class="option-title">Curate</div>
+      <div class="option-desc">How content feeds can be finely tuned to meet users' needs in the moment</div>
+      <div class="option-demo">Demo: <a href="https://extrafluffypuppy.github.io/feelgood">FeelGood Feed</a></div>
+    </div>
+  </div>
+
+  <!-- Distill: funnel/droplet icon for condensing content -->
+  <div class="option">
+    <div class="option-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 4h18v2l-7 7v6l-4 3V13L3 6z"/>
+      </svg>
+    </div>
+    <div class="option-body">
+      <div class="option-title">Distill</div>
+      <div class="option-desc">How longform written content can be simplified and represented in new formats</div>
+      <div class="option-demo">Demo: <a href="https://extrafluffypuppy.github.io/lifecycle">WikiLifecycle</a></div>
+    </div>
+  </div>
+
+  <!-- Navigate: compass icon -->
+  <div class="option">
+    <div class="option-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="16.24,7.76 14.12,14.12 7.76,16.24 9.88,9.88" fill="currentColor" stroke="none"/>
+      </svg>
+    </div>
+    <div class="option-body">
+      <div class="option-title">Navigate</div>
+      <div class="option-desc">How search models can give users a compass through the wikis</div>
+      <div class="option-demo">Demo: <a href="https://extrafluffypuppy.github.io/suggest">WikiSuggest</a></div>
+    </div>
+  </div>
+
+  <!-- Validate: shield with checkmark -->
+  <div class="option">
+    <div class="option-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2l7 4v5c0 5.25-3.5 9.74-7 11-3.5-1.26-7-5.75-7-11V6l7-4z"/>
+        <polyline points="9 12 11 14 15 10"/>
+      </svg>
+    </div>
+    <div class="option-body">
+      <div class="option-title">Validate</div>
+      <div class="option-desc">How language models can call attention to content that might be violative</div>
+      <div class="option-demo">Demo: <a href="https://extrafluffypuppy.github.io/heatmap">WikiHeatmap</a></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  This page is an independent prototype and is not affiliated with the Wikimedia Foundation.
+</div>
+
+</body>
+</html>
