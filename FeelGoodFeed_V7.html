@@ -1,0 +1,3245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiki Feel-Good Feed</title>
+<link href="https://fonts.googleapis.com/css2?family=Linux+Libertine:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+:root{--wb:#3366cc;--wb-bg:#eaf3ff;--wg:#14866d;--wg-bg:#d5fdf4;--wr:#d73333;--wr-bg:#fee7e6;--wy:#ac6600;--wy-bg:#fef6e7;--wp:#6b4ba1;--wp-bg:#f0e6ff;--wt:#0d7377;--wt-bg:#e0f5f5;--wo:#b35900;--wo-bg:#fff0e0;--bg:#f8f9fa;--sf:#fff;--bd:#a2a9b1;--bl:#c8ccd1;--tx:#202122;--tl:#54595d;--tlr:#72777d;--rm:6px;--sm:0 1px 3px rgba(0,0,0,.06);--md:0 2px 8px rgba(0,0,0,.09);--tr:200ms ease}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Source Sans 3','Helvetica Neue',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--tx);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+.header{background:var(--sf);border-bottom:1px solid var(--bl);position:sticky;top:0;z-index:100;box-shadow:var(--sm)}
+.header-inner{max-width:780px;margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--tx);flex-shrink:0}
+.logo-icon{width:36px;height:36px;background:var(--tx);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Linux Libertine',Georgia,serif;font-size:22px;font-weight:700;line-height:1}
+.logo-text{font-family:'Linux Libertine',Georgia,serif;font-size:21px;font-weight:700;letter-spacing:-.3px}
+.logo-sub{font-size:11px;color:var(--tlr);text-transform:uppercase;letter-spacing:1px;margin-left:4px}
+.header-badge{margin-left:auto;font-size:11px;font-weight:600;background:var(--wy-bg);color:var(--wy);padding:3px 10px;border-radius:12px;white-space:nowrap}
+.filter-bar{max-width:780px;margin:0 auto;padding:16px 24px 12px;position:sticky;top:61px;z-index:90;background:var(--bg)}
+.filter-group{background:var(--sf);border:1px solid var(--bl);border-radius:var(--rm);padding:14px 16px 10px;margin-bottom:10px}
+.filter-group-header{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.filter-group-title{font-family:'Linux Libertine',Georgia,serif;font-size:15px;font-weight:700;color:var(--tx);letter-spacing:-.2px}
+.filter-group-hint{font-size:11px;color:var(--tlr);font-style:italic}
+.filter-group-divider{height:0;margin:0}
+.filter-section{margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.filter-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--tlr);white-space:nowrap;min-width:80px}
+.filter-chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;padding:2px 0}
+.filter-chips::-webkit-scrollbar{display:none}
+.fc{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:20px;border:1.5px solid var(--bl);background:var(--sf);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--tl);white-space:nowrap;transition:all var(--tr);flex-shrink:0;user-select:none}
+.fc:hover{border-color:var(--bd);color:var(--tx);box-shadow:var(--sm)}
+.fc.active{background:var(--tx);color:#fff;border-color:var(--tx)}
+.fc .ce{font-size:14px;line-height:1}
+.feed-wrap{max-width:780px;margin:0 auto;padding:8px 24px 80px}
+.feed-count{font-size:12px;color:var(--tlr);margin-bottom:16px;text-align:center}
+.card{margin-bottom:24px;border-radius:var(--rm);overflow:hidden;position:relative;background:var(--sf);border:1px solid var(--bl);opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease,box-shadow var(--tr)}
+.card.visible{opacity:1;transform:translateY(0)}
+.card:hover{box-shadow:var(--md)}
+.card[data-color="blue"]{border-top:4px solid var(--wb)}
+.card[data-color="green"]{border-top:4px solid var(--wg)}
+.card[data-color="purple"]{border-top:4px solid var(--wp)}
+.card[data-color="teal"]{border-top:4px solid var(--wt)}
+.card[data-color="orange"]{border-top:4px solid var(--wo)}
+.card[data-color="gold"]{border-top:4px solid #c5960c}
+.card[data-color="rose"]{border-top:4px solid #b85570}
+.card[data-color="slate"]{border-top:4px solid #5a6978}
+.card-body{padding:24px 28px 22px}
+.card-img{width:100%;max-height:240px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--wb-bg),var(--wg-bg))}
+.card-img img{width:100%;height:240px;object-fit:cover;display:block;transition:transform .4s ease}
+.card:hover .card-img img{transform:scale(1.03)}
+.card-img .img-fade{position:absolute;bottom:0;left:0;right:0;height:60px;background:linear-gradient(transparent,rgba(255,255,255,.9))}
+.quote-layout{display:flex;gap:20px;align-items:flex-start}
+.ql-text{flex:1;min-width:0}
+.ql-source{flex-shrink:0;text-align:right;max-width:180px;padding-top:4px}
+.qt{font-family:'Playfair Display','Linux Libertine',Georgia,serif;font-size:clamp(17px,2.6vw,23px);line-height:1.42;color:var(--tx);font-weight:400}
+.qt::before{content:'\201C'}.qt::after{content:'\201D'}
+.al{font-family:'Linux Libertine',Georgia,serif;font-size:16px;font-weight:700;line-height:1.3;color:var(--wb);text-decoration:none;display:inline-block;transition:color var(--tr)}
+.al:hover{color:#224488;text-decoration:underline}
+.al::after{content:' \2197';font-size:13px}
+.article-title{font-family:'Linux Libertine',Georgia,serif;font-size:22px;font-weight:700;line-height:1.3;color:var(--wb);text-decoration:none;display:inline-block;transition:color var(--tr)}
+.article-title:hover{color:#224488;text-decoration:underline}
+.article-title::after{content:' \2197';font-size:15px}
+.article-desc{font-size:14px;color:var(--tl);line-height:1.55;margin-top:8px}
+.article-reading{font-size:12px;color:var(--tlr);margin-top:6px}
+.loading-text{font-size:13px;color:var(--tlr);font-style:italic}
+.feed-end{text-align:center;padding:40px 20px;font-size:14px;color:var(--tlr)}
+.feed-end a{color:var(--wb);text-decoration:none;font-weight:600}
+.feed-end a:hover{text-decoration:underline}
+.footer{max-width:780px;margin:20px auto;padding:20px 24px;text-align:center;font-size:12px;color:var(--tlr);border-top:1px solid var(--bl)}
+.footer a{color:var(--wb);text-decoration:none}.footer a:hover{text-decoration:underline}
+.load-banner{max-width:780px;margin:0 auto;padding:20px 24px;text-align:center;font-size:14px;color:var(--tl)}
+.load-banner .prog{display:inline-block;width:200px;height:4px;background:var(--bl);border-radius:2px;margin-left:10px;vertical-align:middle;overflow:hidden}
+.load-banner .prog-bar{height:100%;background:var(--wb);border-radius:2px;transition:width .3s ease}
+/* ===== Add-a-Link suggestion cards ===== */
+.link-card{margin-bottom:24px;border-radius:var(--rm);overflow:hidden;position:relative;background:var(--sf);border:1px solid var(--bl);border-top:4px solid var(--wg);opacity:0;transform:translateY(20px);transition:opacity .45s ease,transform .45s ease,box-shadow var(--tr)}
+.link-card.visible{opacity:1;transform:translateY(0)}
+.link-card:hover{box-shadow:var(--md)}
+.link-card-header{display:flex;align-items:center;gap:10px;padding:16px 24px 0;font-size:13px;color:var(--tl)}
+.link-card-header .lc-robot{width:28px;height:28px;background:var(--wg-bg);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.link-card-header .lc-label{font-weight:700;color:var(--wg);font-size:13px;letter-spacing:-.1px}
+.link-card-header .lc-article{margin-left:auto;font-size:12px;color:var(--tlr);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px}
+.link-card-header .lc-article a{color:var(--wb);text-decoration:none;font-weight:600}
+.link-card-header .lc-article a:hover{text-decoration:underline}
+.link-card-body{padding:16px 24px 20px}
+.link-card-prompt{font-size:13px;color:var(--tl);margin-bottom:14px;line-height:1.4}
+.link-card-prompt .lc-context{background:var(--wy-bg);padding:2px 0;border-radius:2px}
+.link-card-prompt .lc-highlight{background:var(--wb-bg);border:1.5px solid var(--wb);border-radius:4px;padding:1px 6px;font-weight:600;color:var(--wb);white-space:nowrap}
+.link-card-suggestion{background:var(--bg);border:1px solid var(--bl);border-radius:var(--rm);padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.link-card-suggestion .lcs-icon{width:32px;height:32px;background:var(--wb-bg);border-radius:var(--rm);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.link-card-suggestion .lcs-icon svg{width:18px;height:18px;fill:var(--wb)}
+.link-card-suggestion .lcs-info{flex:1;min-width:0}
+.link-card-suggestion .lcs-title{font-family:'Linux Libertine',Georgia,serif;font-size:16px;font-weight:700;color:var(--wb);text-decoration:none;display:inline-flex;align-items:center;gap:4px}
+.link-card-suggestion .lcs-title:hover{text-decoration:underline}
+.link-card-suggestion .lcs-title svg{width:12px;height:12px;fill:var(--wb);flex-shrink:0}
+.link-card-suggestion .lcs-desc{font-size:13px;color:var(--tl);line-height:1.45;margin-top:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.link-card-actions{display:flex;gap:8px;margin-top:14px}
+.link-card-actions .lca-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 18px;border-radius:20px;border:1.5px solid var(--bl);background:var(--sf);cursor:pointer;font-family:inherit;font-size:13px;font-weight:600;color:var(--tl);transition:all var(--tr)}
+.link-card-actions .lca-btn:hover{border-color:var(--bd);box-shadow:var(--sm)}
+.link-card-actions .lca-yes{border-color:var(--wg);color:var(--wg)}
+.link-card-actions .lca-yes:hover{background:var(--wg-bg)}
+.link-card-actions .lca-no:hover{background:var(--wr-bg);border-color:var(--wr);color:var(--wr)}
+.link-card-actions .lca-skip{margin-left:auto;border:none;color:var(--tlr);font-size:12px;padding:7px 8px}
+.link-card-actions .lca-skip:hover{color:var(--wb);background:transparent}
+.link-card-dots{display:flex;gap:5px;align-items:center;margin-left:8px}
+.link-card-dots .lcd{width:6px;height:6px;border-radius:50%;background:var(--bl)}
+.link-card-dots .lcd.active{background:var(--wg)}
+.link-card-counter{font-size:12px;font-weight:700;color:var(--tl);margin-left:2px}
+@media(max-width:600px){.header-inner{padding:10px 16px}.logo-sub{display:none}.filter-bar{padding:12px 16px 8px;top:55px}.filter-group{padding:10px 12px 6px}.filter-group-title{font-size:13px}.feed-wrap{padding:8px 16px 60px}.card-body{padding:18px 18px 16px}.card-img img{height:180px}.filter-label{min-width:52px;font-size:10px}.quote-layout{flex-direction:column;gap:10px}.ql-source{text-align:left;max-width:100%}.link-card-header .lc-article{max-width:120px}.link-card-body{padding:14px 16px 16px}.link-card-actions .lca-btn{padding:6px 14px;font-size:12px}}
+</style>
+</head>
+<body>
+<header class="header"><div class="header-inner">
+  <a class="logo" href="#"><div class="logo-icon">W</div><span class="logo-text">Wiki Feel-Good Feed</span></a>
+  <span class="logo-sub">Discover Wikipedia</span>
+  <span class="header-badge">Prototype v0.4</span>
+</div></header>
+<div class="filter-bar">
+  <div class="filter-group">
+    <div class="filter-group-header"><span class="filter-group-title">Curate your feed</span></div>
+    <div class="filter-section"><span class="filter-label">Mood</span><div class="filter-chips" id="moodChips"></div></div>
+    <div class="filter-section"><span class="filter-label">Interest</span><div class="filter-chips" id="interestChips"></div></div>
+  </div>
+  <div class="filter-group-divider"></div>
+  <div class="filter-group">
+    <div class="filter-group-header"><span class="filter-group-title">Set a reading goal</span></div>
+    <div class="filter-section"><span class="filter-label">Time</span><div class="filter-chips" id="timeChips"></div></div>
+  </div>
+</div>
+<div class="load-banner" id="loadBanner">Loading articles, quotes &amp; link suggestions from Wikipedia... <span class="prog"><span class="prog-bar" id="progBar" style="width:0%"></span></span></div>
+<main class="feed-wrap">
+  <div class="feed-count" id="feedCount"></div>
+  <div id="feed"></div>
+  <div class="feed-end" id="feedEnd" style="display:none">That's everything! <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false">Back to top &uarr;</a></div>
+</main>
+<footer class="footer">Wiki Feel-Good Feed Prototype &middot; Built for Wikipedia product ideation &middot; Part of the <a href="#">WikiAttributes</a> family</footer>
+<script>
+var MOODS=[{id:'funny',emoji:'\uD83D\uDE02',label:'Funny'},{id:'whimsical',emoji:'\u2728',label:'Whimsical'},{id:'uplifting',emoji:'\uD83C\uDF1F',label:'Uplifting'},{id:'thought-provoking',emoji:'\uD83E\uDD14',label:'Thought-Provoking'}];
+var INTERESTS=[{id:'sports',emoji:'\u26BD',label:'Sports'},{id:'animals',emoji:'\uD83D\uDC3E',label:'Animals'},{id:'history',emoji:'\uD83C\uDFDB\uFE0F',label:'History'},{id:'nyc',emoji:'\uD83D\uDDFD',label:'NYC'}];
+var TIMES=[{id:10,label:'10 min'},{id:30,label:'30 min'},{id:60,label:'60 min'}];
+var COLORS=['blue','green','purple','teal','orange','gold','rose','slate'];
+var activeMood=null,activeInterest=null,activeTime=null;
+var WPM=238,rendered=0,batchSize=8,currentList=[];
+
+// Items: all content definitions. Quotes have slug only (text fetched from Wikipedia).
+// Items from spreadsheet with EXACT provided text use 'exactText' field.
+var ITEMS=[
+{
+"type": "a",
+"title": "Emu War",
+"slug": "Emu_War",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals",
+"history"
+],
+"readMins": 12
+},
+{
+"type": "a",
+"title": "Butt fumble",
+"slug": "Butt_fumble",
+"moods": [
+"funny"
+],
+"interests": [
+"sports",
+"nyc"
+],
+"readMins": 6
+},
+{
+"type": "a",
+"title": "Chicken eyeglasses",
+"slug": "Chicken_eyeglasses",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 5
+},
+{
+"type": "a",
+"title": "Turkey bowling",
+"slug": "Turkey_bowling",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 4
+},
+{
+"type": "a",
+"title": "Pigeon photography",
+"slug": "Pigeon_photography",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals",
+"history"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "Henry Bergh",
+"slug": "Henry_Bergh",
+"moods": [
+"uplifting"
+],
+"interests": [
+"animals",
+"nyc",
+"history"
+],
+"readMins": 15
+},
+{
+"type": "a",
+"title": "Ig Nobel Prize",
+"slug": "Ig_Nobel_Prize",
+"moods": [
+"funny",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 15
+},
+{
+"type": "a",
+"title": "Toilet paper orientation",
+"slug": "Toilet_paper_orientation",
+"moods": [
+"funny",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 18
+},
+{
+"type": "a",
+"title": "Cliff Young (athlete)",
+"slug": "Cliff_Young_(athlete)",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 7
+},
+{
+"type": "a",
+"title": "Phantom time conspiracy theory",
+"slug": "Phantom_time_conspiracy_theory",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Rain of animals",
+"slug": "Rain_of_animals",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"animals",
+"history"
+],
+"readMins": 9
+},
+{
+"type": "a",
+"title": "Dancing plague of 1518",
+"slug": "Dancing_plague_of_1518",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "Turtles all the way down",
+"slug": "Turtles_all_the_way_down",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 7
+},
+{
+"type": "a",
+"title": "Wangari Maathai",
+"slug": "Wangari_Maathai",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+],
+"readMins": 25
+},
+{
+"type": "a",
+"title": "Boring, Oregon",
+"slug": "Boring,_Oregon",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"history"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "Centennial Light",
+"slug": "Centennial_Light",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 6
+},
+{
+"type": "a",
+"title": "Salmon cannon",
+"slug": "Salmon_cannon",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"animals"
+],
+"readMins": 5
+},
+{
+"type": "a",
+"title": "Spite house",
+"slug": "Spite_house",
+"moods": [
+"funny",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "Cheese-rolling",
+"slug": "Cheese-rolling",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports",
+"history"
+],
+"readMins": 7
+},
+{
+"type": "a",
+"title": "Voyager Golden Record",
+"slug": "Voyager_Golden_Record",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"history"
+],
+"readMins": 15
+},
+{
+"type": "a",
+"title": "Overview effect",
+"slug": "Overview_effect",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "High Line",
+"slug": "High_Line",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+],
+"readMins": 12
+},
+{
+"type": "a",
+"title": "Stonewall riots",
+"slug": "Stonewall_riots",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 18
+},
+{
+"type": "a",
+"title": "Pizza Rat",
+"slug": "Pizza_Rat",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals",
+"nyc"
+],
+"readMins": 4
+},
+{
+"type": "a",
+"title": "Humans of New York",
+"slug": "Humans_of_New_York",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Infinite monkey theorem",
+"slug": "Infinite_monkey_theorem",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Phantom island",
+"slug": "Phantom_island",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "Blue Fugates",
+"slug": "Blue_Fugates",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 6
+},
+{
+"type": "a",
+"title": "Dashrath Manjhi",
+"slug": "Dashrath_Manjhi",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Wife-carrying",
+"slug": "Wife-carrying",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 6
+},
+{
+"type": "a",
+"title": "Jelle's Marble Runs",
+"slug": "Jelle%27s_Marble_Runs",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"sports"
+],
+"readMins": 8
+},
+{
+"type": "a",
+"title": "Quidditch (real-life sport)",
+"slug": "Quidditch_(real-life_sport)",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 12
+},
+{
+"type": "a",
+"title": "Fred Rogers",
+"slug": "Fred_Rogers",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+],
+"readMins": 20
+},
+{
+"type": "a",
+"title": "Central Park",
+"slug": "Central_Park",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+],
+"readMins": 35
+},
+{
+"type": "a",
+"title": "Jadav Payeng",
+"slug": "Jadav_Payeng",
+"moods": [
+"uplifting"
+],
+"interests": [
+"animals",
+"history"
+],
+"readMins": 8
+},
+{
+"type": "q",
+"title": "Paul the Octopus",
+"slug": "Paul_the_Octopus",
+"exactText": "Paul the Octopus (26 January 2008 – 26 October 2010) was a common octopus who predicted the results of international association football matches. Accurate predictions in the 2010 World Cup brought him worldwide attention as an animal oracle.",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"animals",
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Emu War",
+"slug": "Emu_War",
+"exactText": "The Emu War (or Great Emu War) was a nuisance wildlife management military operation undertaken in Australia in late 1932 to address public concern over the number of emus, large flightless birds indigenous to Australia, said to have been destroying crops in the Campion district within the Wheatbelt of Western Australia.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Emu War",
+"slug": "Emu_War",
+"exactText": "By the fourth day of the campaign, army observers noted that \"each pack seems to have its own leader now—a big black-plumed bird which stands fully six feet high and keeps watch while his mates carry out their work of destruction and warns them of our approach\".",
+"moods": [
+"funny"
+],
+"interests": [
+"animals",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Boring, Oregon",
+"slug": "Boring,_Oregon",
+"exactText": "Boring has often been included in lists of places with unusual names. In 2012, Boring was named a sister city of the village of Dull, Scotland, and later joined Bland, Australia, in the \"Trinity of Tedium.\"",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Centennial Light",
+"slug": "Centennial_Light",
+"exactText": "The Centennial Light is an incandescent light bulb recognized as the oldest known operating light bulb. It was first illuminated in 1901, and has only been turned off a few brief times since. It is located at 4550 East Avenue, Livermore, California, and is open to public viewing.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Centennial Light",
+"slug": "Centennial_Light",
+"exactText": "The Centennial Light was originally a 60-watt bulb, but has since dimmed significantly and is now as bright as a 4-watt bulb. The hand-blown, carbon-filament common light bulb was invented by Adolphe Chaillet, a French engineer who filed a patent for this socket technology.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Cooper's Hill Cheese-Rolling and Wake",
+"slug": "Cooper%27s_Hill_Cheese-Rolling_and_Wake",
+"exactText": "From the top of the hill, a 7–9-pound (3–4-kilogram) round of Double Gloucester cheese is sent rolling down the hill, which is 200 yards (180 m) long, and with a slope of around 50 percent (26.6 degrees). Competitors then start racing down the hill after the cheese. The competitors aim to catch the cheese; however, it has around a one-second head start and can reach high speeds, enough to knock over and injure a spectator.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Statue of Liberty",
+"slug": "Statue_of_Liberty",
+"exactText": "The idea for the statue was conceived in 1865, when the French historian and abolitionist Édouard de Laboulaye proposed a monument to commemorate the upcoming centennial of U.S. independence (1876), the perseverance of American democracy and the liberation of the nation's slaves.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history",
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "High Line",
+"slug": "High_Line",
+"exactText": "Since opening in June 2009, the High Line has become an icon of American contemporary landscape architecture. The High Line's success has inspired cities throughout the United States to redevelop obsolete infrastructure as public space. The park became a tourist attraction and spurred real estate development in adjacent neighborhoods, increasing real-estate values and prices along the route.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Moon tree",
+"slug": "Moon_tree",
+"exactText": "Moon trees are trees grown from seeds taken into orbit around the Moon, initially by Apollo 14 in 1971, and later by Artemis I in 2022. The idea was first proposed by Edward P. Cliff, then the Chief of the United States Forest Service, who convinced Stuart Roosa, the Command Module Pilot on the Apollo 14 mission, to bring a small canister containing about 500 seeds aboard the module in 1971.",
+"moods": [
+"whimsical",
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "L'esprit de l'escalier",
+"slug": "L%27esprit_de_l%27escalier",
+"exactText": "L'esprit de l'escalier or l'esprit d'escalier (lit. 'staircase wit') is a French term used in English for the predicament of thinking of the perfect reply too late.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Dennis Rodman's Big Bang in Pyongyang",
+"slug": "Dennis_Rodman%27s_Big_Bang_in_Pyongyang",
+"exactText": "Dennis Rodman's Big Bang in Pyongyang is a 2015 British and North Korean documentary film produced and directed by Colin Offland, written by Matthew Baker, and narrated by Matt Cooper. The film follows retired professional basketball player Dennis Rodman on his mission to host a basketball game between American former basketball stars and the North Korea national team in Pyongyang.",
+"moods": [
+"funny",
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Boring, Oregon",
+"slug": "Boring,_Oregon",
+"exactText": "In June 2012, Boring accepted the proposal of Dull to \"pair\" their municipalities, in an effort to promote tourism in both places as a play on their names.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Centennial Light",
+"slug": "Centennial_Light",
+"exactText": "In 2001, the bulb's 100th birthday was celebrated with a community barbecue and live music. On the evening of May 20, 2013, the general public witnessed, through a dedicated webcam, that the bulb had apparently burned out. The next morning, an electrician was called in to confirm its status. It was determined that the bulb had not burned out when the dedicated power supply was bypassed, using an extension cord.",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Boring, Oregon",
+"slug": "Boring,_Oregon",
+"exactText": "Boring is an unincorporated community and census-designated place (CDP) in Clackamas County, Oregon, United States. It is located along Oregon Route 212 in the foothills of the Cascade mountain range, approximately twelve miles (19 km) southeast of downtown Portland.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Ig Nobel Prize",
+"slug": "Ig_Nobel_Prize",
+"exactText": "The Ig Nobel Prize is a satirical prize awarded annually since 1991 to celebrate ten unusual or trivial achievements in scientific research, its stated aim being to \"honor achievements that first make people laugh, and then make them think.\"",
+"moods": [
+"funny",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Infinite monkey theorem",
+"slug": "Infinite_monkey_theorem",
+"exactText": "The infinite monkey theorem states that a monkey hitting keys at random on a typewriter keyboard for an infinite amount of time will almost surely type any given text, including the complete works of William Shakespeare.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Buttered cat paradox",
+"slug": "Buttered_cat_paradox",
+"exactText": "The buttered cat paradox is a common joke thought experiment presented as a paradox based on the tongue-in-cheek combination of two adages: Cats always land on their feet. Buttered toast always lands buttered-side down.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Turtles all the way down",
+"slug": "Turtles_all_the_way_down",
+"exactText": "\"Turtles all the way down\" is an expression of the problem of infinite regress. The saying alludes to the mythological idea of a World Turtle that supports a flat Earth on its back. It suggests that this turtle rests on the back of an even larger turtle, which itself is part of a column of increasingly larger turtles that continues indefinitely.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Ship of Theseus",
+"slug": "Ship_of_Theseus",
+"exactText": "In the metaphysics of identity, the Ship of Theseus is a thought experiment that raises the question of whether an object that has had all of its components replaced remains fundamentally the same object.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Overview effect",
+"slug": "Overview_effect",
+"exactText": "The overview effect is a cognitive shift reported by some astronauts while viewing the Earth from space. Researchers have characterized the effect as a state of awe with self-transcendent qualities, precipitated by a particularly striking visual stimulus.",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Pale Blue Dot",
+"slug": "Pale_Blue_Dot",
+"exactText": "Pale Blue Dot is a photograph of planet Earth taken on February 14, 1990, by the Voyager 1 space probe from a record distance of about 6 billion kilometers (3.7 billion miles, 40.5 AU), as part of that day's Family Portrait series of images of the Solar System.",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Voyager Golden Record",
+"slug": "Voyager_Golden_Record",
+"exactText": "The Voyager Golden Records are two phonograph records that were included aboard both Voyager spacecraft launched in 1977. The records contain sounds and images selected to portray the diversity of life and culture on Earth, and are intended for any intelligent extraterrestrial life form who may find them.",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Dashrath Manjhi",
+"slug": "Dashrath_Manjhi",
+"exactText": "Dashrath Manjhi, also known as the Mountain Man, was a laborer in Gehlaur village, near Gaya in Bihar, India, who carved a path through a ridge of hills using only a hammer and chisel. After 22 years of work, Manjhi shortened travel between the Atri and Wazirganj blocks of Gaya district from 55 km to 15 km.",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Jadav Payeng",
+"slug": "Jadav_Payeng",
+"exactText": "Jadav Payeng is an Indian environmental activist and forestry worker, popularly known as the Forest Man of India. Over the course of several decades, he planted and tended trees on a sandbar of the river Brahmaputra turning it into a forest reserve.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"animals",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Fred Rogers",
+"slug": "Fred_Rogers",
+"exactText": "Fred McFeely Rogers was an American television host, author, producer, and Presbyterian minister. He was the creator, showrunner, and host of the preschool television series Mister Rogers' Neighborhood, which ran from 1968 to 2001.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Spite house",
+"slug": "Spite_house",
+"exactText": "A spite house is a building constructed or modified to irritate neighbors or other parties with land stakes. Spite houses may block access to neighboring buildings, light, or air, or are constructed or remodeled with the sole purpose of annoying a neighbor.",
+"moods": [
+"funny",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Dancing plague of 1518",
+"slug": "Dancing_plague_of_1518",
+"exactText": "The dancing plague of 1518, or dance epidemic of 1518, was a case of dancing mania that occurred in Strasbourg, Alsace (modern-day France), in the Holy Roman Empire from July 1518 to September 1518. Somewhere between 50 and 400 people took to dancing for weeks.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Phantom island",
+"slug": "Phantom_island",
+"exactText": "A phantom island is a purported island which was included on maps for a period of time, but was later found not to exist. They usually originate from the reports of early ocean navigators, and some phantom islands remained on maps for centuries before being removed.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Toilet paper orientation",
+"slug": "Toilet_paper_orientation",
+"exactText": "The choice of orientation involves factors that include ease of grabbing hold of the loose end, aesthetics, gender, and age. In surveys, around 70 percent of respondents prefer the over position.",
+"moods": [
+"funny",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Paradox of tolerance",
+"slug": "Paradox_of_tolerance",
+"exactText": "The paradox of tolerance states that if a society's practice of tolerance is inclusive of the intolerant, intolerance will ultimately dominate, eliminating the tolerant and the practice of tolerance with them.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Pigeon photography",
+"slug": "Pigeon_photography",
+"exactText": "Pigeon photography is an aerial photography technique invented in 1907 by the German apothecary Julius Neubronner, who also used pigeons to deliver medications. A homing pigeon was fitted with an aluminium breast harness to which a lightweight time-delayed miniature camera could be attached.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Cliff Young (athlete)",
+"slug": "Cliff_Young_(athlete)",
+"exactText": "In 1983, Young won the inaugural Westfield Sydney to Melbourne Ultramarathon, a distance of 875 kilometres (544 mi). He was 61 years old at the time and ran against world-class athletes, many of whom were less than half his age.",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Blue Fugates",
+"slug": "Blue_Fugates",
+"exactText": "The Fugates, sometimes referred to as the \"Blue Fugates\" or the \"Blue People of Kentucky\", were a family who lived in the hills of Kentucky, many of whom had the hereditary condition methemoglobinemia, which gives sufferers blue-tinged skin.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Globster",
+"slug": "Globster",
+"exactText": "A globster, or blob, is an unidentified organic mass that washes up on the shoreline of an ocean or other body of water. Globsters may present as massive, amorphous lumps of flesh or blankets of decomposing tissue.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Rain of animals",
+"slug": "Rain_of_animals",
+"exactText": "Rain of animals is a rare meteorological phenomenon in which flightless animals fall from the sky. Such events have been reported in many countries throughout history. One hypothesis is that tornadic waterspouts sometimes pick up creatures such as fish or frogs, and carry them for up to several miles.",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"animals",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Chicken eyeglasses",
+"slug": "Chicken_eyeglasses",
+"exactText": "Chicken eyeglasses, also known as chickens specs, are small eyeglasses made for chickens, intended to prevent feather pecking and cannibalism. They have been manufactured since at least 1903.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Turkey bowling",
+"slug": "Turkey_bowling",
+"exactText": "Turkey bowling is a sport in which a frozen turkey is used as a bowling ball to knock down ten bowling pins at the end of a makeshift lane.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Phantom time conspiracy theory",
+"slug": "Phantom_time_conspiracy_theory",
+"exactText": "The phantom time conspiracy theory is a historical conspiracy theory advanced by Heribert Illig in 1991. It hypothesizes that the Early Middle Ages (AD 614–911) never occurred and that there has been a systematic effort to fabricate evidence to that effect.",
+"moods": [
+"whimsical",
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Flatulence humor",
+"slug": "Flatulence_humor",
+"exactText": "Flatulence humor, colloquially known as fart jokes, refers to any type of joke, gag, prank, or other comedic material or device involving flatulence. Flatulence humor has been recorded since ancient times.",
+"moods": [
+"funny"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Henry Bergh",
+"slug": "Henry_Bergh",
+"exactText": "Henry Bergh was an American diplomat and activist. He was the founder and first president of the American Society for the Prevention of Cruelty to Animals in 1866.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"animals",
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Pizza Rat",
+"slug": "Pizza_Rat",
+"exactText": "Pizza Rat is a viral video of a rat carrying a slice of pizza down the stairs of the First Avenue station of the New York City Subway system. The video was uploaded to YouTube on September 21, 2015, by comedian Matt Little.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"animals",
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "High Line",
+"slug": "High_Line",
+"exactText": "The High Line (also known as the High Line Park) is an elevated linear park, greenway, and rail trail created on a former New York Central Railroad spur on the west side of Manhattan in New York City.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Brooklyn Bridge",
+"slug": "Brooklyn_Bridge",
+"exactText": "The Brooklyn Bridge is a hybrid cable-stayed/suspension bridge in New York City, spanning the East River between the boroughs of Manhattan and Brooklyn. When it opened on May 24, 1883, it was the first fixed crossing of the East River. It was also the longest suspension bridge in the world at the time of its opening.",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Humans of New York",
+"slug": "Humans_of_New_York",
+"exactText": "Humans of New York, often abbreviated as HONY, is a photoblog and book of street portraits and interviews collected on the streets of New York City. The blog was started in November 2010 by photographer Brandon Stanton, with the goal of photographing 10,000 New Yorkers and plotting their photos on a map.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Stonewall riots",
+"slug": "Stonewall_riots",
+"exactText": "The Stonewall riots, also known as the Stonewall uprising, were a series of spontaneous protests by members of the gay community in response to a police raid that began in the early morning hours of June 28, 1969, at the Stonewall Inn in the Greenwich Village neighborhood of Lower Manhattan in New York City.",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Emma Lazarus",
+"slug": "Emma_Lazarus",
+"exactText": "Emma Lazarus was an American author of poetry, prose, and translations, as well as an activist. She is best known for writing \"The New Colossus\", a sonnet written in 1883 that was, in 1903, engraved on a bronze plaque and mounted inside the lower level of the pedestal of the Statue of Liberty.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "New York Public Library",
+"slug": "New_York_Public_Library",
+"exactText": "The New York Public Library (NYPL) is a public library system in New York City. With nearly 53 million items and 92 locations, the New York Public Library is the third-largest public library system in North America after the Library of Congress and the Boston Public Library.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Central Park",
+"slug": "Central_Park",
+"exactText": "Central Park is an urban park between the Upper West Side and Upper East Side neighborhoods of Manhattan in New York City, United States. Central Park is the most visited urban park in the United States, with an estimated 42 million visitors annually as of 2016, and is the most filmed location in the world.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Wangari Maathai",
+"slug": "Wangari_Maathai",
+"exactText": "Wangari Muta Maathai was a Kenyan social, environmental and political activist and the first African woman to win the Nobel Peace Prize. She was the founder of the Green Belt Movement, an environmental non-governmental organization focused on the planting of trees, environmental conservation, and women's rights.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Butt fumble",
+"slug": "Butt_fumble",
+"exactText": "The Butt Fumble is the popular name for a play that took place during a Thanksgiving Day game between the New York Jets and the New England Patriots on November 22, 2012. During the play, Jets quarterback Mark Sanchez ran into the backside of offensive lineman Brandon Moore, fumbled, and the ball was recovered by the Patriots.",
+"moods": [
+"funny"
+],
+"interests": [
+"sports",
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Wife-carrying",
+"slug": "Wife-carrying",
+"exactText": "Wife carrying (Finnish: eukonkanto or akankanto) is a contest in which competitors race while each carrying a partner. The Wife Carrying World Championships have been held annually in Sonkajärvi, Finland, since 1992, where the prize is the wife's weight in beer.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Wife-carrying",
+"slug": "Wife-carrying",
+"exactText": "The most important rule is to have fun when carrying a wife. The length of the official track is 253.5 meters (832 ft). The track has two dry obstacles and a water obstacle about one metre deep. The minimum weight of the wife to be carried is 49 kilograms (108 lb). If she weighs less than 49 kg, she will be burdened with a rucksack containing additional weight to bring the total load to be carried up to 49 kg.",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Jelle's Marble Runs",
+"slug": "Jelle%27s_Marble_Runs",
+"exactText": "Jelle's Marble Runs is a YouTube channel based in the Netherlands centered on marbles, marble runs and marble races. It is run by the brothers Jelle and Dion Bakker. The channel spoofs the Olympic Games, Formula One, and other sporting events with marbles and treats the cast of marbles as though they were real athletes.",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Jelle's Marble Runs",
+"slug": "Jelle%27s_Marble_Runs",
+"exactText": "On 17 May 2020, British-American comedian and late-night show host John Oliver announced on his show Last Week Tonight with John Oliver that the show would be the title sponsor for the 2020 Marble League, which brought significant attention to the channel.",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Quidditch (real-life sport)",
+"slug": "Quidditch_(real-life_sport)",
+"exactText": "A team consists of a minimum of seven (maximum 21) players, of which six are always on the pitch: three chasers, one keeper, and two beaters. The seventh position, known as a seeker, joins each team after a time period known as the \"seeker floor\" (20 minutes under all three major rulesets).",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Central Park",
+"slug": "Central_Park",
+"exactText": "The Strawberry Fields memorial, near Central Park West and 72nd Street, is a memorial commemorating John Lennon. The city dedicated Strawberry Fields in Lennon's honor in April 1981. Countries from all around the world contributed trees, and Italy donated the \"Imagine\" mosaic in the center of the memorial.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Central Park",
+"slug": "Central_Park",
+"exactText": "Central Park is biologically diverse. A 2013 survey of park species by William E. Macaulay Honors College found 571 total species, including 173 species that were not previously known to live there. Another survey from 2007 found 583 species of plants.",
+"moods": [
+"uplifting",
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Luna Park (Coney Island, 1903)",
+"slug": "Luna_Park_(Coney_Island,_1903)",
+"exactText": "Luna Park was an amusement park that operated in the Coney Island neighborhood of Brooklyn in New York City, United States, from 1903 to 1944. At Coney Island's peak in the middle of the 20th century's first decade, the three amusement parks competed with each other and with many independent amusements.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Luna Park (Coney Island, 1903)",
+"slug": "Luna_Park_(Coney_Island,_1903)",
+"exactText": "Coney Island had reached its peak popularity by the late 1900s. The park employed over 2,000 people each season, and it accommodated five million guests a year. The park had sold 31 million tickets in its first five seasons, leading Thompson to say in early 1908: \"I believe this surpasses everything in the history of amusement enterprises anywhere in the world.\"",
+"moods": [
+"whimsical",
+"uplifting"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Jelle's Marble Runs",
+"slug": "Jelle%27s_Marble_Runs",
+"exactText": "In 2006, Bakker created the first version of the Jelle's Marble Runs YouTube channel. He received the Guinness World Record for the world's longest marble run on 21 May 2009, a record that he held until 2011.",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Boring, Oregon",
+"slug": "Boring,_Oregon",
+"exactText": "The unusual name of the community often prompts its inclusion on lists of unusual place names. The name \"Boring\" is embraced by locals, however, and found in many local businesses, resulting in many road signs that seem humorous to outsiders. Boosters of the village designation use the slogan \"The most exciting place to live.\"",
+"moods": [
+"funny",
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Pigeon photography",
+"slug": "Pigeon_photography",
+"exactText": "Pigeon photography is an aerial photography technique invented in 1907 by the German apothecary Julius Neubronner, who also used pigeons to deliver medications. In 2004, a pigeon named JB was found wearing a tiny camera near the border of India and Pakistan.",
+"moods": [
+"whimsical",
+"funny"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Jelle's Marble Runs",
+"slug": "Jelle%27s_Marble_Runs",
+"exactText": "Marble Drop, Marble Blast Gold, and Jelle's Marble Runs are among cultural phenomena that have elevated the humble marble from a children's toy to a spectator sport. Jelle Bakker has stated that he has a form of autism, and said that because he has no occupation, making marble machines was one of his biggest hobbies.",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Central Park",
+"slug": "Central_Park",
+"exactText": "For 16 days in 2005, Central Park was the setting for Christo and Jeanne-Claude's installation The Gates, an exhibition that had been planned since 1979. Although the project was the subject of mixed reactions, it was a major attraction for the park while it was open, drawing over a million people.",
+"moods": [
+"uplifting",
+"whimsical"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "a",
+"title": "Clever Hans",
+"slug": "Clever_Hans",
+"moods": [
+"funny"
+],
+"interests": [
+"animals",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Tama (cat)",
+"slug": "Tama_(cat)",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Mantis shrimp",
+"slug": "Mantis_shrimp",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Punxsutawney Phil",
+"slug": "Punxsutawney_Phil",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Quokka",
+"slug": "Quokka",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Eddie the Eagle",
+"slug": "Eddie_the_Eagle",
+"moods": [
+"uplifting"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Jamaica national bobsled team",
+"slug": "Jamaica_national_bobsled_team",
+"moods": [
+"uplifting"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Fosbury flop",
+"slug": "Fosbury_flop",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"sports",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Extreme ironing",
+"slug": "Extreme_ironing",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Chess boxing",
+"slug": "Chess_boxing",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Bog snorkelling",
+"slug": "Bog_snorkelling",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Ferret-legging",
+"slug": "Ferret-legging",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Kabaddi",
+"slug": "Kabaddi",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Fermi paradox",
+"slug": "Fermi_paradox",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Wow! signal",
+"slug": "Wow!_signal",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Antikythera mechanism",
+"slug": "Antikythera_mechanism",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Dunbar's number",
+"slug": "Dunbar%27s_number",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Murphy's law",
+"slug": "Murphy%27s_law",
+"moods": [
+"funny"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Frequency illusion",
+"slug": "Frequency_illusion",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Library of Ashurbanipal",
+"slug": "Library_of_Ashurbanipal",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Sisu",
+"slug": "Sisu",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Erdős number",
+"slug": "Erd%C5%91s_number",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Desire path",
+"slug": "Desire_path",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Hygge",
+"slug": "Hygge",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Fearless Girl",
+"slug": "Fearless_Girl",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Chrysler Building",
+"slug": "Chrysler_Building",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Flatiron Building",
+"slug": "Flatiron_Building",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Roosevelt Island Tramway",
+"slug": "Roosevelt_Island_Tramway",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Tin Pan Alley",
+"slug": "Tin_Pan_Alley",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "City Hall station (IRT Lexington Avenue Line)",
+"slug": "City_Hall_station_(IRT_Lexington_Avenue_Line)",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Grand Central Terminal",
+"slug": "Grand_Central_Terminal",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Sepak takraw",
+"slug": "Sepak_takraw",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Muggle quidditch",
+"slug": "Muggle_quidditch",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Coney Island",
+"slug": "Coney_Island",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Sea otter",
+"slug": "Sea_otter",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Wombat",
+"slug": "Wombat",
+"moods": [
+"funny"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Tardigrade",
+"slug": "Tardigrade",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Axolotl",
+"slug": "Axolotl",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Harlem Globetrotters",
+"slug": "Harlem_Globetrotters",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Kintsugi",
+"slug": "Kintsugi",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Brooklyn Bridge",
+"slug": "Brooklyn_Bridge",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+],
+"readMins": 10
+},
+{
+"type": "a",
+"title": "Egg cream",
+"slug": "Egg_cream",
+"moods": [
+"funny"
+],
+"interests": [
+"nyc"
+],
+"readMins": 10
+},
+{
+"type": "q",
+"title": "Clever Hans",
+"slug": "Clever_Hans",
+"exactText": "Clever Hans (German: der Kluge Hans; c. 1894 – c. 1916) was a horse that appeared to perform arithmetic and other intellectual tasks during exhibitions in Germany in the early 20th century. In 1907, psychologist Oskar Pfungst demonstrated that the horse was not actually performing these mental tasks, but was watching the reactions of his trainer.",
+"moods": [
+"funny"
+],
+"interests": [
+"animals",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Tama (cat)",
+"slug": "Tama_(cat)",
+"exactText": "In January 2010, railway officials promoted Tama to the post of \"Operating Officer\" in recognition of her contribution to expanding the customer base. Tama maintained the station master's job while taking over the new job, and was the first cat to become an executive of a railroad corporation.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Mantis shrimp",
+"slug": "Mantis_shrimp",
+"exactText": "The mantis shrimp possesses the most complex eyes in the animal kingdom, with 16 types of photoreceptor cells (12 for colour analysis in the human visible spectrum and further into the ultraviolet range, compared to only 3 in the human eye).",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Punxsutawney Phil",
+"slug": "Punxsutawney_Phil",
+"exactText": "Punxsutawney Phil is a groundhog in Punxsutawney, Pennsylvania, who is the central figure in the borough's annual Groundhog Day celebration. On February 2 each year, Punxsutawney Phil's handlers, known as the Inner Circle, place him on a stump known as \"Gobbler's Knob\" and, according to tradition, if Phil sees his shadow there will be six more weeks of winter weather; if he does not, there will be an early spring.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Quokka",
+"slug": "Quokka",
+"exactText": "The quokka is about the size of a domestic cat. It is the only member of the genus Setonix. Like other marsupials in the family Macropodidae, the quokka is herbivorous and mainly nocturnal. Quokkas are widely known for their seemingly perpetual smile, and have been called \"the happiest animal in the world\".",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Eddie the Eagle",
+"slug": "Eddie_the_Eagle",
+"exactText": "Michael David Edwards (born 5 December 1963), better known as Eddie the Eagle, is an English ski jumper and Olympian who in 1988 became the first competitor to represent Great Britain in Olympic ski jumping. Despite finishing last in the Normal Hill and Large Hill events, he held the British ski jumping record from 1988 to 2001.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Eddie the Eagle",
+"slug": "Eddie_the_Eagle",
+"exactText": "Following the widespread attention that Edwards received in Calgary shortly after the Olympics finished, the entry requirements were made stricter, making it nearly impossible for anyone to follow his example: the International Olympic Committee (IOC) instituted what became known as the Eddie the Eagle Rule, which requires Olympic hopefuls to compete in international events and be placed in the top 30 per cent or the top 50 competitors, whichever is fewer.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Jamaica national bobsled team",
+"slug": "Jamaica_national_bobsled_team",
+"exactText": "The Jamaica national bobsled team represents Jamaica in international bobsled competitions. The team first gained fame during the 1988 Winter Olympics in Calgary, Alberta, Canada, and their story inspired the 1993 film Cool Runnings.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Fosbury flop",
+"slug": "Fosbury_flop",
+"exactText": "The Fosbury flop is a style used in the athletics event of high jump. It was popularized and perfected by American athlete Dick Fosbury, whose gold medal at the 1968 Summer Olympics in Mexico City brought it to the world's attention.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"sports",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Extreme ironing",
+"slug": "Extreme_ironing",
+"exactText": "Extreme ironing (also called EI) is an extreme sport in which people take ironing boards to remote locations and iron items of clothing. According to the Extreme Ironing Bureau, it is \"the latest danger sport that combines the thrills of an extreme outdoor activity with the satisfaction of a well-pressed shirt\".",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Chess boxing",
+"slug": "Chess_boxing",
+"exactText": "Chess boxing is a hybrid sport that combines two traditional disciplines: chess and boxing. Two opponents play alternating rounds of blitz chess and boxing until one wins by checkmate, knockout, or judges' decision.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Bog snorkelling",
+"slug": "Bog_snorkelling",
+"exactText": "Bog snorkelling is a sporting event where competitors swim two consecutive lengths of a 60-yard (55 m) water-filled trench cut through a peat bog, in the shortest time possible. Competitors must wear snorkels and flippers, and complete the course without using conventional swimming strokes, relying on flipper power alone.",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Ferret-legging",
+"slug": "Ferret-legging",
+"exactText": "Ferret-legging is an endurance test or stunt in which ferrets are trapped in trousers worn by a participant. Contestants put live ferrets inside their trousers; the winner is the one who is the last to release the animals.",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Kabaddi",
+"slug": "Kabaddi",
+"exactText": "Kabaddi is a contact team sport played between two teams of seven players each. The objective of the game is for a single offensive player on offence, referred to as a \"raider\", to run into the opposing team's half of the court, tag out as many of their defenders as possible, and return to their own half of the court, all without being tackled by the defenders, and in a single breath.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Fermi paradox",
+"slug": "Fermi_paradox",
+"exactText": "The Fermi paradox is a conflict between the argument that scale and probability seem to favor intelligent life being common in the universe, and the total lack of evidence of intelligent life having ever arisen anywhere other than on Earth.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Wow! signal",
+"slug": "Wow!_signal",
+"exactText": "The Wow! signal was a strong narrowband radio signal detected on August 15, 1977, by Ohio State University's Big Ear radio telescope in the United States, then used to support the search for extraterrestrial intelligence. The signal appeared to come from the direction of the constellation Sagittarius and bore the expected hallmarks of extraterrestrial origin.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Antikythera mechanism",
+"slug": "Antikythera_mechanism",
+"exactText": "The Antikythera mechanism is an Ancient Greek hand-powered orrery, described as the oldest known example of an analogue computer used to predict astronomical positions and eclipses decades in advance. It could also be used to track the four-year cycle of athletic games which was similar to an Olympiad, the cycle of the ancient Olympic Games.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Dunbar's number",
+"slug": "Dunbar%27s_number",
+"exactText": "Dunbar's number is a suggested cognitive limit to the number of people with whom one can maintain stable social relationships—relationships in which an individual knows who each person is and how each person relates to every other person.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Murphy's law",
+"slug": "Murphy%27s_law",
+"exactText": "Murphy's law is an adage or epigram that is typically stated as: \"Anything that can go wrong will go wrong.\" In some formulations, it is extended to \"Anything that can go wrong will go wrong, and at the worst possible time.\"",
+"moods": [
+"funny"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Frequency illusion",
+"slug": "Frequency_illusion",
+"exactText": "Frequency illusion, also known as the Baader–Meinhof phenomenon or frequency bias, is a cognitive bias in which a person notices a specific concept, word, or product more frequently after recently becoming aware of it.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Library of Ashurbanipal",
+"slug": "Library_of_Ashurbanipal",
+"exactText": "The Library of Ashurbanipal is a collection of more than 30,000 clay tablets and fragments containing texts inscribed in cuneiform script, assembled in the 7th century BC by the Assyrian king Ashurbanipal. It is widely considered the earliest known systematically collected library.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Sisu",
+"slug": "Sisu",
+"exactText": "Sisu is a Finnish concept described as stoic determination, tenacity of purpose, grit, bravery, resilience, and hardiness. It is generally considered not to have a direct equivalent in English.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Erdős number",
+"slug": "Erd%C5%91s_number",
+"exactText": "The Erdős number describes the \"collaborative distance\" between mathematician Paul Erdős and another person, as measured by authorship of mathematical papers. It was created by friends as a tribute to the enormous output of Erdős, one of the most prolific modern writers of mathematical papers.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Desire path",
+"slug": "Desire_path",
+"exactText": "A desire path (also known as a desire line, social trail, goat track, or bootleg trail) is a path created as a consequence of erosion caused by human or animal foot traffic. The path usually represents the shortest or most easily navigated route between an origin and destination.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Hygge",
+"slug": "Hygge",
+"exactText": "Hygge is a Danish and Norwegian word for a mood of coziness and \"comfortable conviviality\" with feelings of wellness and contentment. As a cultural category with its associated practices, hygge has been a part of Danish culture since at least the 19th century.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Grand Central Terminal",
+"slug": "Grand_Central_Terminal",
+"exactText": "The Whispering Gallery is a gallery running around the interior of the circular dome of Grand Central Terminal's main concourse in Midtown Manhattan, New York City. It is an architectural acoustic phenomenon: a person standing in one corner of the gallery can hear a person whispering in the diagonally opposite corner.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Fearless Girl",
+"slug": "Fearless_Girl",
+"exactText": "Fearless Girl is a bronze sculpture by Kristen Visbal, commissioned by State Street Global Advisors. Originally installed on March 7, 2017, in the Financial District of Manhattan facing Charging Bull, it was relocated to its current location facing the New York Stock Exchange building in December 2018.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Chrysler Building",
+"slug": "Chrysler_Building",
+"exactText": "The Chrysler Building is an Art Deco skyscraper on the East Side of Manhattan in New York City, at the intersection of 42nd Street and Lexington Avenue in Midtown Manhattan. At 1,046 feet (319 m), the structure was the world's tallest building for 11 months before it was surpassed by the Empire State Building in 1931.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Flatiron Building",
+"slug": "Flatiron_Building",
+"exactText": "The Flatiron Building, originally the Fuller Building, is a triangular 22-story landmarked building at 175 Fifth Avenue in the Flatiron District of the borough of Manhattan, New York City. Designed by Daniel Burnham in the Beaux-Arts style, it was completed in 1902.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Roosevelt Island Tramway",
+"slug": "Roosevelt_Island_Tramway",
+"exactText": "The Roosevelt Island Tramway is an aerial tramway in New York City that spans the East River and connects Roosevelt Island to the Upper East Side of Manhattan. It is the only commuter aerial tramway in North America.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Tin Pan Alley",
+"slug": "Tin_Pan_Alley",
+"exactText": "Tin Pan Alley is the name given to the collection of New York City music publishers and songwriters who dominated the popular music of the United States in the late 19th century and early 20th century. The name originally referred to a specific place: West 28th Street between Fifth and Sixth Avenues in the Flower District of Manhattan.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "City Hall station (IRT Lexington Avenue Line)",
+"slug": "City_Hall_station_(IRT_Lexington_Avenue_Line)",
+"exactText": "City Hall station is an unused rapid transit station in New York City. It was built as part of the first underground line of the Interborough Rapid Transit Company subway, which opened on October 27, 1904. The station was designed as the showpiece of the new subway. Skylights, colored glass tilework, and brass chandeliers were installed to make a grand architectural statement.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Sepak takraw",
+"slug": "Sepak_takraw",
+"exactText": "Sepak takraw, or kick volleyball, is a sport native to Southeast Asia. Players must use their feet, knee, chest and head to touch the ball. It is a popular sport in Southeast Asia and has been featured at the Asian Games since 1990.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Sea otter",
+"slug": "Sea_otter",
+"exactText": "To keep themselves from drifting out to sea when resting and eating, sea otters may wrap themselves in kelp.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Sea otter",
+"slug": "Sea_otter",
+"exactText": "Unlike most marine mammals, the sea otter's primary form of insulation is an exceptionally thick coat of fur, the densest in the animal kingdom.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Wombat",
+"slug": "Wombat",
+"exactText": "Wombats leave distinctive cube-shaped faeces. As wombats arrange these feces to mark territories and attract mates, it is believed that the cubic shape makes them more stackable and less likely to roll, which gives this shape a biological advantage.",
+"moods": [
+"funny"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Tardigrade",
+"slug": "Tardigrade",
+"exactText": "Tardigrades, commonly known as water bears or moss piglets, are a phylum of eight-legged segmented micro-animals. They are among the most resilient animals known, with individual species able to survive severe conditions, such as exposure to extreme temperatures, extreme pressures (both high and low), air deprivation, radiation, dehydration, and starvation – that would quickly kill most other forms of life.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Axolotl",
+"slug": "Axolotl",
+"exactText": "The axolotl is notable for its ability to regenerate its limbs, heart, spinal cord, and even parts of its brain. It is also able to accept transplanted organs from other individuals, including eyes and parts of the brain, and restore these to full functionality.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Superb lyrebird",
+"slug": "Superb_lyrebird",
+"exactText": "The superb lyrebird is an Australian songbird known for its extraordinary ability to mimic natural and artificial sounds from its environment, including chainsaws, car alarms, camera shutters, and the calls of other bird species.",
+"moods": [
+"funny"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Pistol shrimp",
+"slug": "Pistol_shrimp",
+"exactText": "The pistol shrimp can produce a cavitation bubble that generates acoustic pressures of up to 80 kPa at a distance of 4 cm from the claw. The snap can also produce sonoluminescence from the collapsing cavitation bubble. As it collapses, the cavitation bubble reaches temperatures of over 5,000 K (4,700 °C).",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Bowerbird",
+"slug": "Bowerbird",
+"exactText": "The bowerbird is most known for the unique courtship behaviour of males, where they build a structure and decorate it with sticks and brightly coloured objects in an attempt to attract a mate. The male meticulously decorates the bower with colourful objects he has collected, such as flowers, berries, snail shells, and even man-made items like pen caps and plastic straws.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Crow",
+"slug": "Crow",
+"exactText": "Crows are considered among the world's most intelligent animals with an encephalization quotient approaching that of some apes. They can make and use tools, recognize human faces, understand analogies, and engage in a form of logical reasoning.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Flamingo",
+"slug": "Flamingo",
+"exactText": "A group of flamingos is called a \"flamboyance.\"",
+"moods": [
+"funny"
+],
+"interests": [
+"animals"
+]
+},
+{
+"type": "q",
+"title": "Harlem Globetrotters",
+"slug": "Harlem_Globetrotters",
+"exactText": "The Harlem Globetrotters are an American exhibition basketball team. They combine athleticism, theater, and comedy in their style of play. They have played more than 26,000 exhibition games in 124 countries and territories.",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Wife-carrying",
+"slug": "Wife-carrying",
+"exactText": "Wife-carrying is a contest in which male competitors race while each carrying a female teammate. The sport originated in Sonkajärvi, Finland, and the prize for the winner is the wife's weight in beer.",
+"moods": [
+"funny"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Curling",
+"slug": "Curling",
+"exactText": "Curling is a sport in which players slide stones on a sheet of ice toward a target area which is segmented into four concentric circles. It is related to bowls, boules, and shuffleboard. Two teams, each with four players, take turns sliding heavy, polished granite stones across the ice curling sheet toward the house, a circular target marked on the ice.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"sports"
+]
+},
+{
+"type": "q",
+"title": "Overview effect",
+"slug": "Overview_effect",
+"exactText": "The overview effect is a cognitive shift reported by some astronauts during spaceflight, often while viewing the Earth from outer space. Astronauts have reported experiencing a sense of awe and self-transcendence, along with a realization that national boundaries are petty and that humanity should work together as one species.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Monty Hall problem",
+"slug": "Monty_Hall_problem",
+"exactText": "The Monty Hall problem is a brain teaser in the form of a probability puzzle, loosely based on the American television game show Let's Make a Deal. The problem is named after the show's host, Monty Hall. The counter-intuitive answer – that switching doors doubles the probability of winning – has famously confused many people, including mathematicians.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Ikigai",
+"slug": "Ikigai",
+"exactText": "Ikigai is a Japanese concept referring to something that gives a person a sense of purpose, a reason for living. In the culture of Okinawa, ikigai is thought of as \"a reason to get up in the morning.\"",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Ship of Theseus",
+"slug": "Ship_of_Theseus",
+"exactText": "The Ship of Theseus is a thought experiment that raises the question of whether an object that has had all of its original components replaced remains the same object.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Kintsugi",
+"slug": "Kintsugi",
+"exactText": "Kintsugi is the Japanese art of repairing broken pottery by mending the areas of breakage with urushi lacquer dusted or mixed with powdered gold, silver, or platinum. As a philosophy, it treats breakage and repair as part of the history of an object, rather than something to disguise.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "Petrichor",
+"slug": "Petrichor",
+"exactText": "Petrichor is the earthy scent produced when rain falls on dry soil. The word is constructed from the Greek petra, meaning \"stone\", and ichor, the fluid that flows in the veins of the gods in Greek mythology.",
+"moods": [
+"whimsical"
+],
+"interests": [
+"history"
+]
+},
+{
+"type": "q",
+"title": "High Line",
+"slug": "High_Line",
+"exactText": "The High Line is a 1.45-mile-long elevated linear park, greenway and rail trail created on a former New York Central Railroad spur on the west side of Manhattan in New York City. The High Line's design is a collaboration between James Corner Field Operations, Diller Scofidio + Renfro, and Piet Oudolf.",
+"moods": [
+"uplifting"
+],
+"interests": [
+"nyc"
+]
+},
+{
+"type": "q",
+"title": "Brooklyn Bridge",
+"slug": "Brooklyn_Bridge",
+"exactText": "The Brooklyn Bridge is a hybrid cable-stayed/suspension bridge in New York City, spanning the East River between the boroughs of Manhattan and Brooklyn. When it opened on May 24, 1883, it was the first fixed crossing across the East River and the longest suspension bridge in the world.",
+"moods": [
+"thought-provoking"
+],
+"interests": [
+"nyc",
+"history"
+]
+},
+{
+"type": "q",
+"title": "Egg cream",
+"slug": "Egg_cream",
+"exactText": "An egg cream is a cold beverage consisting of milk, carbonated water, and chocolate or vanilla syrup. Despite the name, the drink contains neither eggs nor cream.",
+"moods": [
+"funny"
+],
+"interests": [
+"nyc"
+]
+}
+];
+
+
+// ====== WIKIPEDIA ACTION API FUNCTIONS ======
+// Convert slug to proper title for API
+function slugToTitle(slug) {
+  try { return decodeURIComponent(slug).replace(/_/g, ' '); }
+  catch(e) { return slug.replace(/_/g, ' '); }
+}
+
+// Build a slug-to-title map for matching API responses back
+function buildTitleMap(slugs) {
+  var map = {};
+  slugs.forEach(function(s) {
+    var t = slugToTitle(s).toLowerCase();
+    map[t] = s;
+  });
+  return map;
+}
+
+// Fetch extracts using Action API with formatversion=2
+// Uses prop=extracts with exintro, explaintext, and exlimit=20
+async function fetchExtracts(slugs) {
+  var results = {};
+  var titleMap = buildTitleMap(slugs);
+
+  // Batch into groups of 20 (API max for exlimit with exintro)
+  for (var i = 0; i < slugs.length; i += 20) {
+    var batch = slugs.slice(i, i + 20);
+    var titles = batch.map(slugToTitle).join('|');
+    var url = 'https://en.wikipedia.org/w/api.php?action=query'
+      + '&prop=extracts'
+      + '&exintro=1'
+      + '&explaintext=1'
+      + '&exlimit=' + batch.length
+      + '&redirects=1'
+      + '&formatversion=2'
+      + '&format=json'
+      + '&origin=*'
+      + '&titles=' + encodeURIComponent(titles);
+    try {
+      var resp = await fetch(url);
+      var data = await resp.json();
+      // formatversion=2 returns pages as an array
+      var pages = (data && data.query && data.query.pages) || [];
+      pages.forEach(function(p) {
+        if (p.extract && !p.missing) {
+          var ext = p.extract;
+          // Get first paragraph only
+          var firstPara = ext.split('\n')[0].trim();
+          // For quotes: limit to ~800 chars at a sentence boundary
+          if (firstPara.length > 800) {
+            var cut = firstPara.substring(0, 800);
+            var lastDot = cut.lastIndexOf('. ');
+            if (lastDot > 150) firstPara = cut.substring(0, lastDot + 1);
+            else firstPara = cut + '\u2026';
+          }
+          // Match back to slug via title
+          var key = (p.title || '').toLowerCase();
+          var matchSlug = titleMap[key];
+          if (matchSlug) {
+            results[matchSlug] = firstPara;
+          } else {
+            // Fallback: try matching with underscores
+            var keyU = key.replace(/ /g, '_');
+            batch.forEach(function(s) {
+              if (s.toLowerCase() === keyU || slugToTitle(s).toLowerCase() === key) {
+                results[s] = firstPara;
+              }
+            });
+          }
+        }
+      });
+    } catch(e) { console.warn('Batch extract failed', i, e); }
+
+    // Update progress
+    var pct = Math.min(100, Math.round(((i + batch.length) / slugs.length) * 100));
+    var bar = document.getElementById('progBar');
+    if (bar) bar.style.width = pct + '%';
+  }
+
+  // Fallback: fetch individually any slugs that failed in batch mode
+  var missing = slugs.filter(function(s) { return !results[s]; });
+  for (var j = 0; j < missing.length; j++) {
+    var s = missing[j];
+    var title = slugToTitle(s);
+    var url2 = 'https://en.wikipedia.org/w/api.php?action=query'
+      + '&prop=extracts'
+      + '&exintro=1'
+      + '&explaintext=1'
+      + '&redirects=1'
+      + '&formatversion=2'
+      + '&format=json'
+      + '&origin=*'
+      + '&titles=' + encodeURIComponent(title);
+    try {
+      var resp2 = await fetch(url2);
+      var data2 = await resp2.json();
+      var pages2 = (data2 && data2.query && data2.query.pages) || [];
+      if (pages2[0] && pages2[0].extract && !pages2[0].missing) {
+        var ext2 = pages2[0].extract.split('\n')[0].trim();
+        if (ext2.length > 800) {
+          var cut2 = ext2.substring(0, 800);
+          var ld = cut2.lastIndexOf('. ');
+          ext2 = ld > 150 ? cut2.substring(0, ld + 1) : cut2 + '\u2026';
+        }
+        results[s] = ext2;
+      }
+    } catch(e2) { console.warn('Individual fetch failed:', s, e2); }
+  }
+
+  return results;
+}
+
+// Fetch page images using Action API with formatversion=2
+async function fetchImages(slugs) {
+  var results = {};
+  var titleMap = buildTitleMap(slugs);
+
+  for (var i = 0; i < slugs.length; i += 50) {
+    var batch = slugs.slice(i, i + 50);
+    var titles = batch.map(slugToTitle).join('|');
+    var url = 'https://en.wikipedia.org/w/api.php?action=query'
+      + '&prop=pageimages'
+      + '&pithumbsize=640'
+      + '&pilimit=50'
+      + '&redirects=1'
+      + '&formatversion=2'
+      + '&format=json'
+      + '&origin=*'
+      + '&titles=' + encodeURIComponent(titles);
+    try {
+      var resp = await fetch(url);
+      var data = await resp.json();
+      var pages = (data && data.query && data.query.pages) || [];
+      pages.forEach(function(p) {
+        if (p.thumbnail && p.thumbnail.source) {
+          var key = (p.title || '').toLowerCase();
+          var matchSlug = titleMap[key];
+          if (matchSlug) {
+            results[matchSlug] = p.thumbnail.source;
+          } else {
+            batch.forEach(function(s) {
+              if (slugToTitle(s).toLowerCase() === key) results[s] = p.thumbnail.source;
+            });
+          }
+        }
+      });
+    } catch(e) { console.warn('Image batch failed', e); }
+  }
+  return results;
+}
+
+// ====== APP LOGIC ======
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function wordCount(s){return s?s.split(/\s+/).length:0;}
+function readingMins(item){
+  if(item.type==='a') return item.readMins||10;
+  if(item.type==='l') return 1; // link suggestions are quick actions
+  var t = item.exactText||item.fetchedText||'';
+  return Math.max(1,Math.ceil(wordCount(t)/WPM));
+}
+function getFiltered(){
+  // Only include quotes that have text loaded
+  var list = ITEMS.filter(function(it){
+    if(it.type==='a') return true;
+    if(it.type==='l') return true; // link suggestions always pass
+    return !!(it.exactText || it.fetchedText);
+  });
+
+  // Separate link suggestions from regular items
+  var linkItems = list.filter(function(it){ return it.type==='l'; });
+  list = list.filter(function(it){ return it.type!=='l'; });
+
+  // Filter by active mood and/or interest
+  if(activeMood){
+    list=list.filter(function(i){return i.moods&&i.moods.indexOf(activeMood)!==-1;});
+  }
+  if(activeInterest){
+    list=list.filter(function(i){return i.interests&&i.interests.indexOf(activeInterest)!==-1;});
+  }
+
+  // Score and rank if a mood or interest is active
+  if(activeMood || activeInterest){
+    list.forEach(function(item){
+      var score=0;
+      if(activeMood && item.moods){
+        var idx=item.moods.indexOf(activeMood);
+        if(idx===0) score+=3;        // primary mood
+        else if(idx===1) score+=2;   // secondary mood
+        else if(idx>=2) score+=1;    // tertiary
+      }
+      if(activeInterest && item.interests){
+        var idx2=item.interests.indexOf(activeInterest);
+        if(idx2===0) score+=3;
+        else if(idx2===1) score+=2;
+        else if(idx2>=2) score+=1;
+      }
+      item._score=score;
+    });
+    // Sort by score descending, with randomization within same score
+    list.sort(function(a,b){
+      if(b._score!==a._score) return b._score-a._score;
+      return Math.random()-0.5;
+    });
+    // Interleave: no more than 3 quotes or 3 articles in a row
+    list = interleave(list);
+  } else {
+    list = shuffle(list);
+    list = interleave(list);
+  }
+
+  if(activeTime){
+    var budget=activeTime,result=[];
+    for(var i=0;i<list.length&&budget>0;i++){var cost=readingMins(list[i]);if(cost<=budget){result.push(list[i]);budget-=cost;}}
+    list = result;
+  }
+
+  // Inject link suggestion cards at regular intervals (approx every 6-8 items)
+  if(linkItems.length > 0){
+    var injected = [];
+    var lIdx = 0;
+    var interval = Math.max(5, Math.floor(list.length / (linkItems.length + 1)));
+    for(var j = 0; j < list.length; j++){
+      injected.push(list[j]);
+      if(lIdx < linkItems.length && (j + 1) % interval === 0){
+        injected.push(linkItems[lIdx]);
+        lIdx++;
+      }
+    }
+    // Append remaining link items
+    while(lIdx < linkItems.length){
+      injected.push(linkItems[lIdx]);
+      lIdx++;
+    }
+    return injected;
+  }
+  return list;
+}
+
+// Interleave so no more than 3 of the same type appear consecutively.
+// Preserves relative order / ranking as much as possible.
+function interleave(sorted){
+  if(sorted.length<=3) return sorted;
+  var result=[];
+  var queue=sorted.slice(); // working copy
+  var MAX_RUN=3;
+
+  while(queue.length>0){
+    // Count current run at end of result
+    var runType=result.length>0?result[result.length-1].type:null;
+    var runLen=0;
+    for(var r=result.length-1;r>=0;r--){
+      if(result[r].type===runType) runLen++;
+      else break;
+    }
+
+    if(runLen>=MAX_RUN){
+      // Need the opposite type next
+      var needed=(runType==='q')?'a':'q';
+      var idx=-1;
+      for(var j=0;j<queue.length;j++){
+        if(queue[j].type===needed){idx=j;break;}
+      }
+      if(idx===-1){
+        // No more of the needed type, just push the rest
+        result=result.concat(queue);
+        break;
+      }
+      result.push(queue.splice(idx,1)[0]);
+    } else {
+      result.push(queue.shift());
+    }
+  }
+  return result;
+}
+function buildFilters(){
+  var mEl=document.getElementById('moodChips'),iEl=document.getElementById('interestChips'),tEl=document.getElementById('timeChips');
+  mEl.innerHTML='<button class="fc'+(!activeMood?' active':'')+'" data-mood=""><span class="ce">\u2728</span>All</button>'+MOODS.map(function(m){return '<button class="fc'+(activeMood===m.id?' active':'')+'" data-mood="'+m.id+'"><span class="ce">'+m.emoji+'</span>'+m.label+'</button>';}).join('');
+  iEl.innerHTML='<button class="fc'+(!activeInterest?' active':'')+'" data-interest=""><span class="ce">\uD83C\uDF0D</span>All</button>'+INTERESTS.map(function(m){return '<button class="fc'+(activeInterest===m.id?' active':'')+'" data-interest="'+m.id+'"><span class="ce">'+m.emoji+'</span>'+m.label+'</button>';}).join('');
+  tEl.innerHTML=TIMES.map(function(t){return '<button class="fc'+(activeTime===t.id?' active':'')+'" data-time="'+t.id+'"><span class="ce">\u23F1\uFE0F</span>'+t.label+'</button>';}).join('');
+  document.querySelectorAll('#moodChips .fc').forEach(function(c){c.addEventListener('click',function(){var v=this.dataset.mood;activeMood=v||null;if(v)activeInterest=null;resetFeed();});});
+  document.querySelectorAll('#interestChips .fc').forEach(function(c){c.addEventListener('click',function(){var v=this.dataset.interest;activeInterest=v||null;if(v)activeMood=null;resetFeed();});});
+  document.querySelectorAll('#timeChips .fc').forEach(function(c){c.addEventListener('click',function(){var tv=parseInt(this.dataset.time);activeTime=activeTime===tv?null:tv;resetFeed();});});
+}
+function resetFeed(){rendered=0;document.getElementById('feed').innerHTML='';document.getElementById('feedEnd').style.display='none';currentList=getFiltered();buildFilters();updateCount();loadMore();window.scrollTo({top:0,behavior:'smooth'});}
+function updateCount(){
+  var qs=currentList.filter(function(i){return i.type==='q';}).length;
+  var as=currentList.filter(function(i){return i.type==='a';}).length;
+  var ls=currentList.filter(function(i){return i.type==='l';}).length;
+  var totalMins=0;currentList.forEach(function(i){totalMins+=readingMins(i);});
+  var parts = [currentList.length+' items', qs+' quotes', as+' articles'];
+  if(ls > 0) parts.push(ls+' link suggestions');
+  parts.push('~'+totalMins+' min read');
+  document.getElementById('feedCount').textContent=parts.join(' \u00b7 ');
+}
+var imgCache={};
+function renderCard(item,idx){
+  // Handle link suggestion cards
+  if(item.type==='l' && item.linkData){
+    return renderLinkCard(item.linkData, idx);
+  }
+  var color=COLORS[idx%COLORS.length];
+  var url='https://en.wikipedia.org/wiki/'+item.slug;
+  var imgSrc=imgCache[item.slug]||'';
+  var html='<div class="card" data-color="'+color+'">';
+  if(imgSrc){html+='<div class="card-img"><img src="'+imgSrc+'" alt="'+item.title+'" loading="lazy" onerror="this.parentElement.style.display=\'none\'"><div class="img-fade"></div></div>';}
+  html+='<div class="card-body">';
+  if(item.type==='q'){
+    var text=item.exactText||item.fetchedText||'';
+    html+='<div class="quote-layout"><div class="ql-text"><div class="qt">'+escHtml(text)+'</div></div>';
+    html+='<div class="ql-source"><a class="al" href="'+url+'" target="_blank" rel="noopener">'+escHtml(item.title)+'</a>';
+    html+='<div style="font-size:11px;color:var(--tlr);margin-top:4px">'+readingMins(item)+' min read</div></div></div>';
+  } else {
+    html+='<a class="article-title" href="'+url+'" target="_blank" rel="noopener">'+escHtml(item.title)+'</a>';
+    if(item.fetchedText) html+='<div class="article-desc">'+escHtml(item.fetchedText)+'</div>';
+    html+='<div class="article-reading">\u23F1\uFE0F ~'+item.readMins+' min read</div>';
+  }
+  html+='</div></div>';
+  return html;
+}
+function escHtml(s){if(!s)return '';return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function loadMore(){
+  if(rendered>=currentList.length){document.getElementById('feedEnd').style.display='block';return;}
+  var feed=document.getElementById('feed'),end=Math.min(rendered+batchSize,currentList.length),html='';
+  for(var i=rendered;i<end;i++) html+=renderCard(currentList[i],i);
+  feed.insertAdjacentHTML('beforeend',html);
+  rendered=end;updateCount();
+  if(rendered>=currentList.length) document.getElementById('feedEnd').style.display='block';
+  requestAnimationFrame(observeCards);
+}
+var observer=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');observer.unobserve(e.target);}});},{threshold:0.05,rootMargin:'0px 0px 80px 0px'});
+function observeCards(){document.querySelectorAll('.card:not(.visible)').forEach(function(c){observer.observe(c);});}
+var scrollT;
+window.addEventListener('scroll',function(){if(scrollT)return;scrollT=setTimeout(function(){scrollT=null;if((window.innerHeight+window.scrollY)>=document.body.offsetHeight-600)loadMore();},100);},{passive:true});
+
+// ====== ADD-A-LINK SUGGESTION SYSTEM ======
+// For each article, we find terms in the extract that match other Wikipedia articles
+// but are NOT already linked. This simulates the Add-a-Link ML model output.
+var linkSuggestionCache = {};
+
+// Wikipedia puzzle piece SVG (inline)
+var WIKI_ICON = '<svg viewBox="0 0 24 24"><path d="M12.5 2C7.25 2 3 6.25 3 11.5c0 4.06 2.55 7.52 6.13 8.88.08-.6.15-1.51-.03-2.16-.16-.59-1.05-3.8-1.05-3.8s-.27-.54-.27-1.33c0-1.24.72-2.17 1.62-2.17.77 0 1.14.58 1.14 1.27 0 .77-.49 1.93-.75 3-.21.9.45 1.63 1.34 1.63 1.61 0 2.85-1.7 2.85-4.14 0-2.17-1.56-3.68-3.78-3.68-2.58 0-4.09 1.93-4.09 3.93 0 .78.3 1.61.67 2.07.07.09.08.17.06.26-.07.28-.22.9-.25 1.02-.04.16-.13.2-.3.12-1.12-.52-1.82-2.16-1.82-3.48 0-2.83 2.06-5.43 5.93-5.43 3.12 0 5.54 2.22 5.54 5.18 0 3.1-1.95 5.59-4.66 5.59-.91 0-1.77-.47-2.06-1.03l-.56 2.14c-.2.78-.75 1.76-1.12 2.36.84.26 1.73.4 2.66.4 5.25 0 9.5-4.25 9.5-9.5S17.75 2 12.5 2z"/></svg>';
+var EXTERNAL_ICON = '<svg viewBox="0 0 12 12" width="12" height="12"><path d="M6 1h5v5l-2-2-3 3-2-2 3-3z" fill="currentColor"/><path d="M9 8v2H2V3h2V1H1a1 1 0 00-1 1v9a1 1 0 001 1h9a1 1 0 001-1V6z" fill="currentColor"/></svg>';
+
+function renderLinkCard(suggestion, idx) {
+  var dots = '';
+  for (var d = 0; d < Math.min(suggestion.totalCount, 4); d++) {
+    dots += '<span class="lcd' + (d === 0 ? ' active' : '') + '"></span>';
+  }
+  var html = '<div class="link-card card visible">';
+  html += '<div class="link-card-header">';
+  html += '<span class="lc-robot">\uD83E\uDD16</span>';
+  html += '<span class="lc-label">Add a Link</span>';
+  html += '<span class="link-card-counter">1 / ' + suggestion.totalCount + '</span>';
+  html += '<span class="link-card-dots">' + dots + '</span>';
+  html += '<span class="lc-article">in <a href="https://en.wikipedia.org/wiki/' + suggestion.articleSlug + '" target="_blank">' + escHtml(suggestion.articleTitle) + '</a></span>';
+  html += '</div>';
+  html += '<div class="link-card-body">';
+  // Context line showing the phrase highlighted in surrounding text
+  html += '<div class="link-card-prompt">';
+  html += 'Should <span class="lc-highlight">' + escHtml(suggestion.phrase) + '</span> link to the following article?';
+  html += '</div>';
+  // Suggested target article card
+  html += '<div class="link-card-suggestion">';
+  html += '<div class="lcs-icon">' + WIKI_ICON + '</div>';
+  html += '<div class="lcs-info">';
+  html += '<a class="lcs-title" href="https://en.wikipedia.org/wiki/' + encodeURIComponent(suggestion.targetTitle) + '" target="_blank">' + escHtml(suggestion.targetTitle) + ' ' + EXTERNAL_ICON + '</a>';
+  html += '<div class="lcs-desc">' + escHtml(suggestion.targetDesc) + '</div>';
+  html += '</div></div>';
+  // Action buttons
+  html += '<div class="link-card-actions">';
+  html += '<button class="lca-btn lca-yes">\u2713 Yes</button>';
+  html += '<button class="lca-btn lca-no">\u2717 No</button>';
+  html += '<button class="lca-btn lca-skip">Skip \u203A</button>';
+  html += '</div>';
+  html += '</div></div>';
+  return html;
+}
+
+// Fetch link suggestions for articles by finding unlinked terms
+// Strategy: For each article, get its existing links. Then check if common
+// related terms (from the article extract) match real Wikipedia articles that aren't linked.
+async function fetchLinkSuggestions(articleItems) {
+  var suggestions = [];
+  // Pick a random subset of articles to generate suggestions for (limit to ~10 for perf)
+  var candidates = shuffle(articleItems.filter(function(a) { return a.fetchedText && a.fetchedText.length > 100; })).slice(0, 15);
+
+  // For each candidate, get its existing outbound links
+  for (var i = 0; i < candidates.length; i += 5) {
+    var batch = candidates.slice(i, i + 5);
+    var titles = batch.map(function(a) { return slugToTitle(a.slug); }).join('|');
+
+    try {
+      // Fetch existing links for these articles
+      var linkUrl = 'https://en.wikipedia.org/w/api.php?action=query'
+        + '&prop=links'
+        + '&pllimit=500'
+        + '&plnamespace=0'
+        + '&redirects=1'
+        + '&formatversion=2'
+        + '&format=json'
+        + '&origin=*'
+        + '&titles=' + encodeURIComponent(titles);
+      var resp = await fetch(linkUrl);
+      var data = await resp.json();
+      var pages = (data && data.query && data.query.pages) || [];
+
+      for (var p = 0; p < pages.length; p++) {
+        var page = pages[p];
+        if (!page.links || page.missing) continue;
+        var existingLinks = {};
+        page.links.forEach(function(l) { existingLinks[l.title.toLowerCase()] = true; });
+
+        // Find the matching article item
+        var matchItem = null;
+        for (var b = 0; b < batch.length; b++) {
+          if (slugToTitle(batch[b].slug).toLowerCase() === (page.title || '').toLowerCase()) {
+            matchItem = batch[b]; break;
+          }
+        }
+        if (!matchItem || !matchItem.fetchedText) continue;
+
+        // Extract candidate terms from the article extract:
+        // Look for capitalized multi-word phrases or proper nouns not in existing links
+        var extract = matchItem.fetchedText;
+        // Find 2-3 word capitalized phrases
+        var phraseRegex = /(?:(?:the|a|an)\s+)?([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,2})/g;
+        var match, candidatePhrases = [];
+        while ((match = phraseRegex.exec(extract)) !== null) {
+          var phrase = match[1].trim();
+          if (phrase.length > 3 && !existingLinks[phrase.toLowerCase()]
+              && phrase.toLowerCase() !== matchItem.title.toLowerCase()
+              && phrase.split(' ').length <= 3) {
+            candidatePhrases.push(phrase);
+          }
+        }
+        // Deduplicate
+        var seen = {};
+        candidatePhrases = candidatePhrases.filter(function(p) {
+          var lp = p.toLowerCase();
+          if (seen[lp]) return false;
+          seen[lp] = true;
+          return true;
+        });
+
+        if (candidatePhrases.length === 0) continue;
+
+        // Check which of these phrases are real Wikipedia articles
+        var testPhrases = candidatePhrases.slice(0, 10);
+        var checkUrl = 'https://en.wikipedia.org/w/api.php?action=query'
+          + '&prop=extracts|pageprops'
+          + '&exintro=1'
+          + '&explaintext=1'
+          + '&exlimit=' + testPhrases.length
+          + '&ppprop=description'
+          + '&redirects=1'
+          + '&formatversion=2'
+          + '&format=json'
+          + '&origin=*'
+          + '&titles=' + encodeURIComponent(testPhrases.join('|'));
+
+        var resp2 = await fetch(checkUrl);
+        var data2 = await resp2.json();
+        var checkPages = (data2 && data2.query && data2.query.pages) || [];
+
+        var validSuggestions = [];
+        checkPages.forEach(function(cp) {
+          if (!cp.missing && cp.extract && cp.extract.length > 30) {
+            var desc = cp.extract.split('\n')[0].trim();
+            if (desc.length > 200) desc = desc.substring(0, 197) + '\u2026';
+            // Find the original phrase in extract for context
+            var originalPhrase = testPhrases.find(function(tp) {
+              return tp.toLowerCase() === (cp.title || '').toLowerCase();
+            }) || cp.title;
+            // Only add if the phrase actually appears in the extract text
+            if (extract.indexOf(originalPhrase) !== -1 || extract.toLowerCase().indexOf(originalPhrase.toLowerCase()) !== -1) {
+              validSuggestions.push({
+                phrase: originalPhrase,
+                targetTitle: cp.title,
+                targetDesc: desc
+              });
+            }
+          }
+        });
+
+        if (validSuggestions.length > 0) {
+          suggestions.push({
+            articleSlug: matchItem.slug,
+            articleTitle: matchItem.title,
+            suggestions: validSuggestions,
+            totalCount: validSuggestions.length,
+            // Show the first suggestion
+            phrase: validSuggestions[0].phrase,
+            targetTitle: validSuggestions[0].targetTitle,
+            targetDesc: validSuggestions[0].targetDesc
+          });
+        }
+      }
+    } catch(e) { console.warn('Link suggestion fetch failed', e); }
+  }
+
+  console.log('Generated', suggestions.length, 'link suggestion cards from API');
+
+  // Hardcoded fallback suggestions to guarantee examples always appear
+  var FALLBACKS = [
+    {
+      articleSlug: 'Emu_War',
+      articleTitle: 'Emu War',
+      totalCount: 3,
+      phrase: 'Western Australia',
+      targetTitle: 'Western Australia',
+      targetDesc: 'Western Australia is a state occupying the western 33 percent of the land area of Australia, bounded by the Indian Ocean to the north and west.'
+    },
+    {
+      articleSlug: 'Fosbury_flop',
+      articleTitle: 'Fosbury flop',
+      totalCount: 2,
+      phrase: 'Mexico City',
+      targetTitle: 'Mexico City',
+      targetDesc: 'Mexico City is the capital and largest city of Mexico, and the most populous city in North America.'
+    },
+    {
+      articleSlug: 'Dancing_plague_of_1518',
+      articleTitle: 'Dancing plague of 1518',
+      totalCount: 2,
+      phrase: 'Holy Roman Empire',
+      targetTitle: 'Holy Roman Empire',
+      targetDesc: 'The Holy Roman Empire was a political entity in Western, Central, and Southern Europe that developed during the Early Middle Ages and continued until its dissolution in 1806.'
+    },
+    {
+      articleSlug: 'Centennial_Light',
+      articleTitle: 'Centennial Light',
+      totalCount: 2,
+      phrase: 'Livermore',
+      targetTitle: 'Livermore, California',
+      targetDesc: 'Livermore is a city in Alameda County, California, located in the southeastern corner of the San Francisco Bay Area.'
+    },
+    {
+      articleSlug: 'Christmas_truce',
+      articleTitle: 'Christmas truce',
+      totalCount: 3,
+      phrase: 'Western Front',
+      targetTitle: 'Western Front (World War I)',
+      targetDesc: 'The Western Front was the main theatre of war during the First World War, stretching from the North Sea to the Swiss border.'
+    }
+  ];
+
+  // Only add fallbacks that aren't duplicates of real suggestions
+  var usedSlugs = {};
+  suggestions.forEach(function(s){ usedSlugs[s.articleSlug] = true; });
+  FALLBACKS.forEach(function(fb){
+    if(!usedSlugs[fb.articleSlug]){
+      suggestions.push(fb);
+      usedSlugs[fb.articleSlug] = true;
+    }
+  });
+
+  // Ensure at least 3 suggestions
+  console.log('Total link suggestion cards (with fallbacks):', suggestions.length);
+  return suggestions;
+}
+
+// ====== INIT: Fetch all data from Wikipedia, then render ======
+document.addEventListener('DOMContentLoaded', async function(){
+  buildFilters();
+  // Collect slugs
+  var allSlugs = ITEMS.map(function(i){return i.slug;});
+  var quoteSlugsToFetch = ITEMS.filter(function(i){return i.type==='q'&&!i.exactText;}).map(function(i){return i.slug;});
+  var articleSlugs = ITEMS.filter(function(i){return i.type==='a';}).map(function(i){return i.slug;});
+  var allFetchSlugs = quoteSlugsToFetch.concat(articleSlugs);
+
+  console.log('Fetching extracts for', allFetchSlugs.length, 'items...');
+  var extracts = await fetchExtracts(allFetchSlugs);
+  var fetchedCount = Object.keys(extracts).length;
+  console.log('Fetched', fetchedCount, 'of', allFetchSlugs.length, 'extracts');
+
+  // Apply fetched text
+  ITEMS.forEach(function(item){
+    if(item.type==='q' && !item.exactText && extracts[item.slug]){
+      item.fetchedText = extracts[item.slug];
+    }
+    if(item.type==='a' && extracts[item.slug]){
+      item.fetchedText = extracts[item.slug];
+    }
+  });
+
+  // Log any missing quotes
+  var missingQuotes = ITEMS.filter(function(i){return i.type==='q'&&!i.exactText&&!i.fetchedText;});
+  if(missingQuotes.length) {
+    console.warn('Missing quotes for:', missingQuotes.map(function(i){return i.slug;}));
+  }
+
+  // Fetch all images
+  console.log('Fetching images for', allSlugs.length, 'items...');
+  var images = await fetchImages(allSlugs);
+  imgCache = images;
+  console.log('Fetched', Object.keys(images).length, 'images');
+
+  // Fetch link suggestions for articles
+  console.log('Fetching link suggestions...');
+  var articleItems = ITEMS.filter(function(i){ return i.type === 'a'; });
+  var linkSuggestions = await fetchLinkSuggestions(articleItems);
+  // Add link suggestions as special items in the ITEMS array
+  linkSuggestions.forEach(function(ls) {
+    ITEMS.push({
+      type: 'l',
+      title: ls.articleTitle,
+      slug: ls.articleSlug,
+      moods: [], // link suggestions match all moods
+      interests: [], // and all interests
+      linkData: ls
+    });
+  });
+
+  // Hide loading banner
+  document.getElementById('loadBanner').style.display='none';
+  // Build the feed
+  currentList = getFiltered();
+  updateCount();
+  loadMore();
+});
+</script>
+</body>
+</html>
