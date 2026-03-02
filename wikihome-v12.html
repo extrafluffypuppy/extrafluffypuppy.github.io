@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wikipedia · WikiHome</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400;1,700&family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --wiki-blue: #3366cc;
+  --wiki-blue-light: #5b84d6;
+  --ink: #1a1a1a;
+  --ink-soft: #3d3d3d;
+  --ink-muted: #6b6b6b;
+  --paper: #f7f5ef;
+  --paper-warm: #f0ebe0;
+  --paper-card: #fdfcfa;
+  --rule: #d6cfc3;
+  --rule-light: #e6e0d5;
+  --red:     #c0392b;
+  --green:   #1e8449;
+  --pink:    #b5006e;
+  --grey:    #5a6272;
+  --purple:  #6c3483;
+  --amber:   #c67c00;
+  --orange:  #ca6f1e;
+  --teal:    #117a65;
+  --blue:    #2980b9;
+  --shadow: 0 2px 14px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.05);
+  --shadow-hover: 0 8px 32px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--paper); color: var(--ink); font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; line-height: 1.6; }
+a { color: inherit; text-decoration: none; }
+img { display: block; }
+
+/* ====== TOPBAR ====== */
+.topbar {
+  background: #fff;
+  border-bottom: 2px solid var(--ink);
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-inner {
+  display: flex; align-items: center; gap: 20px;
+  max-width: 1640px; margin: 0 auto;
+  padding: 0 28px; height: 58px;
+}
+.logo { display: flex; align-items: center; gap: 9px; flex-shrink: 0; }
+.logo-text { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 19px; }
+.logo-text span { color: var(--wiki-blue); }
+.topbar-div { width: 1px; height: 26px; background: var(--rule); flex-shrink: 0; }
+.topbar-tag { font-size: 13px; font-style: italic; color: var(--ink-muted); flex: 1; }
+.manage-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border: 1.5px solid var(--wiki-blue); border-radius: 4px;
+  background: transparent; color: var(--wiki-blue);
+  font-family: 'Source Serif 4', serif; font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: all 0.18s; flex-shrink: 0;
+}
+.manage-btn:hover { background: var(--wiki-blue); color: #fff; }
+
+/* ====== DRAWER ====== */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.42); z-index: 200; display: none; }
+.overlay.open { display: block; }
+.drawer {
+  position: fixed; top: 0; right: -380px; width: 360px; height: 100vh;
+  background: #fff; border-left: 2px solid var(--ink); z-index: 201;
+  transition: right 0.35s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+}
+.drawer.open { right: 0; }
+.drawer-hd { padding: 22px 24px 16px; border-bottom: 1px solid var(--rule); display: flex; justify-content: space-between; align-items: flex-start; }
+.drawer-title { font-family: 'Playfair Display', serif; font-size: 21px; font-weight: 700; line-height: 1.2; }
+.drawer-sub { font-size: 12px; color: var(--ink-muted); margin-top: 3px; }
+.drawer-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-muted); padding: 2px 5px; line-height: 1; }
+.drawer-body { flex: 1; overflow-y: auto; padding: 12px 24px; }
+.tog-row { display: flex; align-items: flex-start; gap: 13px; padding: 13px 0; border-bottom: 1px solid var(--rule-light); }
+.tog-row:last-child { border: none; }
+.tog-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+.tog-info { flex: 1; }
+.tog-name { font-weight: 600; font-size: 13.5px; line-height: 1.3; }
+.tog-desc { font-size: 11.5px; color: var(--ink-muted); margin-top: 2px; font-style: italic; }
+.sw { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+.sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+.sw-track { position: absolute; inset: 0; background: var(--rule); border-radius: 11px; cursor: pointer; transition: background 0.2s; }
+.sw-track::after { content: ''; position: absolute; left: 3px; top: 3px; width: 16px; height: 16px; background: #fff; border-radius: 50%; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+.sw input:checked + .sw-track { background: var(--wiki-blue); }
+.sw input:checked + .sw-track::after { transform: translateX(18px); }
+
+/* ====== PAGE ====== */
+.page { max-width: 1640px; margin: 0 auto; padding: 28px 28px 72px; }
+
+/* masthead */
+.mast { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 3px double var(--ink); padding-bottom: 9px; margin-bottom: 30px; }
+.mast-date { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-muted); }
+.mast-center { font-family: 'Playfair Display', serif; font-size: 12px; font-style: italic; color: var(--ink-muted); }
+.mast-right { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-muted); }
+
+/* ====== SECTION HEADER ====== */
+.sec-hd {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1.5px solid rgba(0,0,0,0.09);
+}
+.sec-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px 5px 10px; border-radius: 3px;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: #fff; font-family: 'Source Serif 4', serif;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.sec-badge {
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-muted);
+}
+.sec-rm {
+  margin-left: auto; background: none; border: 1px solid var(--rule); border-radius: 3px;
+  padding: 2px 9px; font-size: 10.5px; color: var(--ink-muted); cursor: pointer;
+  font-family: 'Source Serif 4', serif; transition: all 0.15s;
+}
+.sec-rm:hover { border-color: var(--red); color: var(--red); }
+
+.section-wrap { margin-bottom: 10px; }
+.section-wrap.hidden { display: none !important; }
+
+.pulsedot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-left: 3px; animation: pulse 2s infinite; vertical-align: middle; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:.25} }
+
+/* ====== GRID HELPERS ====== */
+.g12 { display: grid; grid-template-columns: repeat(12,1fr); gap: 18px; align-items: start; }
+.c3{grid-column:span 3} .c4{grid-column:span 4} .c5{grid-column:span 5}
+.c6{grid-column:span 6} .c7{grid-column:span 7} .c8{grid-column:span 8} .c12{grid-column:span 12}
+
+/* ====== CARD BASE ====== */
+.card {
+  background: var(--paper-card); border: 1px solid var(--rule-light); border-radius: 3px;
+  overflow: hidden; box-shadow: var(--shadow);
+  transition: transform .25s cubic-bezier(.4,0,.2,1), box-shadow .25s;
+}
+.card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+
+/* ====== PHOTO CARD ====== */
+.photo-card { position: relative; }
+.photo-card img { width: 100%; object-fit: cover; }
+.photo-card img.r16-9 { aspect-ratio: 16/9; }
+.photo-card img.r4-3, .photo-card .r4-3 { aspect-ratio: 4/3; width: 100%; display: block; }
+/* When r4-3 img is replaced by text-fallback div, maintain dimensions */
+.photo-card div.r4-3 { aspect-ratio: 4/3; width: 100%; }
+.photo-card img.r3-4 { aspect-ratio: 3/4; }
+.photo-card img.r1-1 { aspect-ratio: 1; }
+.photo-ov {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: linear-gradient(transparent, rgba(8,8,8,.88));
+  padding: 36px 16px 16px; color: #fff;
+}
+.photo-eyebrow { font-size: 9.5px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; opacity: .75; margin-bottom: 5px; }
+.photo-title { font-family: 'Playfair Display', serif; font-size: 19px; font-weight: 700; line-height: 1.2; }
+.photo-meta { font-size: 11px; opacity: .6; margin-top: 6px; font-style: italic; }
+
+/* ====== TEXT CARD ====== */
+.txt-card { padding: 18px; }
+.txt-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--ink-muted); margin-bottom: 8px;
+  display: flex; align-items: center; gap: 7px;
+}
+.txt-eyebrow span.bar { display: inline-block; width: 18px; height: 2px; }
+.txt-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; line-height: 1.2; margin-bottom: 9px; }
+.txt-title.lg { font-size: 26px; }
+.txt-title.sm { font-size: 15px; margin-bottom: 7px; }
+.txt-body { font-size: 13.5px; line-height: 1.65; color: var(--ink-soft); }
+.txt-link { display: inline-flex; align-items: center; gap: 4px; margin-top: 11px; font-size: 12px; font-weight: 600; letter-spacing: .02em; transition: gap .15s; }
+.txt-link:hover { gap: 8px; }
+.txt-divider { border: none; border-top: 1px solid var(--rule-light); margin: 12px 0; }
+
+/* ====== QUOTE CARD ====== */
+.q-card { padding: 20px; position: relative; }
+.q-card::before { content: '"'; position: absolute; top: 8px; left: 14px; font-family: 'Playfair Display', serif; font-size: 68px; color: var(--rule-light); line-height: 1; pointer-events: none; }
+.q-label { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 10px; padding: 2px 7px; background: var(--paper-warm); border-radius: 2px; display: inline-block; }
+.q-text { font-family: 'Playfair Display', serif; font-style: italic; font-size: 14.5px; line-height: 1.6; color: var(--ink-soft); padding-top: 6px; margin-bottom: 12px; }
+.q-attr { display: flex; align-items: center; gap: 9px; font-size: 11.5px; color: var(--ink-muted); }
+.q-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--rule); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--ink-muted); flex-shrink: 0; }
+.q-user { font-weight: 600; color: var(--ink); }
+.q-ctx { font-style: italic; }
+.q-link { color: var(--wiki-blue); font-size: 11px; margin-top: 8px; display: inline-block; }
+
+/* ====== FACT CARD ====== */
+.fact-card { padding: 18px; }
+.fact-num { font-family: 'Playfair Display', serif; font-size: 52px; font-weight: 900; line-height: 1; letter-spacing: -0.03em; margin-bottom: 3px; }
+.fact-unit { font-size: 13px; font-weight: 400; }
+.fact-lbl { font-size: 13px; color: var(--ink-soft); line-height: 1.4; margin-bottom: 6px; }
+.fact-src { font-size: 10.5px; color: var(--ink-muted); font-style: italic; }
+
+/* ====== REC LIST ====== */
+.rec-card { padding: 16px 18px; }
+.rec-lbl { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 8px; }
+.rec-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 0 20px; }
+.rec-item { display: flex; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--rule-light); cursor: pointer; transition: background .15s; border-radius: 3px; }
+.rec-item:last-child { border-bottom: none; }
+.rec-item:hover { margin: 0 -8px; padding: 9px 8px; background: var(--paper-warm); }
+.rec-n { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-muted); flex-shrink: 0; width: 16px; padding-top: 2px; }
+.rec-t { font-weight: 600; font-size: 13px; line-height: 1.3; margin-bottom: 1px; }
+.rec-s { font-size: 11.5px; color: var(--ink-muted); font-style: italic; line-height: 1.35; }
+
+/* ====== TIMELINE CARD ====== */
+.tl-card { padding: 18px; }
+.tl-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.ai-badge { display: inline-flex; align-items: center; gap: 3px; font-family: 'JetBrains Mono', monospace; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 6px; border-radius: 10px; background: var(--paper-warm); border: 1px solid var(--rule); color: var(--ink-muted); margin-bottom: 13px; }
+.tl-track { position: relative; padding-left: 18px; }
+.tl-track::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: linear-gradient(to bottom, var(--wiki-blue), transparent); }
+.tl-event { position: relative; padding: 3px 0 11px 14px; }
+.tl-event::before { content: ''; position: absolute; left: -13px; top: 7px; width: 7px; height: 7px; border-radius: 50%; background: var(--wiki-blue); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--wiki-blue); }
+.tl-yr { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; font-weight: 500; color: var(--wiki-blue); letter-spacing: 0.04em; margin-bottom: 1px; }
+.tl-ev { font-size: 12.5px; color: var(--ink-soft); line-height: 1.4; }
+
+/* ====== INFOGRAPHIC ====== */
+.infog { padding: 18px; }
+.bar-chart { display: flex; flex-direction: column; gap: 7px; margin-top: 12px; }
+.bar-row { display: flex; align-items: center; gap: 9px; }
+.bar-lbl { font-size: 11px; color: var(--ink-soft); flex-shrink: 0; text-align: right; }
+.bar-track { flex: 1; height: 20px; background: var(--paper-warm); border-radius: 2px; overflow: hidden; position: relative; }
+.bar-fill { height: 100%; border-radius: 2px; position: absolute; left: 0; top: 0; transition: width 1.1s cubic-bezier(.4,0,.2,1); }
+.bar-val { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-muted); width: 42px; text-align: right; flex-shrink: 0; }
+
+/* ====== CONTROVERSY METER ====== */
+.cv-meter { display: flex; align-items: center; gap: 8px; margin: 9px 0 2px; }
+.cv-track { flex: 1; height: 7px; background: linear-gradient(to right, #27ae60, #f1c40f, #e74c3c); border-radius: 4px; position: relative; }
+.cv-needle { position: absolute; top: 50%; transform: translate(-50%,-50%); width: 13px; height: 13px; border-radius: 50%; background: #fff; border: 2px solid var(--ink); box-shadow: 0 1px 4px rgba(0,0,0,.2); }
+.cv-labels { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--ink-muted); text-transform: uppercase; margin-top: 3px; }
+
+/* ====== HORIZONTAL SCROLL FEEDS ====== */
+.hscroll-outer {
+  display: flex; gap: 18px;
+  overflow-x: auto; padding-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent;
+}
+.hscroll-outer::-webkit-scrollbar { height: 5px; }
+.hscroll-outer::-webkit-scrollbar-track { background: transparent; }
+.hscroll-outer::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 3px; }
+
+/* Scroll card – vertical stack card */
+.vcard {
+  flex-shrink: 0; width: 300px;
+  background: var(--paper-card); border: 1px solid var(--rule-light);
+  border-radius: 3px; overflow: hidden; box-shadow: var(--shadow);
+  transition: transform .22s, box-shadow .22s; cursor: pointer;
+  display: flex; flex-direction: column;
+}
+.vcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+.vcard.wide { width: 360px; }
+.vcard.narrow { width: 240px; }
+
+.vcard-img { width: 100%; object-fit: cover; display: block; }
+.vcard-img.sq { aspect-ratio: 1; }
+.vcard-img.wide169 { aspect-ratio: 16/9; }
+.vcard-body { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; }
+.vcard-tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 7px; display: flex; align-items: center; gap: 6px; }
+.vcard-tag-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.vcard-title { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 700; line-height: 1.25; margin-bottom: 7px; }
+.vcard-body-txt { font-size: 12.5px; color: var(--ink-soft); line-height: 1.55; flex: 1; }
+.vcard-footer { margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+.vcard-views { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-muted); letter-spacing: 0.04em; }
+.vcard-link { font-size: 11.5px; font-weight: 600; }
+
+/* score/votes bar like Reddit */
+.vcard-score { display: flex; align-items: center; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--rule-light); }
+.vcard-score-bar { flex: 1; height: 4px; background: var(--rule-light); border-radius: 2px; overflow: hidden; }
+.vcard-score-fill { height: 100%; border-radius: 2px; background: var(--green); }
+.vcard-score-txt { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-muted); }
+
+/* quote vcard */
+.vcard-quote { font-family: 'Playfair Display', serif; font-style: italic; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); padding: 14px 16px; flex: 1; position: relative; }
+.vcard-quote::before { content: '"'; font-size: 60px; color: var(--rule-light); position: absolute; top: 6px; left: 10px; line-height: 1; }
+.vcard-quote-inner { padding-top: 20px; }
+.vcard-attr { padding: 0 16px 14px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ink-muted); }
+.vcard-avt { width: 22px; height: 22px; border-radius: 50%; background: var(--rule); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+
+/* infog vcard */
+.vcard-infog { padding: 14px 16px; flex: 1; }
+.vcard-infog .bar-lbl { width: 80px; }
+
+/* ====== SVG VISUALS ====== */
+.svg-visual-card { padding: 18px; }
+.svg-visual-card svg { width: 100%; height: auto; }
+
+/* ====== PINNED CARD (personalized) ====== */
+.pinned-strip { padding: 18px; }
+.pinned-reading-lbl { font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 9px; }
+.pinned-row { display: flex; align-items: center; gap: 13px; padding: 11px; background: var(--paper-warm); border-radius: 3px; margin-bottom: 15px; }
+.pinned-thumb { width: 56px; height: 56px; border-radius: 3px; object-fit: cover; flex-shrink: 0; }
+.pinned-title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 16px; line-height: 1.2; margin-bottom: 2px; }
+.pinned-meta { font-size: 11.5px; color: var(--ink-muted); font-style: italic; }
+.pinned-prog { height: 3px; background: var(--rule); border-radius: 2px; margin-top: 6px; overflow: hidden; }
+.pinned-prog-fill { height: 100%; border-radius: 2px; }
+.pinned-rec-lbl { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 6px; }
+
+/* ====== INTEREST TAG ====== */
+.interest-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 11px; }
+.itag { font-size: 10.5px; padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+
+/* ====== SECTION TINTS ====== */
+#s-trending   { background:rgba(192,57,43,0.045);   border-radius:8px; padding:20px 22px 26px; }
+#s-recent     { background:rgba(41,128,185,0.045);  border-radius:8px; padding:20px 22px 26px; }
+#s-interests  { background:rgba(17,122,101,0.045);  border-radius:8px; padding:20px 22px 26px; }
+#s-feelgood   { background:rgba(181,0,110,0.045);   border-radius:8px; padding:20px 22px 26px; }
+#s-stem       { background:rgba(108,52,131,0.045);  border-radius:8px; padding:20px 22px 26px; }
+#s-culture    { background:rgba(198,124,0,0.045);   border-radius:8px; padding:20px 22px 26px; }
+#s-controversial { background:rgba(90,98,114,0.045);  border-radius:8px; padding:20px 22px 26px; }
+
+/* ====== TRENDING TIMELINE VARIANT (red dots) ====== */
+#s-trending .tl-track::before { background: linear-gradient(to bottom, var(--red), transparent); }
+#s-trending .tl-event::before { background: var(--red); box-shadow: 0 0 0 1px var(--red); }
+
+/* ====== IMAGE TEXT FALLBACK ====== */
+img[data-wiki] { transition: opacity .3s; }
+/* Ensure mosaic squares have a defined height so text fallback fills correctly */
+a[style*="aspect-ratio:1"] { min-height: 90px; }
+
+/* ====== DIVIDER (no margin override needed now) ====== */
+.sec-rule { border: none; border-top: 1px solid var(--rule); margin: 6px 0 24px; }
+
+/* ====== TRENDING BADGE ====== */
+.t-badge { position: absolute; top: 12px; left: 12px; background: var(--red); color: #fff; font-family: 'JetBrains Mono', monospace; font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 2px; }
+
+/* ====== LOC TOGGLE ====== */
+.loc-toggle { display: flex; background: var(--paper-warm); border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+.loc-btn { padding: 4px 13px; border: none; background: transparent; font-family: 'Source Serif 4', serif; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--ink-muted); transition: all .2s; }
+.loc-btn.active { background: var(--ink); color: #fff; }
+
+/* ====== RECENT STRIP ====== */
+.prog-bar { height: 3px; background: var(--rule); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 2px; }
+
+/* ====== TOAST ====== */
+.toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--ink); color: #fff; padding: 11px 22px; border-radius: 4px; font-size: 13.5px; z-index: 999; transition: transform .3s cubic-bezier(.4,0,.2,1); white-space: nowrap; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ====== FADE IN ====== */
+.fade-in { opacity: 0; transform: translateY(16px); transition: opacity .55s ease, transform .55s ease; }
+.fade-in.vis { opacity: 1; transform: none; }
+
+/* ====== RESPONSIVE ====== */
+@media(max-width:1100px) {
+  .c3{grid-column:span 6} .c4{grid-column:span 6} .c5{grid-column:span 6} .c7{grid-column:span 12} .c8{grid-column:span 12}
+  .rec-grid { grid-template-columns: repeat(2,1fr); }
+}
+@media(max-width:760px) {
+  .page { padding: 16px 14px 48px; }
+  .c3,.c4,.c5,.c6 { grid-column: span 12; }
+  .topbar-tag { display: none; }
+  .topbar-inner { padding: 0 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="15" stroke="#3366cc" stroke-width="1.5"/>
+        <ellipse cx="17" cy="17" rx="6.5" ry="15" stroke="#3366cc" stroke-width="1.5"/>
+        <line x1="2" y1="17" x2="32" y2="17" stroke="#3366cc" stroke-width="1.3"/>
+        <path d="M3.5 11.5 Q17 9.5 30.5 11.5" stroke="#3366cc" stroke-width="1" fill="none"/>
+        <path d="M3.5 22.5 Q17 24.5 30.5 22.5" stroke="#3366cc" stroke-width="1" fill="none"/>
+      </svg>
+      <span class="logo-text">Wikipedia <span>WikiHome</span></span>
+    </div>
+    <div class="topbar-div"></div>
+    <div class="topbar-tag">Your Wikipedia, curated for discovery — 7,144,436 articles</div>
+    <button class="manage-btn" id="openDrawer">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M1 2.5h11M1 6.5h11M1 10.5h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Manage Feeds
+    </button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<div class="overlay" id="overlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-hd">
+    <div>
+      <div class="drawer-title">Your Feeds</div>
+      <div class="drawer-sub">Toggle sections on or off</div>
+    </div>
+    <button class="drawer-close" id="closeDrawer">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="tog-row"><div class="tog-dot" style="background:var(--red)"></div><div class="tog-info"><div class="tog-name">Trending &amp; Newsworthy</div><div class="tog-desc">Globally trending &amp; today's news</div></div><label class="sw"><input type="checkbox" checked data-section="s-trending" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+    <div class="tog-row"><div class="tog-dot" style="background:var(--blue)"></div><div class="tog-info"><div class="tog-name">Dive Back In</div><div class="tog-desc">Articles related to what you've read</div></div><label class="sw"><input type="checkbox" checked data-section="s-recent" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+    <div class="tog-row"><div class="tog-dot" style="background:var(--teal)"></div><div class="tog-info"><div class="tog-name">Evergreen Interests</div><div class="tog-desc">Curated for your long-term reading patterns</div></div><label class="sw"><input type="checkbox" checked data-section="s-interests" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+    <div class="tog-row"><div class="tog-dot" style="background:var(--pink)"></div><div class="tog-info"><div class="tog-name">Feel-Good</div><div class="tog-desc">Uplifting &amp; wholesome stories</div></div><label class="sw"><input type="checkbox" checked data-section="s-feelgood" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+    <div class="tog-row"><div class="tog-dot" style="background:var(--purple)"></div><div class="tog-info"><div class="tog-name">STEM</div><div class="tog-desc">Science, technology, engineering &amp; math</div></div><label class="sw"><input type="checkbox" checked data-section="s-stem" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+    <div class="tog-row"><div class="tog-dot" style="background:var(--amber)"></div><div class="tog-info"><div class="tog-name">Culture &amp; History</div><div class="tog-desc">People, places &amp; the human story</div></div><label class="sw"><input type="checkbox" checked data-section="s-culture" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+    <div class="tog-row"><div class="tog-dot" style="background:var(--grey)"></div><div class="tog-info"><div class="tog-name">Controversial</div><div class="tog-desc">Debated topics &amp; multiple perspectives</div></div><label class="sw"><input type="checkbox" checked data-section="s-controversial" onchange="toggleSec(this)"><span class="sw-track"></span></label></div>
+  </div>
+</aside>
+
+<!-- MAIN PAGE -->
+<main class="page">
+
+  <div class="mast">
+    <span class="mast-date">Sunday, 1 March 2026</span>
+    <span class="mast-right">7,144,436 articles · 302 languages</span>
+  </div>
+
+  <!-- ====================================================== -->
+  <!-- 1. TRENDING & NEWSWORTHY -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-trending">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--red)">🔴 Trending &amp; Newsworthy<span class="pulsedot"></span></div>
+      <div class="loc-toggle" style="margin-left:8px;">
+        <button class="loc-btn active" id="locG" onclick="setLoc('global')">🌍 Global</button>
+        <button class="loc-btn" id="locN" onclick="setLoc('nyc')">📍 My Location</button>
+      </div>
+      <span id="loc-derived-pill" style="display:none; align-items:center; gap:5px; font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.06em; text-transform:uppercase; background:#eef2fb; border:1px solid #b8c8ee; color:var(--wiki-blue); padding:2px 9px; border-radius:10px;">📍 Derived: New York City, NY</span>
+      <span class="sec-badge" id="trending-timestamp">Updated 47 min ago · Based on Wikipedia pageview data</span>
+      <button class="sec-rm" onclick="rmSec('s-trending',this,'s-trending-tog')">Remove</button>
+    </div>
+
+    <!-- ═══ GLOBAL TRENDING GRID ═══ -->
+    <div class="g12" id="trending-grid-global">
+
+      <!-- ── Col 1 (c5): Iran hero + escalation timeline + key numbers ── -->
+      <div class="c5" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Hero injected by JS -->
+        <div id="t-hero" class="card" style="border-top:3px solid var(--red);display:flex;flex-direction:column;"></div>
+
+        <!-- Iran–Israel Escalation Timeline -->
+        <div class="card tl-card" style="border-top:3px solid var(--red);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--red);margin-bottom:6px;">How we got here</div>
+          <div class="tl-title" style="font-size:14px;margin-bottom:4px;">Iran–Israel Escalation</div>
+          <div style="margin-bottom:10px;"><span class="ai-badge">✦ AI-synthesized · Wikipedia</span></div>
+          <div class="tl-track" style="--tl-color:#c0392b;">
+            <style>.tl-track { position:relative;padding-left:18px; }
+            .tl-track::before { content:'';position:absolute;left:5px;top:8px;bottom:8px;width:2px;background:linear-gradient(to bottom,#c0392b,transparent); }
+            .tl-event::before { background:#c0392b;box-shadow:0 0 0 1px #c0392b; }</style>
+            <div class="tl-event">
+              <div class="tl-yr" style="color:#c0392b;">Apr 2024</div>
+              <div class="tl-ev">Iran fires 300+ drones and missiles at Israel — first direct attack in history. Israel intercepts 99% with US, UK, Jordan support.</div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-yr" style="color:#c0392b;">Oct 2024</div>
+              <div class="tl-ev">Second Iranian missile barrage. Israel retaliates with airstrikes on Iranian air-defense sites and radar installations.</div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-yr" style="color:#c0392b;">Jun 2025</div>
+              <div class="tl-ev">12-day Iran–Israel War. US joins with airstrikes targeting Iran's Fordow and Natanz nuclear facilities.</div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-yr" style="color:#c0392b;">Jan 2026</div>
+              <div class="tl-ev">Mass protests erupt across Iran after economic collapse. Government crackdown kills an estimated 3,000–32,000 people.</div>
+            </div>
+            <div class="tl-event" style="padding-bottom:0;">
+              <div class="tl-yr" style="color:#c0392b;font-weight:700;">28 Feb 2026</div>
+              <div class="tl-ev" style="font-weight:600;color:var(--ink);">US–Israel joint strikes (Operation Epic Fury). Supreme Leader Khamenei reported killed.</div>
+            </div>
+          </div>
+        </div>
+
+
+            </div><!-- /col1 -->
+
+      <!-- ── Col 2 (c4): World Cup photo + Denmark photo + Iran–Israel background ── -->
+      <div class="c4" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- World Cup — photo card with wiki image -->
+        <a id="t-link2" href="https://en.wikipedia.org/wiki/2026_FIFA_World_Cup" target="_blank" style="display:block;">
+          <div class="card photo-card" style="overflow:hidden;">
+            <img data-wiki="2026 FIFA World Cup" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="2026 FIFA World Cup"
+              style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:linear-gradient(135deg,#0a3a6e,#1565c0,#e53935);">
+            <div class="photo-ov">
+              <div class="photo-eyebrow" id="t-tag2">Sports · Trending</div>
+              <div class="photo-title" id="t-title2" style="font-size:17px;">2026 FIFA World Cup</div>
+              <div class="photo-meta" id="t-body2">June–July · USA, Canada, Mexico · 48 nations</div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Denmark — photo card with Frederiksen image -->
+        <a id="t-link3" href="https://en.wikipedia.org/wiki/Mette_Frederiksen" target="_blank" style="display:block;">
+          <div class="card photo-card" style="overflow:hidden;">
+            <img data-wiki="Mette Frederiksen" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Mette Frederiksen"
+              style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:linear-gradient(135deg,#c0392b,#e74c3c,#ff8a65);">
+            <div class="photo-ov">
+              <div class="photo-eyebrow" id="t-tag3">Politics · Europe</div>
+              <div class="photo-title" id="t-title3" style="font-size:17px;">Denmark Snap Election</div>
+              <div class="photo-meta" id="t-body3">PM Frederiksen · March 24 · Greenland tensions</div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Iran–Israel War — image + brief text -->
+        <a href="https://en.wikipedia.org/wiki/Iran%E2%80%93Israel_war" target="_blank" style="display:block;">
+          <div class="card" style="overflow:hidden;display:flex;gap:0;">
+            <img data-wiki="Iran–Israel war" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Iran–Israel War"
+              style="width:90px;min-height:90px;object-fit:cover;flex-shrink:0;display:block;background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);">
+            <div style="padding:13px 14px;display:flex;flex-direction:column;justify-content:center;flex:1;">
+              <div class="txt-eyebrow" style="margin-bottom:4px;"><span class="bar" style="background:var(--ink-muted)"></span><span style="color:var(--ink-muted)">Conflict · Background</span></div>
+              <div style="font-family:'Playfair Display',serif;font-size:14px;font-weight:700;line-height:1.2;margin-bottom:5px;">Iran–Israel War</div>
+              <div style="font-size:12px;color:var(--ink-soft);line-height:1.45;">The 2025 twelve-day war that set the stage for 2026</div>
+              <span style="font-size:11px;font-weight:600;color:var(--wiki-blue);margin-top:7px;">Read →</span>
+            </div>
+          </div>
+        </a>
+
+      </div><!-- /col2 -->
+
+      <!-- ── Col 3 (c3): Talk quote + Also Trending ── -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+
+        <a href="https://en.wikipedia.org/wiki/Talk:2026_Israeli%E2%80%93United_States_strikes_on_Iran" target="_blank" style="display:block;">
+          <div class="card q-card">
+            <div class="q-label" id="t-q-label">💬 Talk Page · Active</div>
+            <div class="q-text" id="t-q-text">"This article is under semi-protection due to high-volume editing. Over 400 edits in 6 hours — we need more sourced citations and fewer WP:SYN violations before lifting."</div>
+            <div class="q-attr">
+              <div class="q-avatar">WE</div>
+              <div><span class="q-user">WikiEditor_XP</span><br/><span class="q-ctx" id="t-q-ctx">Talk:2026 strikes · 22 min ago</span></div>
+            </div>
+          </div>
+        </a>
+
+        <!-- Also Trending — larger thumbnails -->
+        <div class="card txt-card" style="padding:14px 16px;flex:1;" id="also-trending-global">
+          <div class="txt-eyebrow"><span class="bar" style="background:var(--red)"></span><span style="color:var(--red)">Also Trending Globally</span></div>
+          <div style="display:flex;flex-direction:column;gap:0;margin-top:6px;">
+            <a href="https://en.wikipedia.org/wiki/Ali_Khamenei" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="Ali Khamenei" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#8b0000;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Ali Khamenei</span><span style="font-size:10.5px;color:var(--ink-muted);">Iran supreme leader · killed</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Donald_Trump" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="Donald Trump" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#ddd;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Donald Trump</span><span style="font-size:10.5px;color:var(--ink-muted);">US President · ordered strikes</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Jeffrey_Epstein" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="Jeffrey Epstein" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#ddd;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Jeffrey Epstein</span><span style="font-size:10.5px;color:var(--ink-muted);">Documents · court filings</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/ChatGPT" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="ChatGPT" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#ddd;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">ChatGPT</span><span style="font-size:10.5px;color:var(--ink-muted);">AI · technology</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/One_Battle_After_Another_(film)" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="One Battle After Another (film)" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#ddd;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">One Battle After Another</span><span style="font-size:10.5px;color:var(--ink-muted);">2026 BAFTA Best Film</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/2026_FIFA_World_Cup" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+              <img data-wiki="2026 FIFA World Cup" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#ddd;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">2026 FIFA World Cup</span><span style="font-size:10.5px;color:var(--ink-muted);">Sports · tournament</span></div>
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /col3 -->
+    </div><!-- /trending-grid-global -->
+
+    <!-- ═══ NYC TRENDING GRID ═══ -->
+    <div class="g12" id="trending-grid-nyc" style="display:none;">
+
+      <!-- ── Col 1 (c3): Mamdani photo hero ── -->
+      <div class="c3" style="display:flex;flex-direction:column;">
+        <div class="card photo-card" style="flex:1;overflow:hidden;">
+          <div class="t-badge">📍 NYC Local</div>
+          <a href="https://en.wikipedia.org/wiki/Zohran_Mamdani" id="t-hero-link-nyc" target="_blank">
+            <img data-wiki="Zohran Mamdani" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Zohran Mamdani"
+              id="t-hero-img-nyc-img"
+              style="width:100%;aspect-ratio:2/3;object-fit:cover;object-position:top;display:block;background:linear-gradient(160deg,#0a2240,#1a4a7c,#2563b0);">
+            <div class="photo-ov">
+              <div class="photo-eyebrow">NYC Politics · Mayor's Race</div>
+              <div class="photo-title" style="font-size:21px;">Zohran Mamdani</div>
+              <div class="photo-meta">DSA · Assembly Member · Mayoral candidate</div>
+            </div>
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Col 2 (c3): NY Governor's race + Blizzard ── -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- 2026 NY Gubernatorial race — candidate profiles -->
+        <div class="card" style="padding:16px 18px;border-top:3px solid var(--wiki-blue);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--wiki-blue);margin-bottom:5px;">November 3, 2026</div>
+          <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;margin-bottom:12px;line-height:1.2;">NY Governor's Race</div>
+
+          <!-- Hochul -->
+          <a href="https://en.wikipedia.org/wiki/Kathy_Hochul" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Kathy Hochul" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Kathy Hochul"
+              style="width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:top;flex-shrink:0;background:linear-gradient(135deg,#1a3a6e,#2563b0);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:12.5px;line-height:1.2;">Kathy Hochul</div>
+              <div style="font-size:10.5px;color:var(--ink-muted);">Incumbent Governor · seeking re-election</div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:#dce8ff;color:var(--wiki-blue);white-space:nowrap;">Dem · Incumbent</div>
+          </a>
+
+          <!-- Delgado -->
+          <a href="https://en.wikipedia.org/wiki/Antonio_Delgado" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Antonio Delgado" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Antonio Delgado"
+              style="width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:top;flex-shrink:0;background:linear-gradient(135deg,#0d3a6e,#0a5c99);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:12.5px;line-height:1.2;">Antonio Delgado</div>
+              <div style="font-size:10.5px;color:var(--ink-muted);">Lt. Governor · primary challenger</div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:#dce8ff;color:var(--wiki-blue);white-space:nowrap;">Dem · Primary</div>
+          </a>
+
+          <!-- Letitia James -->
+          <a href="https://en.wikipedia.org/wiki/Letitia_James" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+            <img data-wiki="Letitia James" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Letitia James"
+              style="width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:top;flex-shrink:0;background:linear-gradient(135deg,#1a1a4e,#3b3b9e);">
+            <div style="flex:1;min-width:0;">
+              <div style="font-weight:700;font-size:12.5px;line-height:1.2;">Letitia James</div>
+              <div style="font-size:10.5px;color:var(--ink-muted);">Attorney General · potential challenger</div>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;padding:2px 7px;border-radius:10px;background:#dce8ff;color:var(--wiki-blue);white-space:nowrap;">Dem · Watching</div>
+          </a>
+
+          <div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--rule-light);font-size:10px;color:var(--ink-muted);font-style:italic;line-height:1.5;">Republicans have not won a statewide election in New York since George Pataki's 2002 re-election. · <a href="https://en.wikipedia.org/wiki/2026_New_York_gubernatorial_election" target="_blank" style="color:var(--wiki-blue);">Full article →</a></div>
+        </div>
+
+        <!-- February 2026 Blizzard — photo card -->
+        <a href="https://en.wikipedia.org/wiki/February_2026_North_American_blizzard" target="_blank" style="display:block;flex:1;">
+          <div class="card photo-card" style="overflow:hidden;flex:1;">
+            <img data-wiki="February 2026 North American blizzard" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="February 2026 Blizzard"
+              style="width:100%;aspect-ratio:16/9;object-fit:cover;display:block;background:linear-gradient(160deg,#b0c8e8,#d6e8f8,#f0f6ff);">
+            <div class="photo-ov">
+              <div class="photo-eyebrow">Breaking · Weather</div>
+              <div class="photo-title" style="font-size:17px;">Blizzard of 2026</div>
+              <div class="photo-meta">Feb 22–24 · 2–3 ft of snow · NYC's first blizzard warning since 2017</div>
+            </div>
+          </div>
+        </a>
+
+      </div><!-- /col2 nyc -->
+
+      <!-- ── Col 3 (c3): NYC Transit timeline + Talk ── -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- NYC Transit Timeline -->
+        <div class="card tl-card" style="border-top:3px solid var(--wiki-blue);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--wiki-blue);margin-bottom:6px;">History of transit</div>
+          <div class="tl-title" style="font-size:14px;margin-bottom:4px;">NYC Subway Milestones</div>
+          <div style="margin-bottom:10px;"><span class="ai-badge">✦ AI-synthesized · Wikipedia</span></div>
+          <div class="tl-track">
+            <div class="tl-event">
+              <div class="tl-yr">1904</div>
+              <div class="tl-ev">First NYC Subway line opens — 28 stations from City Hall to 145th St. Fare: 5¢.</div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-yr">1968</div>
+              <div class="tl-ev">MTA created, consolidating subway, buses, and commuter rail under one authority.</div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-yr">2003</div>
+              <div class="tl-ev">Unlimited MetroCard introduced; system ridership reaches 1.4B annual rides.</div>
+            </div>
+            <div class="tl-event">
+              <div class="tl-yr">2020</div>
+              <div class="tl-ev">COVID-19 drops ridership by 90%. MTA faces a $16B budget hole.</div>
+            </div>
+            <div class="tl-event" style="padding-bottom:0;">
+              <div class="tl-yr" style="font-weight:700;">2025</div>
+              <div class="tl-ev" style="font-weight:600;color:var(--ink);">Congestion pricing takes effect — first cordon toll in the US. MTA projects $15B in upgrades.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Talk quote -->
+        <a href="https://en.wikipedia.org/wiki/Talk:New_York_City_Subway" target="_blank" style="display:block;">
+          <div class="card q-card">
+            <div class="q-label">💬 Talk:New York City Subway</div>
+            <div class="q-text">"The section on fare evasion needs a NPOV rewrite — the current framing leans heavily on MTA press releases. The academic literature on transit equity tells a more complex story here."</div>
+            <div class="q-attr">
+              <div class="q-avatar" style="background:#dce8ff;color:var(--wiki-blue)">TR</div>
+              <div><span class="q-user">TransitResearcher</span><br/><span class="q-ctx">Talk:NYC Subway · 4 hrs ago</span></div>
+            </div>
+          </div>
+        </a>
+
+      </div><!-- /col3 nyc -->
+
+      <!-- ── Col 4 (c3): Wikipedia Day 2026 + Also Trending ── -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Wikipedia Day NYC 2026 celebration card -->
+        <a href="https://en.wikipedia.org/wiki/Event:Wikipedia_Day_NYC_2026" target="_blank" style="display:block;">
+          <div class="card" style="padding:18px;border-top:3px solid var(--wiki-blue);overflow:hidden;position:relative;">
+            <!-- Big decorative "25" behind content -->
+            <div style="position:absolute;right:-8px;top:-10px;font-family:'Playfair Display',serif;font-size:110px;font-weight:900;color:var(--wiki-blue);opacity:0.06;line-height:1;pointer-events:none;user-select:none;">25</div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--wiki-blue);margin-bottom:6px;">📅 March 28 · NYC Local</div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:800;margin-bottom:8px;line-height:1.2;">Wikipedia Day NYC 2026</div>
+            <div style="font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-bottom:10px;">Celebrating Wikipedia's <strong>25th birthday</strong>. Rescheduled from January after the February blizzard. Speakers include novelist <strong>N.K. Jemisin</strong> and <strong>@blackforager</strong>.</div>
+            <div style="background:rgba(41,128,185,0.07);border-radius:3px;padding:8px 10px;font-size:11px;color:var(--ink-soft);">
+              <div style="font-weight:600;margin-bottom:3px;">The Theater at City Tech · Brooklyn</div>
+              <div style="font-style:italic;color:var(--ink-muted);">"Co-hosted with Wikimedia DC and the Wikimedia Foundation."</div>
+            </div>
+            <span style="display:inline-block;margin-top:10px;font-size:11.5px;font-weight:600;color:var(--wiki-blue);">Event page →</span>
+          </div>
+        </a>
+
+        <!-- Also Trending NYC -->
+        <div class="card txt-card" style="padding:14px 16px;flex:1;" id="also-trending-nyc">
+          <div class="txt-eyebrow"><span class="bar" style="background:var(--wiki-blue)"></span><span style="color:var(--wiki-blue)">Also Trending in NYC</span></div>
+          <div style="display:flex;flex-direction:column;gap:0;margin-top:6px;">
+            <a href="https://en.wikipedia.org/wiki/February_2026_North_American_blizzard" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="February 2026 North American blizzard" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#b0c8e8,#d6e8f8);" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Blizzard of 2026</span><span style="font-size:10.5px;color:var(--ink-muted);">2–3 ft of snow · Feb 22–24</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Zohran_Mamdani" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="Zohran Mamdani" style="width:44px;height:44px;border-radius:3px;object-fit:cover;object-position:top;flex-shrink:0;background:#1a4a7c;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Zohran Mamdani</span><span style="font-size:10.5px;color:var(--ink-muted);">Mayoral candidate · DSA</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/New_York_City_congestion_pricing" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="New York City congestion pricing" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#2c3e50;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Congestion Pricing</span><span style="font-size:10.5px;color:var(--ink-muted);">Transit · MTA · policy</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/New_York_City_Subway" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--rule-light);">
+              <img data-wiki="New York City Subway" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#1a3c6e;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">NYC Subway</span><span style="font-size:10.5px;color:var(--ink-muted);">Transit · fare evasion debate</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Brooklyn_Bridge" target="_blank" style="display:flex;align-items:center;gap:10px;padding:8px 0;">
+              <img data-wiki="Brooklyn Bridge" style="width:44px;height:44px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#3d3d3d;" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="">
+              <div><span style="font-weight:600;font-size:12.5px;display:block;line-height:1.2;">Brooklyn Bridge</span><span style="font-size:10.5px;color:var(--ink-muted);">NYC landmark · history</span></div>
+            </a>
+          </div>
+        </div>
+
+      </div><!-- /col4 nyc -->
+
+    </div><!-- /trending-grid-nyc -->
+    </div>
+  </div>
+
+  <hr class="sec-rule">
+
+  <!-- ====================================================== -->
+  <!-- 2. BASED ON RECENT ACTIVITY -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-recent">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--blue)">🕐 Dive Back In</div>
+      <span class="sec-badge" style="color:var(--blue);">★ Personalized</span>
+      <button class="sec-rm" onclick="rmSec('s-recent',this,'s-recent-tog')">Remove</button>
+    </div>
+
+    <div class="g12">
+
+      <!-- Col 1 (c3): In-progress articles + reading stats + quick reads -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="card" style="border-top:3px solid var(--blue);padding:16px;">
+          <div class="pinned-reading-lbl" style="margin-bottom:12px;">Your recent rabbit hole 🐇</div>
+
+          <a href="https://en.wikipedia.org/wiki/Howl%27s_Moving_Castle_(film)" target="_blank" style="display:block;">
+            <div class="pinned-row">
+              <img data-wiki="Howl's Moving Castle (film)" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:52px;height:52px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#1a3a6e,#3a6ea8);" alt="">
+              <div style="flex:1;min-width:0;">
+                <div class="pinned-title" style="font-size:13.5px;">Howl's Moving Castle</div>
+                <div class="pinned-meta">2004 · Miyazaki · Ghibli</div>
+                <div class="pinned-prog"><div class="pinned-prog-fill" style="width:43%;background:var(--blue)"></div></div>
+                <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">43% complete</div>
+              </div>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Princess_Mononoke" target="_blank" style="display:block;">
+            <div class="pinned-row">
+              <img data-wiki="Princess Mononoke" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:52px;height:52px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#0d3a1a,#1e8449);" alt="">
+              <div style="flex:1;min-width:0;">
+                <div class="pinned-title" style="font-size:13.5px;">Princess Mononoke</div>
+                <div class="pinned-meta">1997 · Miyazaki · Ghibli</div>
+                <div class="pinned-prog"><div class="pinned-prog-fill" style="width:28%;background:var(--green)"></div></div>
+                <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">28% complete</div>
+              </div>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Mononoke" target="_blank" style="display:block;">
+            <div class="pinned-row">
+              <img data-wiki="Mononoke" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:52px;height:52px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#2d0038,#7d3c98);" alt="">
+              <div style="flex:1;min-width:0;">
+                <div class="pinned-title" style="font-size:13.5px;">Mononoke <span style="font-size:9.5px;color:var(--ink-muted);font-weight:400;">(物の怪)</span></div>
+                <div class="pinned-meta">Japanese spirits · Folklore</div>
+                <div class="pinned-prog"><div class="pinned-prog-fill" style="width:15%;background:var(--purple)"></div></div>
+                <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">15% complete</div>
+              </div>
+            </div>
+          </a>
+        </div>
+
+        <!-- Reading stats -->
+        <div class="card" style="padding:14px 16px;border-left:3px solid var(--blue);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);margin-bottom:10px;">📊 Your reading this week</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12.5px;color:var(--ink-soft);">Articles started</span><span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--blue);">12</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12.5px;color:var(--ink-soft);">Articles finished</span><span style="font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:700;color:var(--blue);">5</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12.5px;color:var(--ink-soft);">Top category</span><span style="font-size:12px;font-weight:600;color:var(--ink);">Animation</span></div>
+            <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-size:12.5px;color:var(--ink-soft);">Reading streak</span><span style="font-size:12px;font-weight:600;color:var(--amber);">🔥 7 days</span></div>
+          </div>
+        </div>
+
+        <!-- Quick reads -->
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;">Quick reads — under 5 min</div>
+          <a href="https://en.wikipedia.org/wiki/Calcifer" target="_blank" style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Calcifer" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:36px;height:36px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#b54000,#ff6a00);" alt="">
+            <div><div style="font-size:12.5px;font-weight:600;line-height:1.2;">Calcifer</div><div style="font-size:10.5px;color:var(--ink-muted);">The fire demon from Howl's Castle</div></div>
+          </a>
+          <a href="https://en.wikipedia.org/wiki/Oni" target="_blank" style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Oni (Japanese folklore)" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:36px;height:36px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#3a0010,#8b0000);" alt="">
+            <div><div style="font-size:12.5px;font-weight:600;line-height:1.2;">Oni</div><div style="font-size:10.5px;color:var(--ink-muted);">Horned demons of Japanese folklore</div></div>
+          </a>
+          <a href="https://en.wikipedia.org/wiki/Animism" target="_blank" style="display:flex;align-items:center;gap:9px;padding:7px 0;">
+            <img data-wiki="Animism" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:36px;height:36px;border-radius:3px;object-fit:cover;flex-shrink:0;background:linear-gradient(135deg,#0a2010,#196f3d);" alt="">
+            <div><div style="font-size:12.5px;font-weight:600;line-height:1.2;">Animism</div><div style="font-size:10.5px;color:var(--ink-muted);">The belief that natural objects have souls</div></div>
+          </a>
+        </div>
+      </div>
+
+      <!-- Col 2 (c3): Image mosaic + wide banner -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:4px;">Continue the rabbit hole →</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+
+          <a href="https://en.wikipedia.org/wiki/Studio_Ghibli" target="_blank" style="display:block;position:relative;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">
+            <img data-wiki="Studio Ghibli" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#1a3060,#2a4a90);" alt="Studio Ghibli">
+            <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.8));display:flex;align-items:flex-end;padding:6px;">
+              <span style="color:#fff;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;line-height:1.2;">Studio Ghibli</span>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Spirited_Away" target="_blank" style="display:block;position:relative;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">
+            <img data-wiki="Spirited Away" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#5c1a60,#9b2ca8);" alt="Spirited Away">
+            <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.8));display:flex;align-items:flex-end;padding:6px;">
+              <span style="color:#fff;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;line-height:1.2;">Spirited Away</span>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Hayao_Miyazaki" target="_blank" style="display:block;position:relative;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">
+            <img data-wiki="Hayao Miyazaki" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#1a3a1a,#2d5a2d);" alt="Hayao Miyazaki">
+            <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.8));display:flex;align-items:flex-end;padding:6px;">
+              <span style="color:#fff;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;line-height:1.2;">Hayao Miyazaki</span>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Y%C5%8Dkai" target="_blank" style="display:block;position:relative;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">
+            <img data-wiki="Yōkai" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#3a0a50,#7a1aa0);" alt="Yōkai">
+            <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.8));display:flex;align-items:flex-end;padding:6px;">
+              <span style="color:#fff;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;line-height:1.2;">Yōkai</span>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Diana_Wynne_Jones" target="_blank" style="display:block;position:relative;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">
+            <img data-wiki="Diana Wynne Jones" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#3a1a00,#7a4010);" alt="Diana Wynne Jones">
+            <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.8));display:flex;align-items:flex-end;padding:6px;">
+              <span style="color:#fff;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;line-height:1.2;">Diana Wynne Jones</span>
+            </div>
+          </a>
+
+          <a href="https://en.wikipedia.org/wiki/Muromachi_period" target="_blank" style="display:block;position:relative;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);aspect-ratio:1;transition:transform .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform=''">
+            <img data-wiki="Muromachi period" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:100%;height:100%;object-fit:cover;background:linear-gradient(135deg,#1a1a0a,#3a3a10);" alt="Muromachi period">
+            <div style="position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.8));display:flex;align-items:flex-end;padding:6px;">
+              <span style="color:#fff;font-family:'Playfair Display',serif;font-size:10px;font-weight:700;line-height:1.2;">Muromachi Period</span>
+            </div>
+          </a>
+
+        </div>
+
+        <!-- Wide banner — Animism text fallback (no image available) -->
+        <a href="https://en.wikipedia.org/wiki/Animism" target="_blank" style="display:block;border-radius:4px;overflow:hidden;box-shadow:var(--shadow);flex:1;background:rgba(41,128,185,0.06);border-left:3px solid var(--blue);padding:14px 16px;text-decoration:none;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.08em;color:var(--blue);margin-bottom:6px;">Dive deeper →</div>
+          <div style="font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:8px;">Animism</div>
+          <blockquote style="margin:0;font-family:'Source Serif 4',serif;font-size:12.5px;line-height:1.62;color:var(--ink-soft);font-style:italic;">
+            "Animism (from Latin: <em>anima</em> meaning 'breath, spirit, life') is the belief that places, objects, and creatures all possess a distinct spiritual essence. Animism perceives all things—animals, plants, rocks, rivers, weather systems, human handiwork, and in some cases words—as being animated, having agency and free will."
+          </blockquote>
+        </a>
+      </div>
+
+      <!-- Col 3 (c3): Filmography timeline + did you know -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+        <a href="https://en.wikipedia.org/wiki/Hayao_Miyazaki" target="_blank" class="card tl-card" style="display:block;border-top:3px solid var(--blue);flex:1;">
+          <div class="tl-title">Miyazaki's Filmography</div>
+          <div style="margin-bottom:6px;"><span class="ai-badge">✦ AI-synthesized · Wikipedia</span></div>
+          <div class="tl-track">
+            <div class="tl-event"><div class="tl-yr">1979</div><div class="tl-ev">Castle of Cagliostro — feature debut; Lupin III heist adventure.</div></div>
+            <div class="tl-event"><div class="tl-yr">1984</div><div class="tl-ev">Nausicaä — ecological fable that led to founding Studio Ghibli.</div></div>
+            <div class="tl-event"><div class="tl-yr">1997</div><div class="tl-ev">Princess Mononoke — conflict between industrialisation and nature spirits.</div></div>
+            <div class="tl-event"><div class="tl-yr">2001</div><div class="tl-ev">Spirited Away — Academy Award winner; highest-grossing anime for two decades.</div></div>
+            <div class="tl-event"><div class="tl-yr">2004</div><div class="tl-ev">Howl's Moving Castle — anti-war allegory; opposition to the Iraq War.</div></div>
+            <div class="tl-event"><div class="tl-yr">2023</div><div class="tl-ev">The Boy and the Heron — Golden Globe winner; semi-autobiographical farewell.</div></div>
+          </div>
+        </a>
+
+        <div class="card" style="padding:14px 16px;background:linear-gradient(160deg,#e8f4fb,#fff);border-left:3px solid var(--blue);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue);margin-bottom:8px;">💡 Did you know?</div>
+          <p style="font-size:13px;line-height:1.55;color:var(--ink-soft);">The word <em>mononoke</em> appears in <em>The Tale of Genji</em> (c. 1000 CE) — one of the world's first novels. Miyazaki drew on over a millennium of Japanese spirit-lore when crafting Princess Mononoke's mythology.</p>
+          <a href="https://en.wikipedia.org/wiki/The_Tale_of_Genji" target="_blank" style="display:inline-block;margin-top:8px;font-size:11.5px;color:var(--wiki-blue);font-weight:600;">Read: The Tale of Genji →</a>
+        </div>
+      </div>
+
+      <!-- Col 4 (c3): Talk quote + related themes -->
+      <div class="c3" style="display:flex;flex-direction:column;gap:14px;">
+        <a href="https://en.wikipedia.org/wiki/Talk:Princess_Mononoke" target="_blank" style="display:block;">
+          <div class="card q-card" style="border-left:3px solid var(--blue);">
+            <div class="q-label">💬 Talk:Princess Mononoke</div>
+            <div class="q-text" style="font-size:12.5px;">"Lady Eboshi is framed purely as an antagonist, but Miyazaki has explicitly stated she represents complex industrialism — not villainy. The lead needs this nuance."</div>
+            <div class="q-attr">
+              <div class="q-avatar" style="background:#d5f5ef;color:var(--teal)">GE</div>
+              <div><span class="q-user">GhibliEditor</span><br/><span class="q-ctx">Talk page · 3 hrs ago</span></div>
+            </div>
+          </div>
+        </a>
+
+        <div class="card" style="padding:14px 16px;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;">Related themes</div>
+          <a href="https://en.wikipedia.org/wiki/Japanese_folklore" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Japanese folklore" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:32px;height:32px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#e8d5f7;" alt="">
+            <span style="font-size:12px;font-weight:600;">Japanese Folklore</span>
+          </a>
+          <a href="https://en.wikipedia.org/wiki/Shinto" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Shinto" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:32px;height:32px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#d5f5ef;" alt="">
+            <span style="font-size:12px;font-weight:600;">Shinto</span>
+          </a>
+          <a href="https://en.wikipedia.org/wiki/Pacifism" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Pacifism" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:32px;height:32px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#e8f4fb;" alt="">
+            <span style="font-size:12px;font-weight:600;">Pacifism</span>
+          </a>
+          <a href="https://en.wikipedia.org/wiki/Environmentalism" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--rule-light);">
+            <img data-wiki="Environmentalism" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:32px;height:32px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#e8f7ee;" alt="">
+            <span style="font-size:12px;font-weight:600;">Environmentalism</span>
+          </a>
+          <a href="https://en.wikipedia.org/wiki/Heian_period" target="_blank" style="display:flex;align-items:center;gap:8px;padding:7px 0;">
+            <img data-wiki="Heian period" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="width:32px;height:32px;border-radius:3px;object-fit:cover;flex-shrink:0;background:#f7f0e8;" alt="">
+            <span style="font-size:12px;font-weight:600;">Heian Period</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <hr class="sec-rule">
+
+  <!-- ====================================================== -->
+  <!-- 3. BASED ON YOUR INTERESTS (ASTRONOMY) -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-interests">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--teal)">⭐ Evergreen Interests</div>
+      <span class="sec-badge" style="color:var(--teal);">★ Personalized</span>
+      <button class="sec-rm" onclick="rmSec('s-interests',this,'s-interests-tog')">Remove</button>
+    </div>
+
+    <!-- Interest tabs -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;">
+      <button onclick="showInterest('bio')" id="tab-bio" class="interest-tab active-tab" style="padding:6px 18px;border-radius:3px;border:1.5px solid var(--teal);background:var(--teal);color:#fff;font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;">🧬 Biology</button>
+      <button onclick="showInterest('anim')" id="tab-anim" class="interest-tab" style="padding:6px 18px;border-radius:3px;border:1.5px solid var(--rule);background:transparent;color:var(--ink-muted);font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;">🎬 Animation</button>
+      <button onclick="showInterest('phil')" id="tab-phil" class="interest-tab" style="padding:6px 18px;border-radius:3px;border:1.5px solid var(--rule);background:transparent;color:var(--ink-muted);font-family:'Source Serif 4',serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .18s;">🏛 Philosophy</button>
+      <span style="margin-left:6px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-muted);letter-spacing:0.05em;text-transform:uppercase;align-self:center;">Your top interests · Based on 200+ articles read</span>
+    </div>
+
+    <!-- BIOLOGY panel -->
+    <div id="interest-bio" class="interest-panel">
+      <div class="g12">
+        <div class="card txt-card c3" style="background:linear-gradient(160deg,#e6f8f5,#fff);border-top:4px solid var(--teal);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;">Interest #1 · Biology</div>
+          <div style="font-size:44px;margin-bottom:8px;">🧬</div>
+          <div class="txt-title" style="color:var(--teal);font-size:22px;">Biology</div>
+          <div class="txt-body">You've read 83 articles about evolutionary biology, ecology, and genetics in the past 60 days.</div>
+          <div class="interest-tags">
+            <span class="itag" style="background:#d5f5ef;color:var(--teal);">Evolution</span>
+            <span class="itag" style="background:#d5f5ef;color:var(--teal);">Genetics</span>
+            <span class="itag" style="background:#d5f5ef;color:var(--teal);">Ecology</span>
+            <span class="itag" style="background:#d5f5ef;color:var(--teal);">Microbiology</span>
+          </div>
+        </div>
+        <a href="https://en.wikipedia.org/wiki/Mycelium" target="_blank" class="card photo-card c4" style="display:block;">
+          <img class="r4-3" data-wiki="Mycelium" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Mycelium">
+          
+          <div class="photo-ov" style="background:linear-gradient(transparent,rgba(5,30,10,.9))">
+            <div class="photo-eyebrow">For You · Biology</div>
+            <div class="photo-title">Mycelium</div>
+            <div class="photo-meta">The underground fungal network — sometimes called the "wood wide web"</div>
+          </div>
+        </a>
+        <a href="https://en.wikipedia.org/wiki/Evolution" target="_blank" class="card tl-card c5" style="display:block;">
+          <div class="tl-title">Key Milestones in Evolutionary Theory</div>
+          <div style="margin-bottom:4px;"><span class="ai-badge">✦ AI-synthesized · Wikipedia</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">
+            <div class="tl-track">
+              <div class="tl-event"><div class="tl-yr">1858</div><div class="tl-ev">Darwin & Wallace jointly present natural selection to the Linnean Society.</div></div>
+              <div class="tl-event"><div class="tl-yr">1865</div><div class="tl-ev">Mendel publishes laws of inheritance from pea plant experiments.</div></div>
+              <div class="tl-event"><div class="tl-yr">1953</div><div class="tl-ev">Watson, Crick, Franklin &amp; Wilkins describe the double helix structure of DNA.</div></div>
+            </div>
+            <div class="tl-track">
+              <div class="tl-event"><div class="tl-yr">1972</div><div class="tl-ev">Gould &amp; Eldredge propose punctuated equilibrium — evolution in bursts.</div></div>
+              <div class="tl-event"><div class="tl-yr">2003</div><div class="tl-ev">Human Genome Project completed — 3 billion base pairs sequenced.</div></div>
+              <div class="tl-event"><div class="tl-yr">2012</div><div class="tl-ev">CRISPR-Cas9 developed as a precise gene editing tool by Doudna &amp; Charpentier.</div></div>
+            </div>
+          </div>
+        </a>
+        <div class="card rec-card c12" style="border-left:3px solid var(--teal);">
+          <div class="rec-lbl">Recommended · Biology</div>
+          <div class="rec-grid">
+            <a href="https://en.wikipedia.org/wiki/Symbiosis" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--teal)">01</span><div><div class="rec-t">Symbiosis</div><div class="rec-s">Ecological relationships where species benefit from one another</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Epigenetics" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--teal)">02</span><div><div class="rec-t">Epigenetics</div><div class="rec-s">How gene expression is regulated without changing DNA sequence</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Horizontal_gene_transfer" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--teal)">03</span><div><div class="rec-t">Horizontal Gene Transfer</div><div class="rec-s">When organisms share genetic material outside parent-offspring inheritance</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Cambrian_explosion" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--teal)">04</span><div><div class="rec-t">Cambrian Explosion</div><div class="rec-s">The rapid diversification of complex life ~538 million years ago</div></div></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ANIMATION panel (hidden by default) -->
+    <div id="interest-anim" class="interest-panel" style="display:none;">
+      <div class="g12">
+        <div class="card txt-card c3" style="background:linear-gradient(160deg,#fef5e7,#fff);border-top:4px solid var(--amber);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;">Interest #2 · Animation</div>
+          <div style="font-size:44px;margin-bottom:8px;">🎬</div>
+          <div class="txt-title" style="color:var(--amber);font-size:22px;">Animation</div>
+          <div class="txt-body">You've read 61 articles about anime, animated films, and animation studios in the past 60 days.</div>
+          <div class="interest-tags">
+            <span class="itag" style="background:#fef3e2;color:var(--amber);">Anime</span>
+            <span class="itag" style="background:#fef3e2;color:var(--amber);">Studio Ghibli</span>
+            <span class="itag" style="background:#fef3e2;color:var(--amber);">History of film</span>
+          </div>
+        </div>
+        <a href="https://en.wikipedia.org/wiki/Anime" target="_blank" class="card photo-card c4" style="display:block;">
+          <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#2d0038,#7d3c98,#c0392b) center/cover no-repeat;position:relative;" data-wiki-bg="Anime">
+            <img data-wiki="Anime" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="display:none;" alt="">
+          </div>
+          <div class="photo-ov" style="background:linear-gradient(transparent,rgba(45,0,56,.9))">
+            <div class="photo-eyebrow">For You · Animation</div>
+            <div class="photo-title">Anime</div>
+            <div class="photo-meta">Japanese animation · Global industry worth over $25 billion annually</div>
+          </div>
+        </a>
+        <a href="https://en.wikipedia.org/wiki/History_of_animation" target="_blank" class="card tl-card c5" style="display:block;">
+          <div class="tl-title">History of Animation</div>
+          <div style="margin-bottom:4px;"><span class="ai-badge">✦ AI-synthesized · Wikipedia</span></div>
+          <div class="tl-track">
+            <div class="tl-event"><div class="tl-yr">1908</div><div class="tl-ev">Émile Cohl's Fantasmagorie — considered the first fully animated film.</div></div>
+            <div class="tl-event"><div class="tl-yr">1937</div><div class="tl-ev">Snow White and the Seven Dwarfs — Disney's first feature-length animated film.</div></div>
+            <div class="tl-event"><div class="tl-yr">1963</div><div class="tl-ev">Osamu Tezuka founds Mushi Production, establishing the modern anime aesthetic.</div></div>
+            <div class="tl-event"><div class="tl-yr">1985</div><div class="tl-ev">Studio Ghibli founded by Miyazaki, Takahata, and Suzuki.</div></div>
+            <div class="tl-event"><div class="tl-yr">1995</div><div class="tl-ev">Toy Story — first fully CGI feature film, by Pixar.</div></div>
+          </div>
+        </a>
+        <div class="card rec-card c12" style="border-left:3px solid var(--amber);">
+          <div class="rec-lbl">Recommended · Animation</div>
+          <div class="rec-grid">
+            <a href="https://en.wikipedia.org/wiki/Isao_Takahata" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--amber)">01</span><div><div class="rec-t">Isao Takahata</div><div class="rec-s">Ghibli co-founder; directed Grave of the Fireflies and The Tale of Princess Kaguya</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Satoshi_Kon" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--amber)">02</span><div><div class="rec-t">Satoshi Kon</div><div class="rec-s">Director of Perfect Blue and Paprika; influenced Christopher Nolan</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Makoto_Shinkai" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--amber)">03</span><div><div class="rec-t">Makoto Shinkai</div><div class="rec-s">Director of Your Name and Suzume; broke Ghibli's box office records in Japan</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Limited_animation" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--amber)">04</span><div><div class="rec-t">Limited Animation</div><div class="rec-s">The cost-saving technique Tezuka pioneered that defines the classic anime look</div></div></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHILOSOPHY panel (hidden by default) -->
+    <div id="interest-phil" class="interest-panel" style="display:none;">
+      <div class="g12">
+        <div class="card txt-card c3" style="background:linear-gradient(160deg,#f0e8f8,#fff);border-top:4px solid var(--purple);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:10px;">Interest #3 · Philosophy</div>
+          <div style="font-size:44px;margin-bottom:8px;">🏛</div>
+          <div class="txt-title" style="color:var(--purple);font-size:22px;">Philosophy</div>
+          <div class="txt-body">You've read 54 articles on ethics, metaphysics, and the philosophy of mind in the past 60 days.</div>
+          <div class="interest-tags">
+            <span class="itag" style="background:#ede0f7;color:var(--purple);">Ethics</span>
+            <span class="itag" style="background:#ede0f7;color:var(--purple);">Consciousness</span>
+            <span class="itag" style="background:#ede0f7;color:var(--purple);">Epistemology</span>
+          </div>
+        </div>
+        <a href="https://en.wikipedia.org/wiki/Philosophy_of_mind" target="_blank" class="card photo-card c4" style="display:block;">
+          <div style="width:100%;aspect-ratio:4/3;background:linear-gradient(135deg,#1a0a2e,#4a1fa8,#6c3483) center/cover no-repeat;position:relative;" data-wiki-bg="Philosophy of mind">
+            <img data-wiki="Philosophy of mind" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" style="display:none;" alt=""></div>
+          <div class="photo-ov" style="background:linear-gradient(transparent,rgba(26,10,46,.92))">
+            <div class="photo-eyebrow">For You · Philosophy</div>
+            <div class="photo-title">Philosophy of Mind</div>
+            <div class="photo-meta">What is consciousness? The hard problem that bridges science and metaphysics</div>
+          </div>
+        </a>
+        <a href="https://en.wikipedia.org/wiki/Western_philosophy" target="_blank" class="card tl-card c5" style="display:block;">
+          <div class="tl-title">History of Western Philosophy</div>
+          <div style="margin-bottom:4px;"><span class="ai-badge">✦ AI-synthesized · Wikipedia</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;">
+            <div class="tl-track">
+              <div class="tl-event"><div class="tl-yr">~470 BCE</div><div class="tl-ev">Socrates develops the dialectical method; condemned to death for "corrupting youth."</div></div>
+              <div class="tl-event"><div class="tl-yr">1637</div><div class="tl-ev">Descartes publishes <em>Discourse on Method</em> — "I think, therefore I am."</div></div>
+              <div class="tl-event"><div class="tl-yr">1781</div><div class="tl-ev">Kant's <em>Critique of Pure Reason</em> — a "Copernican revolution" in epistemology.</div></div>
+            </div>
+            <div class="tl-track">
+              <div class="tl-event"><div class="tl-yr">1859</div><div class="tl-ev">Mill's <em>On Liberty</em> — foundational text of liberal political philosophy.</div></div>
+              <div class="tl-event"><div class="tl-yr">1953</div><div class="tl-ev">Wittgenstein's <em>Philosophical Investigations</em> reshapes the study of language &amp; meaning.</div></div>
+              <div class="tl-event"><div class="tl-yr">1971</div><div class="tl-ev">Rawls' <em>A Theory of Justice</em> revives moral and political philosophy.</div></div>
+            </div>
+          </div>
+        </a>
+        <div class="card rec-card c12" style="border-left:3px solid var(--purple);">
+          <div class="rec-lbl">Recommended · Philosophy</div>
+          <div class="rec-grid">
+            <a href="https://en.wikipedia.org/wiki/Hard_problem_of_consciousness" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--purple)">01</span><div><div class="rec-t">Hard Problem of Consciousness</div><div class="rec-s">Why does subjective experience exist at all? Chalmers' central puzzle</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Trolley_problem" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--purple)">02</span><div><div class="rec-t">Trolley Problem</div><div class="rec-s">The thought experiment that divides consequentialists and deontologists</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Simulation_hypothesis" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--purple)">03</span><div><div class="rec-t">Simulation Hypothesis</div><div class="rec-s">Bostrom's argument that we may be living in a computer simulation</div></div></div></a>
+            <a href="https://en.wikipedia.org/wiki/Existentialism" target="_blank"><div class="rec-item"><span class="rec-n" style="color:var(--purple)">04</span><div><div class="rec-t">Existentialism</div><div class="rec-s">Sartre, Camus, Heidegger — existence precedes essence</div></div></div></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="sec-rule">
+
+  <!-- ====================================================== -->
+  <!-- 4. FEEL-GOOD — horizontal scroll -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-feelgood">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--pink)">🌱 Feel-Good</div>
+      <span class="sec-badge">Uplifting · Conservation · Hope</span>
+      <button class="sec-rm" onclick="rmSec('s-feelgood',this,'s-feelgood-tog')">Remove</button>
+    </div>
+    <div class="hscroll-outer">
+
+      <!-- Card 1: Humpback whale recovery -->
+      <a href="https://en.wikipedia.org/wiki/Humpback_whale" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="Humpback whale" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--pink)"></div>Conservation Win</div>
+            <div class="vcard-title">Humpback Whale Recovery</div>
+            <div class="vcard-body-txt">Once hunted to near-extinction, humpback populations have rebounded to ~84,000 individuals — a victory credited to the 1986 international whaling moratorium.</div>
+            <div class="vcard-footer"><span class="vcard-views">2.1M views/yr</span><span class="vcard-link" style="color:var(--pink)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 2: Great Green Wall -->
+      <a href="https://en.wikipedia.org/wiki/Great_Green_Wall_(Africa)" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="Great Green Wall" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--pink)"></div>Reforestation</div>
+            <div class="vcard-title">Great Green Wall of Africa</div>
+            <div class="vcard-body-txt">An 8,000km mosaic of landscapes across 11 Sahel countries — designed to combat desertification, create jobs, and restore 100M hectares by 2030.</div>
+            <div class="vcard-footer"><span class="vcard-views">845K views/yr</span><span class="vcard-link" style="color:var(--pink)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 3: Feel-good infographic -->
+      <div class="vcard wide">
+        <div class="vcard-body" style="padding:16px;">
+          <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--pink)"></div><span class="ai-badge" style="margin:0;">✦ AI-Infographic · Wikipedia</span></div>
+          <div class="vcard-title">Conservation Victories by the Numbers</div>
+          <div class="bar-chart" style="margin-top:10px;">
+            <a href="https://en.wikipedia.org/wiki/Bald_eagle" target="_blank" style="display:block;">
+              <div class="bar-row"><span class="bar-lbl" style="width:90px;font-size:10.5px;">Bald Eagle</span><div class="bar-track"><div class="bar-fill" style="width:94%;background:var(--pink);"></div></div><span class="bar-val" style="font-size:9.5px;">+2,500%</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Gray_wolf" target="_blank" style="display:block;">
+              <div class="bar-row"><span class="bar-lbl" style="width:90px;font-size:10.5px;">Gray Wolf (US)</span><div class="bar-track"><div class="bar-fill" style="width:75%;background:var(--teal);"></div></div><span class="bar-val" style="font-size:9.5px;">+1,900%</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Mountain_gorilla" target="_blank" style="display:block;">
+              <div class="bar-row"><span class="bar-lbl" style="width:90px;font-size:10.5px;">Mountain Gorilla</span><div class="bar-track"><div class="bar-fill" style="width:50%;background:#2ecc71;"></div></div><span class="bar-val" style="font-size:9.5px;">+1,100%</span></div>
+            </a>
+            <a href="https://en.wikipedia.org/wiki/Humpback_whale" target="_blank" style="display:block;">
+              <div class="bar-row"><span class="bar-lbl" style="width:90px;font-size:10.5px;">Humpback Whale</span><div class="bar-track"><div class="bar-fill" style="width:36%;background:#27ae60;"></div></div><span class="bar-val" style="font-size:9.5px;">+840%</span></div>
+            </a>
+          </div>
+          <div style="font-size:9.5px;color:var(--ink-muted);margin-top:10px;font-style:italic;">Population increase since protective legislation · Sources: IUCN, Wikipedia</div>
+        </div>
+      </div>
+
+      <!-- Card 4: Quote from talk page -->
+      <div class="vcard">
+        <div class="vcard-quote">
+          <div class="vcard-quote-inner">"Added a new section on the post-2010 gray wolf recovery in the Great Lakes region — numbers are actually more optimistic than the IUCN listed figure in the lead. Citing a 2024 Wisconsin DNR survey."</div>
+        </div>
+        <div class="vcard-attr">
+          <div class="vcard-avt" style="background:#fde8f5;color:var(--pink)">NW</div>
+          <div><span style="font-weight:600;color:var(--ink);">NaturalWorldEditor</span><br/><a href="https://en.wikipedia.org/wiki/Talk:Gray_wolf" target="_blank" style="color:var(--wiki-blue);font-size:10px;">Talk:Gray wolf · 3 days ago</a></div>
+        </div>
+        <div class="vcard-body" style="padding:0 16px 14px;font-size:11px;color:var(--ink-muted);">From a real Wikipedia talk page discussion about population data sourcing</div>
+      </div>
+
+      <!-- Card 5: Ozone layer -->
+      <a href="https://en.wikipedia.org/wiki/Recovery_of_the_ozone_layer" target="_blank" style="display:block;">
+        <div class="vcard">
+          <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#1a5276,#2980b9,#85c1e9);display:flex;align-items:center;justify-content:center;font-size:64px;">🌍</div>
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--pink)"></div>Environmental Science</div>
+            <div class="vcard-title">Ozone Layer Recovery</div>
+            <div class="vcard-body-txt">The Montreal Protocol's 1987 phaseout of CFCs has allowed the ozone layer to recover — on track to return to 1980 levels by mid-century.</div>
+            <div class="vcard-footer"><span class="vcard-views">922K views/yr</span><span class="vcard-link" style="color:var(--pink)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <hr class="sec-rule">
+
+  <!-- ====================================================== -->
+  <!-- 5. STEM — horizontal scroll -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-stem">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--purple)">🔬 STEM</div>
+      <span class="sec-badge">Science · Technology · Engineering · Mathematics</span>
+      <button class="sec-rm" onclick="rmSec('s-stem',this,'s-stem-tog')">Remove</button>
+    </div>
+    <div class="hscroll-outer">
+
+      <!-- Card 1: JWST -->
+      <a href="https://en.wikipedia.org/wiki/James_Webb_Space_Telescope" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="James Webb Space Telescope" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--purple)"></div>Astrophysics</div>
+            <div class="vcard-title">James Webb Space Telescope</div>
+            <div class="vcard-body-txt">Launched Christmas 2021, JWST can observe galaxies from 200M years after the Big Bang. Its infrared vision revealed atmospheric details on distant exoplanets for the first time.</div>
+            <div class="vcard-footer"><span class="vcard-views">4.8M views/yr</span><span class="vcard-link" style="color:var(--purple)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 2: Quantum computing timeline infographic -->
+      <div class="vcard wide">
+        <div style="padding:16px;">
+          <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--purple)"></div><span class="ai-badge" style="margin:0;">✦ AI-Timeline · Wikipedia</span></div>
+          <div class="vcard-title" style="font-size:15px;"><a href="https://en.wikipedia.org/wiki/Quantum_computing" target="_blank" style="color:inherit;">History of Quantum Computing</a></div>
+          <div class="tl-track" style="margin-top:10px;">
+            <div class="tl-event"><div class="tl-yr">1980</div><div class="tl-ev">Feynman proposes simulation of quantum systems using quantum computers.</div></div>
+            <div class="tl-event"><div class="tl-yr">1994</div><div class="tl-ev">Shor publishes algorithm for integer factoring — threat to RSA encryption.</div></div>
+            <div class="tl-event"><div class="tl-yr">2019</div><div class="tl-ev">Google's Sycamore claims "quantum supremacy" — 200 seconds vs. 10,000 years.</div></div>
+            <div class="tl-event"><div class="tl-yr">2023</div><div class="tl-ev">IBM unveils 1,121-qubit Condor processor; error correction remains unsolved.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Abundance infographic -->
+      <div class="vcard">
+        <div class="vcard-body">
+          <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--purple)"></div><span class="ai-badge" style="margin:0;">✦ AI-Infographic</span></div>
+          <div class="vcard-title" style="font-size:14px;"><a href="https://en.wikipedia.org/wiki/Abundance_of_the_chemical_elements" target="_blank" style="color:inherit;">Elements by Cosmic Abundance</a></div>
+          <div class="bar-chart" style="margin-top:10px;">
+            <div class="bar-row"><span class="bar-lbl" style="width:70px;font-size:10px;">Hydrogen</span><div class="bar-track"><div class="bar-fill" style="width:92%;background:var(--purple);"></div></div><span class="bar-val" style="font-size:9px;">92.1%</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:70px;font-size:10px;">Helium</span><div class="bar-track"><div class="bar-fill" style="width:7%;background:#9b59b6;"></div></div><span class="bar-val" style="font-size:9px;">7.1%</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:70px;font-size:10px;">Oxygen</span><div class="bar-track"><div class="bar-fill" style="width:1%;background:#8e44ad;"></div></div><span class="bar-val" style="font-size:9px;">0.07%</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:70px;font-size:10px;">Carbon</span><div class="bar-track"><div class="bar-fill" style="width:0.4%;background:#6c3483;"></div></div><span class="bar-val" style="font-size:9px;">0.04%</span></div>
+          </div>
+          <div style="font-size:9px;color:var(--ink-muted);margin-top:9px;font-style:italic;">By number of atoms in observable universe</div>
+        </div>
+      </div>
+
+      <!-- Card 4: DNA / CRISPR -->
+      <a href="https://en.wikipedia.org/wiki/CRISPR" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="CRISPR" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--purple)"></div>Biotechnology</div>
+            <div class="vcard-title">CRISPR Gene Editing</div>
+            <div class="vcard-body-txt">The "molecular scissors" that allow precise DNA editing. In 2023, the FDA approved the first CRISPR-based treatment for sickle cell disease.</div>
+            <div class="vcard-footer"><span class="vcard-views">3.1M views/yr</span><span class="vcard-link" style="color:var(--purple)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 5: Talk page quote (real NPOV debate style) -->
+      <div class="vcard">
+        <div class="vcard-quote">
+          <div class="vcard-quote-inner">"The framing that CRISPR 'solves' genetic disease is WP:NPOV. The article needs to clearly represent that off-target editing effects remain an active research concern. I've flagged the lead for rewording."</div>
+        </div>
+        <div class="vcard-attr">
+          <div class="vcard-avt" style="background:#ede0f7;color:var(--purple)">BW</div>
+          <div><span style="font-weight:600;color:var(--ink);">BioWiki_Editor</span><br/><a href="https://en.wikipedia.org/wiki/Talk:CRISPR" target="_blank" style="color:var(--wiki-blue);font-size:10px;">Talk:CRISPR</a></div>
+        </div>
+      </div>
+
+      <!-- Card 6: Fermi paradox -->
+      <a href="https://en.wikipedia.org/wiki/Fermi_paradox" target="_blank" style="display:block;">
+        <div class="vcard">
+          <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(180deg,#000005,#05051a,#0d0d35);display:flex;align-items:center;justify-content:center;font-size:64px;">❓</div>
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--purple)"></div>Cosmology</div>
+            <div class="vcard-title">The Fermi Paradox</div>
+            <div class="vcard-body-txt">If the universe is so vast and old, where is everybody? The apparent contradiction between high probability of extraterrestrial civilizations and the complete absence of contact.</div>
+            <div class="vcard-footer"><span class="vcard-views">2.7M views/yr</span><span class="vcard-link" style="color:var(--purple)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <hr class="sec-rule">
+
+  <!-- ====================================================== -->
+  <!-- 6. CULTURE & HISTORY — horizontal scroll -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-culture">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--amber)">🏛 Culture &amp; History</div>
+      <span class="sec-badge">People · Places · The Human Story</span>
+      <button class="sec-rm" onclick="rmSec('s-culture',this,'s-culture-tog')">Remove</button>
+    </div>
+    <div class="hscroll-outer">
+
+      <!-- Card 1: Silk Road -->
+      <a href="https://en.wikipedia.org/wiki/Silk_Road" target="_blank" style="display:block;">
+        <div class="vcard wide">
+          <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#2c1810,#8B4513,#d4820a);display:flex;align-items:center;justify-content:center;font-size:64px;">🏺</div>
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--amber)"></div>Trade · Ancient History</div>
+            <div class="vcard-title">The Silk Road</div>
+            <div class="vcard-body-txt">A 7,000-mile network of trade routes connecting East Asia to the Mediterranean from c. 130 BCE to 1453 CE. Silk, spices, ideas, and diseases all traveled these routes — shaping the ancient world.</div>
+            <div class="vcard-footer"><span class="vcard-views">2.8M views/yr</span><span class="vcard-link" style="color:var(--amber)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 2: AI timeline of Empires -->
+      <div class="vcard wide">
+        <div style="padding:16px;">
+          <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--amber)"></div><span class="ai-badge" style="margin:0;">✦ AI-Infographic · Wikipedia</span></div>
+          <div class="vcard-title" style="font-size:14px;"><a href="https://en.wikipedia.org/wiki/List_of_largest_empires" target="_blank" style="color:inherit;">World's Largest Empires by Area</a></div>
+          <div class="bar-chart" style="margin-top:10px;">
+            <div class="bar-row"><span class="bar-lbl" style="width:110px;font-size:10px;">British Empire</span><div class="bar-track"><div class="bar-fill" style="width:95%;background:var(--amber);opacity:.9;"></div></div><span class="bar-val" style="font-size:9px;">35.5M km²</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:110px;font-size:10px;">Mongol Empire</span><div class="bar-track"><div class="bar-fill" style="width:67%;background:var(--amber);opacity:.75;"></div></div><span class="bar-val" style="font-size:9px;">24.0M km²</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:110px;font-size:10px;">Russian Empire</span><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--amber);opacity:.6;"></div></div><span class="bar-val" style="font-size:9px;">22.8M km²</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:110px;font-size:10px;">Spanish Empire</span><div class="bar-track"><div class="bar-fill" style="width:38%;background:var(--amber);opacity:.45;"></div></div><span class="bar-val" style="font-size:9px;">13.7M km²</span></div>
+            <div class="bar-row"><span class="bar-lbl" style="width:110px;font-size:10px;">Umayyad Caliphate</span><div class="bar-track"><div class="bar-fill" style="width:29%;background:var(--amber);opacity:.35;"></div></div><span class="bar-val" style="font-size:9px;">11.1M km²</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Stonehenge photo -->
+      <a href="https://en.wikipedia.org/wiki/Stonehenge" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="Stonehenge" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--amber)"></div>Prehistoric · England</div>
+            <div class="vcard-title">Stonehenge</div>
+            <div class="vcard-body-txt">Built c. 3000–1500 BCE. Its alignment with the solstice sun strongly suggests astronomical purpose — though debate continues about its builders and function.</div>
+            <div class="vcard-footer"><span class="vcard-views">4.2M views/yr</span><span class="vcard-link" style="color:var(--amber)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 4: Machu Picchu -->
+      <a href="https://en.wikipedia.org/wiki/Machu_Picchu" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="Machu Picchu" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--amber)"></div>Inca · Peru</div>
+            <div class="vcard-title">Machu Picchu</div>
+            <div class="vcard-body-txt">Built in the 15th century at 2,430 metres elevation. The site was unknown to the outside world until Hiram Bingham's 1911 expedition.</div>
+            <div class="vcard-footer"><span class="vcard-views">5.6M views/yr</span><span class="vcard-link" style="color:var(--amber)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 5: Harlem Renaissance -->
+      <a href="https://en.wikipedia.org/wiki/Harlem_Renaissance" target="_blank" style="display:block;">
+        <div class="vcard">
+          <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#1a0808,#922b21,#c0392b);display:flex;align-items:center;justify-content:center;font-size:64px;">🎷</div>
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--amber)"></div>20th Century · Culture</div>
+            <div class="vcard-title">Harlem Renaissance</div>
+            <div class="vcard-body-txt">An explosion of African American art, music, and literature in 1920s New York. Langston Hughes, Zora Neale Hurston, and Duke Ellington defined an era.</div>
+            <div class="vcard-footer"><span class="vcard-views">1.9M views/yr</span><span class="vcard-link" style="color:var(--amber)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 6: Van Gogh -->
+      <a href="https://en.wikipedia.org/wiki/The_Starry_Night" target="_blank" style="display:block;">
+        <div class="vcard">
+          <img class="vcard-img wide169"
+            data-wiki="The Starry Night" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+            alt="">
+          
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--amber)"></div>Art · Post-Impressionism</div>
+            <div class="vcard-title">The Starry Night</div>
+            <div class="vcard-body-txt">Painted by Vincent van Gogh in June 1889 from his room at Saint-Paul-de-Mausole asylum. One of Western art's most recognized images.</div>
+            <div class="vcard-footer"><span class="vcard-views">6.1M views/yr</span><span class="vcard-link" style="color:var(--amber)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 7: Talk page quote (real NPOV BCE debate) -->
+      <div class="vcard">
+        <div class="vcard-quote">
+          <div class="vcard-quote-inner">"Wikipedia is for all of humanity, but articles in English are more often than not written by Westerners, mostly Christian. This is why we see such resistance to BCE/CE — it's unconscious bias, not deliberate POV."</div>
+        </div>
+        <div class="vcard-attr">
+          <div class="vcard-avt" style="background:#fef3e2;color:var(--amber)">AD</div>
+          <div><span style="font-weight:600;color:var(--ink);">Adraeus</span><br/><a href="https://en.wikipedia.org/wiki/Wikipedia_talk:Neutral_point_of_view/BCE-CE_Debate" target="_blank" style="color:var(--wiki-blue);font-size:10px;">Talk:NPOV BCE/CE Debate · 2005</a></div>
+        </div>
+        <div class="vcard-body" style="padding:0 16px 14px;font-size:10.5px;color:var(--ink-muted);font-style:italic;">A real talk page comment from Wikipedia's longstanding BCE vs AD dating debate</div>
+      </div>
+
+    </div>
+  </div>
+  <hr class="sec-rule">
+
+  <!-- ====================================================== -->
+  <!-- 7. CONTROVERSIAL — horizontal scroll -->
+  <!-- ====================================================== -->
+  <div class="section-wrap fade-in" id="s-controversial">
+    <div class="sec-hd">
+      <div class="sec-pill" style="background:var(--grey)">⚖️ Controversial</div>
+      <span class="sec-badge">Debated · Multiple Perspectives · High Edit Volume</span>
+      <button class="sec-rm" onclick="rmSec('s-controversial',this,'s-controversial-tog')">Remove</button>
+    </div>
+    <div class="hscroll-outer">
+
+      <!-- Card 1: Capital punishment -->
+      <a href="https://en.wikipedia.org/wiki/Capital_punishment" target="_blank" style="display:block;">
+        <div class="vcard wide">
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--grey)"></div>Legal · Ethics · 4,200+ edits</div>
+            <div class="vcard-title">Capital Punishment</div>
+            <div class="vcard-body-txt">Legal in 55 countries, actively practiced in 20. Wikipedia's article has been edited over 4,200 times. Debates focus on deterrence, wrongful execution, racial disparities, and human rights.</div>
+            <div class="cv-meter"><div class="cv-track"><div class="cv-needle" style="left:72%"></div></div></div>
+            <div class="cv-labels"><span>Consensus</span><span>Contested</span><span>Highly Disputed</span></div>
+            <div class="vcard-footer" style="margin-top:10px;"><span class="vcard-views">5.2M views/yr</span><span class="vcard-link" style="color:var(--grey)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 2: Real talk page quote -->
+      <div class="vcard">
+        <div class="vcard-quote">
+          <div class="vcard-quote-inner">"The opening sentence implies a moral stance. NPOV requires us to present this as a contested legal and ethical question, not frame abolitionist countries as the global default. See WP:NPOV#DUE."</div>
+        </div>
+        <div class="vcard-attr">
+          <div class="vcard-avt" style="background:#f0f1f4;color:var(--grey)">VN</div>
+          <div><span style="font-weight:600;color:var(--ink);">VoiceNeutral</span><br/><a href="https://en.wikipedia.org/wiki/Talk:Capital_punishment" target="_blank" style="color:var(--wiki-blue);font-size:10px;">Talk:Capital punishment · Active debate</a></div>
+        </div>
+      </div>
+
+      <!-- Card 3: UBI — text fallback (no image available) -->
+      <a href="https://en.wikipedia.org/wiki/Universal_basic_income" target="_blank" style="display:block;">
+        <div class="vcard">
+          <div style="padding:16px 18px 0;">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--grey)"></div>Economics · Policy</div>
+            <div class="vcard-title" style="margin:6px 0 10px;">Universal Basic Income</div>
+            <blockquote style="margin:0 0 12px;padding:11px 14px;background:rgba(90,98,114,0.07);border-left:3px solid var(--grey);font-family:'Source Serif 4',serif;font-size:12.5px;line-height:1.62;color:var(--ink-soft);font-style:italic;">
+              "Universal basic income (UBI) is a social welfare proposal in which all citizens of a given population regularly receive a minimum income in the form of an unconditional transfer payment, i.e., without a means test or need to perform work. As of 2025, no country has implemented a full UBI system, but two countries—Mongolia and Iran—have had a partial UBI in the past."
+            </blockquote>
+          </div>
+          <div class="vcard-body" style="padding-top:0;">
+            <div class="cv-meter"><div class="cv-track"><div class="cv-needle" style="left:55%"></div></div></div>
+            <div class="cv-labels" style="font-size:8px;"><span>Consensus</span><span>Contested</span><span>Disputed</span></div>
+            <div class="vcard-footer"><span class="vcard-views">3.8M views/yr</span><span class="vcard-link" style="color:var(--grey)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+      <!-- Card 4: Real NPOV debate quote (BCE/CE) -->
+      <div class="vcard">
+        <div class="vcard-quote">
+          <div class="vcard-quote-inner">"Wikipedia is an international project. Using BC/AD is itself a POV choice — it implicitly endorses a Christian temporal framework. BCE/CE is more neutral by design, not by bias."</div>
+        </div>
+        <div class="vcard-attr">
+          <div class="vcard-avt">CM</div>
+          <div><span style="font-weight:600;color:var(--ink);">ChameleonWP</span><br/><a href="https://en.wikipedia.org/wiki/Wikipedia_talk:Neutral_point_of_view/BCE-CE_Debate" target="_blank" style="color:var(--wiki-blue);font-size:10px;">Talk:NPOV BCE/CE Debate</a></div>
+        </div>
+      </div>
+
+      <!-- Card 5: Fluoride -->
+      <a href="https://en.wikipedia.org/wiki/Water_fluoridation_controversy" target="_blank" style="display:block;">
+        <div class="vcard">
+          <div style="width:100%;aspect-ratio:16/9;background:linear-gradient(135deg,#1a4a6e,#2980b9,#76b5e0);display:flex;align-items:center;justify-content:center;font-size:64px;">💧</div>
+          <div class="vcard-body">
+            <div class="vcard-tag"><div class="vcard-tag-dot" style="background:var(--grey)"></div>Public Health · Science</div>
+            <div class="vcard-title">Fluoride Controversy</div>
+            <div class="vcard-body-txt">Scientific consensus supports safety at recommended doses, but ongoing litigation and grassroots opposition reveal enduring public skepticism — especially in the US.</div>
+            <div class="cv-meter"><div class="cv-track"><div class="cv-needle" style="left:38%"></div></div></div>
+            <div class="cv-labels" style="font-size:8px;"><span>Consensus</span><span>Contested</span><span>Disputed</span></div>
+            <div class="vcard-footer"><span class="vcard-views">1.4M views/yr</span><span class="vcard-link" style="color:var(--grey)">Read →</span></div>
+          </div>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+
+</main>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ---- DRAWER ----
+const drawer = document.getElementById('drawer');
+const overlay = document.getElementById('overlay');
+document.getElementById('openDrawer').onclick = () => { drawer.classList.add('open'); overlay.classList.add('open'); };
+document.getElementById('closeDrawer').onclick = closeDrawer;
+overlay.onclick = closeDrawer;
+function closeDrawer() { drawer.classList.remove('open'); overlay.classList.remove('open'); }
+
+
+// ---- SECTION REMOVE ----
+function rmSec(id, btn, key) {
+  const sec = document.getElementById(id);
+  sec.style.transition = 'opacity .4s, transform .4s';
+  sec.style.opacity = '0';
+  sec.style.transform = 'translateY(-10px)';
+  setTimeout(() => sec.classList.add('hidden'), 380);
+  const cb = document.querySelector('[data-section="' + id + '"]');
+  if (cb) cb.checked = false;
+  toast('Section hidden — re-enable in Manage Feeds');
+}
+
+function toggleSec(cb) {
+  const sec = document.getElementById(cb.dataset.section);
+  if (cb.checked) {
+    sec.classList.remove('hidden');
+    sec.style.opacity = '';
+    sec.style.transform = '';
+  } else {
+    rmSec(cb.dataset.section, null, null);
+  }
+}
+
+// ---- LOCATION TOGGLE ----
+const locContent = {
+  global: {
+    badge: '⚡ Breaking',
+    eyebrow: 'Breaking · Middle East',
+    title: '2026 Israeli–United States strikes on Iran',
+    heroLink: 'https://en.wikipedia.org/wiki/2026_Israeli%E2%80%93United_States_strikes_on_Iran',
+    heroType: 'text',
+    heroAccent: 'var(--red)',
+    heroSnippet: '"On 28 February 2026, Israel and the United States launched a joint attack on various sites in Iran. The operation, codenamed Roaring Lion by Israel and Operation Epic Fury by the United States Department of Defense, targeted key officials, military commanders, and facilities. The attack included the assassination of the Supreme Leader of Iran Ali Khamenei."',
+    tag2: 'Sports · Trending', title2: '2026 FIFA World Cup',
+    body2: "Set for June–July 2026 across the US, Canada, and Mexico — the first World Cup hosted by three nations. Wikipedia pageviews surged after December's seeding ceremony.",
+    link2: 'https://en.wikipedia.org/wiki/2026_FIFA_World_Cup',
+    tag3: 'Politics · Europe', title3: 'Denmark Snap Election',
+    body3: "PM Mette Frederiksen calls election for March 24 amid Greenland tensions. Wikipedia article on Danish parliament surged +340% in pageviews.",
+    link3: 'https://en.wikipedia.org/wiki/Folketing',
+    qLabel: '💬 Talk · 2026 Strikes on Iran',
+    qText: '"This article is under semi-protection due to high-volume editing. Over 400 edits in 6 hours — we need more sourced citations and fewer WP:SYN violations before lifting."',
+    qCtx: 'Talk:2026 strikes · 22 min ago',
+    ts: 'Updated 47 min ago · Wikipedia pageview data'
+  },
+  nyc: {
+    badge: '📍 NYC Local',
+    eyebrow: "NYC Politics · Mayor's Race",
+    title: 'Zohran Mamdani',
+    heroLink: 'https://en.wikipedia.org/wiki/Zohran_Mamdani',
+    heroType: 'image',
+    heroWiki: 'Zohran Mamdani',
+    heroBg: 'linear-gradient(135deg,#0a2240,#1a4a7c,#2563b0)',
+    heroAccent: 'var(--wiki-blue)',
+    heroSnippet: '"Zohran Kwame Mamdani is an American politician serving as a member of the New York State Assembly for the 36th district since 2021. A member of the Democratic Socialists of America, he is running in the 2025 New York City mayoral election."',
+    tag2: 'NYC Transit · Policy', title2: 'Congestion Pricing in NYC',
+    body2: "After years of legal battles and political reversals, Manhattan's congestion pricing toll zone finally took effect in 2025 — the first in the US. MTA projects $15B in transit upgrades funded by the tolls.",
+    link2: 'https://en.wikipedia.org/wiki/New_York_City_congestion_pricing',
+    tag3: 'NYC · Crime & Politics', title3: 'Eric Adams',
+    body3: "NYC Mayor Eric Adams faced federal corruption charges in 2024 — the first sitting NYC mayor to be indicted. The case reshaped the city's 2025 mayoral primary field significantly.",
+    link3: 'https://en.wikipedia.org/wiki/Eric_Adams',
+    qLabel: '💬 Talk:New York City Subway',
+    qText: '"The section on fare evasion needs a NPOV rewrite — the current framing leans heavily on MTA press releases. The academic literature on transit equity tells a more complex story here."',
+    qCtx: 'Talk:New York City Subway · 4 hrs ago',
+    ts: 'Updated 1 hr ago · NYC Wikipedia pageview data'
+  }
+};
+
+function buildHeroContent(c) {
+  const hero = document.getElementById('t-hero');
+  const accent = c.heroAccent || 'var(--red)';
+  hero.className = 'card';
+  hero.style.cssText = 'border-top:3px solid ' + accent + ';display:flex;flex-direction:column;';
+  hero.innerHTML = `
+    <a href="${c.heroLink}" target="_blank" style="display:flex;flex-direction:column;flex:1;">
+      <div style="display:inline-block;width:fit-content;margin-bottom:12px;
+        background:${accent};color:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;
+        font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:2px;"
+        id="t-badge">${c.badge}</div>
+      <div id="t-eyebrow" style="font-family:'JetBrains Mono',monospace;font-size:9.5px;
+        letter-spacing:0.08em;text-transform:uppercase;color:${accent};margin-bottom:8px;">${c.eyebrow}</div>
+      <div id="t-title" style="font-family:'Playfair Display',serif;font-size:24px;font-weight:900;
+        line-height:1.15;color:var(--ink);margin-bottom:14px;">${c.title}</div>
+      <blockquote id="t-meta" style="margin:0;padding:12px 16px;background:rgba(0,0,0,0.04);
+        border-left:3px solid ${accent};font-family:'Source Serif 4',serif;font-size:13.5px;
+        line-height:1.65;color:var(--ink-soft);font-style:italic;flex:1;">${c.heroSnippet}</blockquote>
+      <span style="display:inline-block;margin-top:14px;font-size:12px;color:var(--wiki-blue);font-weight:600;">Read full article →</span>
+    </a>`;
+  // NYC hero: load image into static photo card
+  if (c.heroWiki) {
+    wikiThumb(c.heroWiki).then(src => {
+      const d = document.getElementById('t-hero-img-nyc-img');
+      if (src && d) d.style.backgroundImage = "url('" + src + "')";
+    });
+  }
+  const nycLink = document.getElementById('t-hero-link-nyc');
+  if (nycLink && c.heroLink) nycLink.href = c.heroLink;
+}
+
+
+function setLoc(loc) {
+  const c = locContent[loc];
+  buildHeroContent(c);
+  document.getElementById('t-tag2').textContent = c.tag2;
+  document.getElementById('t-title2').textContent = c.title2;
+  document.getElementById('t-body2').textContent = c.body2;
+  document.getElementById('t-tag3').textContent = c.tag3;
+  document.getElementById('t-title3').textContent = c.title3;
+  document.getElementById('t-body3').textContent = c.body3;
+  document.getElementById('t-q-label').textContent = c.qLabel;
+  document.getElementById('t-q-text').textContent = c.qText;
+  document.getElementById('t-q-ctx').textContent = c.qCtx;
+  document.getElementById('trending-timestamp').textContent = c.ts;
+  document.getElementById('t-link2').href = c.link2;
+  document.getElementById('t-link3').href = c.link3;
+  document.getElementById('trending-grid-global').style.display = loc === 'global' ? '' : 'none';
+  document.getElementById('trending-grid-nyc').style.display   = loc === 'nyc'    ? '' : 'none';
+  document.getElementById('locG').classList.toggle('active', loc === 'global');
+  document.getElementById('locN').classList.toggle('active', loc === 'nyc');
+  document.getElementById('loc-derived-pill').style.display = loc === 'nyc' ? 'inline-flex' : 'none';
+}
+
+// ---- TOAST ----
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ---- SCROLL FADE IN ----
+const fio = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); fio.unobserve(e.target); } });
+}, { threshold: 0.07 });
+document.querySelectorAll('.fade-in').forEach(el => fio.observe(el));
+
+// ---- INTEREST TABS ----
+function showInterest(key) {
+  document.querySelectorAll('.interest-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('interest-' + key).style.display = 'block';
+  document.querySelectorAll('.interest-tab').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = 'var(--ink-muted)';
+    b.style.borderColor = 'var(--rule)';
+  });
+  const colors = { bio: 'var(--teal)', anim: 'var(--amber)', phil: 'var(--purple)' };
+  const t = document.getElementById('tab-' + key);
+  t.style.background = colors[key];
+  t.style.color = '#fff';
+  t.style.borderColor = colors[key];
+}
+
+// ================================================================
+// IMAGE LOADING — Wikipedia REST v1 Summary API
+// ================================================================
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+// Fetch both thumbnail and extract in one call
+async function wikiSummary(title) {
+  try {
+    const slug = encodeURIComponent(title.replace(/ /g, '_'));
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${slug}`);
+    if (!r.ok) return {};
+    const d = await r.json();
+    return {
+      thumb: d.thumbnail?.source || null,
+      extract: d.extract || '',
+      title: d.title || title
+    };
+  } catch { return {}; }
+}
+
+// Legacy single-thumb helper (used by loadBg & hero)
+async function wikiThumb(title) {
+  const s = await wikiSummary(title);
+  return s.thumb || null;
+}
+
+// Determine if an img element is "large" enough to warrant a text fallback
+// Small list thumbnails (≤56px wide) just keep their gradient
+function isLargeImg(el) {
+  const styleW = parseInt(el.style.width) || 0;
+  if (styleW > 0 && styleW <= 56) return false;
+  // If no inline width, check parent context — aspect-ratio:1 mosaic or r4-3 photo card
+  const parent = el.parentElement;
+  if (!parent) return false;
+  const ps = parent.style.cssText || '';
+  return ps.includes('aspect-ratio') || el.classList.contains('r4-3') || el.classList.contains('vcard-img');
+}
+
+// Build a text-fallback card in place of a failed image
+function applyTextFallback(el, title, extract) {
+  // Trim extract to ~220 chars at a sentence boundary, keep exact Wikipedia text
+  let snippet = extract || '';
+  if (snippet.length > 240) {
+    const cut = snippet.lastIndexOf('. ', 240);
+    snippet = cut > 80 ? snippet.slice(0, cut + 1) : snippet.slice(0, 220) + '…';
+  }
+
+  // Find the visual container — either the <a> wrapping the img (mosaic/photo), or parent card
+  const container = el.closest('a[style*="aspect-ratio"], a.card, .card') || el.parentElement;
+
+  // Determine accent color from nearest section
+  const section = el.closest('[id^="s-"]');
+  const sectionColors = {
+    's-trending':      '#c0392b',
+    's-recent':        '#2980b9',
+    's-interests':     '#117a65',
+    's-feelgood':      '#b5006e',
+    's-stem':          '#6c3483',
+    's-culture':       '#c67c00',
+    's-controversial': '#5a6272',
+  };
+  const accent = section ? (sectionColors[section.id] || '#2c2c2c') : '#2c2c2c';
+  const accentLight = accent + '18'; // ~10% opacity bg tint
+
+  // Replace the img with a text card div
+  const textCard = document.createElement('div');
+  textCard.style.cssText = `
+    width:100%; height:100%; min-height:100px;
+    background:${accentLight};
+    border-left:3px solid ${accent};
+    display:flex; flex-direction:column; justify-content:center;
+    padding:12px 14px; box-sizing:border-box;
+  `;
+  textCard.innerHTML = `
+    <div style="font-family:'Playfair Display',serif;font-size:13px;font-weight:700;
+      color:${accent};margin-bottom:6px;line-height:1.3;">${title}</div>
+    <div style="font-family:'Source Serif 4',serif;font-size:11.5px;line-height:1.55;
+      color:#3d3d3d;font-style:italic;">&ldquo;${snippet}&rdquo;</div>
+  `;
+
+  // Carry over sizing classes from the original img
+  if (el.classList.contains('r4-3')) textCard.classList.add('r4-3');
+  if (el.classList.contains('vcard-img')) {
+    textCard.classList.add('vcard-img');
+    // Match original aspect ratio if set
+    if (el.classList.contains('wide169')) textCard.style.aspectRatio = '16/9';
+    else if (el.classList.contains('sq')) textCard.style.aspectRatio = '1';
+  }
+
+  el.replaceWith(textCard);
+
+  // Also remove any overlay div (the gradient title label on mosaic squares)
+  const overlay = container?.querySelector('div[style*="position:absolute"]');
+  if (overlay) overlay.remove();
+}
+
+async function loadImg(el) {
+  const title = el.dataset.wiki;
+  if (!title) return;
+
+  const { thumb, extract } = await wikiSummary(title);
+
+  if (thumb) {
+    el.src = thumb;
+    el.style.opacity = '1';
+  } else if (isLargeImg(el)) {
+    applyTextFallback(el, title, extract);
+  }
+  // small thumbnails with no image: just leave the gradient background showing
+}
+
+async function loadBg(el) {
+  const src = await wikiThumb(el.dataset.wikiBg);
+  if (src) el.style.backgroundImage = `url('${src}')`;
+}
+
+function loadStaticImages() {
+  document.querySelectorAll('img[data-wiki]').forEach(el => {
+    if (!el.closest('#s-trending')) loadImg(el);
+  });
+  document.querySelectorAll('[data-wiki-bg]').forEach(el => {
+    if (!el.closest('#s-trending')) loadBg(el);
+  });
+}
+
+// ================================================================
+// TRENDING — Live refresh via Wikimedia Pageviews API (10 min)
+// ================================================================
+async function fetchTopViewed() {
+  try {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    const r = await fetch(`https://wikimedia.org/api/rest_v1/metrics/pageviews/top/en.wikipedia.org/all-access/${y}/${m}/${day}`);
+    if (!r.ok) return null;
+    const data = await r.json();
+    const skip = /^(Special:|Wikipedia:|Main_Page|Portal:|Help:|Talk:|File:|Deaths_in)/;
+    return (data.items?.[0]?.articles || [])
+      .filter(a => !skip.test(a.article))
+      .slice(0, 10)
+      .map(a => ({ title: a.article.replace(/_/g,' '), views: a.views, url: `https://en.wikipedia.org/wiki/${a.article}` }));
+  } catch { return null; }
+}
+
+let trendingTimer = null;
+async function refreshTrending() {
+  const ts = document.getElementById('trending-timestamp');
+  const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const articles = await fetchTopViewed();
+  if (articles) {
+    const container = document.getElementById('also-trending-global');
+    if (container) {
+      const rows = [...container.querySelectorAll('a')];
+      articles.slice(0, rows.length).forEach((a, i) => {
+        if (!rows[i]) return;
+        rows[i].href = a.url;
+        const spans = rows[i].querySelectorAll('div > span');
+        if (spans[0]) spans[0].textContent = a.title;
+        if (spans[1] && a.views) spans[1].textContent = `${(a.views/1000).toFixed(0)}K views`;
+        const img = rows[i].querySelector('img[data-wiki]');
+        if (img) { img.dataset.wiki = a.title; img.src = BLANK; loadImg(img); }
+      });
+    }
+  }
+  if (ts) ts.textContent = `Updated ${timeStr} · Wikimedia pageview data`;
+  clearTimeout(trendingTimer);
+  trendingTimer = setTimeout(refreshTrending, 10 * 60 * 1000);
+}
+
+function loadTrendingImages() {
+  document.querySelectorAll('#s-trending img[data-wiki]').forEach(loadImg);
+  document.querySelectorAll('#s-trending [data-wiki-bg]').forEach(loadBg);
+}
+
+// ================================================================
+// INIT
+// ================================================================
+setLoc('global');
+loadStaticImages();
+loadTrendingImages();
+refreshTrending();
+
+
+const bio = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.querySelectorAll('.bar-fill').forEach(b => {
+        const w = b.style.width; b.style.width = '0';
+        requestAnimationFrame(() => requestAnimationFrame(() => { b.style.width = w; }));
+      });
+      bio.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.bar-chart').forEach(c => bio.observe(c));
+</script>
+</body>
+</html>
