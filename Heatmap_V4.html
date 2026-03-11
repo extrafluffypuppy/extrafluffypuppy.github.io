@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WikiHeatmap – Content Risk Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&family=Source+Serif+4:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fbfbfc; --surface: #ffffff; --border: #e8eaed; --border-light: #f0f1f3;
+  --text-primary: #1a1d23; --text-secondary: #5a5f6a; --text-tertiary: #8a8f98; --text-muted: #b0b5be;
+  --accent: #4a6aff; --accent-light: #eef1ff;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+  --radius: 10px;
+  --font-sans: 'DM Sans', -apple-system, sans-serif;
+  --font-serif: 'Source Serif 4', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+}
+body { font-family: var(--font-sans); background: var(--bg); color: var(--text-primary); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+body::before { content:''; position:fixed; inset:0; background-image:radial-gradient(circle at 1px 1px, #d0d4da 0.5px, transparent 0); background-size:28px 28px; opacity:0.22; pointer-events:none; z-index:0; }
+.app { position: relative; z-index: 1; }
+
+header { max-width:1320px; margin:0 auto; padding:18px 28px 0; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.logo-group { display:flex; align-items:center; gap:12px; }
+.logo-mark { width:38px; height:38px; border-radius:9px; background:linear-gradient(135deg,#1a1d24,#2e323a); display:flex; align-items:center; justify-content:center; font-family:var(--font-serif); font-weight:700; font-size:19px; color:#fff; box-shadow:var(--shadow-sm); }
+.logo-text h1 { font-family:var(--font-serif); font-size:19px; font-weight:700; letter-spacing:-0.01em; line-height:1.1; }
+.logo-text span { font-size:11.5px; color:var(--text-tertiary); display:block; margin-top:1px; }
+.header-badges { display:flex; align-items:center; gap:10px; }
+.badge { font-size:10px; font-family:var(--font-mono); padding:3px 9px; border-radius:5px; color:var(--text-tertiary); background:var(--surface); border:1px solid var(--border-light); }
+.badge a { color:var(--text-tertiary); text-decoration:none; } .badge a:hover { color:var(--accent); }
+
+main { max-width:1320px; margin:0 auto; padding:14px 28px 40px; }
+
+.stats-row { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+.stat-card { background:var(--surface); border:1px solid var(--border-light); border-radius:9px; padding:9px 16px; min-width:115px; box-shadow:var(--shadow-sm); animation:fadeUp .4s ease both; }
+.stat-card .label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:2px; }
+.stat-card .value { font-size:22px; font-weight:700; font-family:var(--font-mono); line-height:1; }
+
+.breadcrumb { display:flex; align-items:center; gap:4px; margin-bottom:12px; font-size:13px; flex-wrap:wrap; }
+.breadcrumb button { background:none; border:none; cursor:pointer; padding:2px 5px; font-family:var(--font-sans); font-size:13px; color:var(--accent); text-decoration:underline; text-underline-offset:3px; transition:color .15s; }
+.breadcrumb button:hover { color:#2a4ae0; }
+.breadcrumb button.active { color:var(--text-primary); text-decoration:none; font-weight:600; cursor:default; }
+.breadcrumb .sep { color:var(--text-muted); font-size:11px; }
+
+.gradient-bar { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.gradient-bar span { font-size:10px; color:var(--text-muted); font-family:var(--font-mono); }
+.gradient-bar .bar { flex:1; height:5px; border-radius:3px; background:linear-gradient(90deg,#2ea86a,#e2a024,#e54d2e,#c92236); }
+
+.risk-filters { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px; }
+.risk-btn { padding:4px 12px; border-radius:20px; font-size:11px; font-family:var(--font-sans); cursor:pointer; transition:all .2s; border:1px solid var(--border-light); background:var(--surface); color:var(--text-secondary); }
+.risk-btn:hover { border-color:#c0c4cc; }
+.risk-btn.active { font-weight:600; }
+
+.content-layout { display:flex; gap:20px; flex-wrap:wrap; }
+.heatmap-col { flex:1 1 640px; min-width:0; }
+.detail-col { flex:0 0 300px; min-width:270px; }
+
+.pack-container { position:relative; border-radius:var(--radius); overflow:hidden; background:var(--surface); border:1px solid var(--border); box-shadow:var(--shadow-md); }
+.pack-container svg { display:block; width:100%; height:auto; }
+.pack-container svg text { pointer-events:none; user-select:none; }
+.label-g { pointer-events:none; }
+
+.zoom-controls { position:absolute; top:10px; right:10px; display:flex; flex-direction:column; gap:3px; z-index:10; }
+.zoom-btn { width:34px; height:34px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.93); backdrop-filter:blur(6px); cursor:pointer; font-size:18px; color:var(--text-secondary); display:flex; align-items:center; justify-content:center; transition:all .15s; box-shadow:var(--shadow-sm); font-family:var(--font-mono); }
+.zoom-btn:hover { background:#fff; border-color:#c0c4cc; color:var(--text-primary); }
+.zoom-btn:disabled { opacity:0.3; cursor:default; pointer-events:none; }
+.zoom-btn.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+.zoom-btn.primary:hover { background:#3a5ae0; }
+.zoom-btn.primary:disabled { background:#a0b0e0; border-color:#a0b0e0; }
+
+.depth-indicator { position:absolute; top:10px; left:10px; z-index:10; display:flex; align-items:center; gap:6px; background:rgba(255,255,255,0.93); backdrop-filter:blur(6px); border:1px solid var(--border); border-radius:8px; padding:5px 12px; box-shadow:var(--shadow-sm); }
+.depth-dot { width:8px; height:8px; border-radius:50%; border:2px solid var(--border); transition:all .3s; }
+.depth-dot.filled { background:var(--accent); border-color:var(--accent); }
+.depth-label { font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono); }
+
+.zoom-hint { text-align:center; margin-top:7px; font-size:11px; color:var(--text-muted); }
+
+.article-list-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+.article-list-header h3 { font-family:var(--font-serif); font-size:15px; font-weight:600; }
+.sort-btns { display:flex; gap:4px; }
+.sort-btn { padding:3px 10px; border-radius:5px; font-size:10px; font-family:var(--font-sans); cursor:pointer; text-transform:uppercase; letter-spacing:0.06em; border:1px solid var(--border-light); background:transparent; color:var(--text-tertiary); transition:all .15s; }
+.sort-btn.active { background:var(--text-primary); color:#fff; border-color:transparent; }
+
+.article-table-head { display:grid; grid-template-columns:1fr 56px 68px; gap:10px; padding:5px 14px; font-size:10px; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); }
+.article-list { border:1px solid var(--border-light); border-radius:9px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow-sm); }
+.article-row { display:grid; grid-template-columns:1fr 56px 68px; align-items:center; gap:10px; padding:9px 14px; cursor:pointer; transition:background .15s; border-bottom:1px solid var(--border-light); animation:fadeUp .3s ease both; }
+.article-row:last-child { border-bottom:none; }
+.article-row:hover { background:#f6f7f9; }
+.article-row.selected { background:var(--accent-light); }
+.article-name { font-size:13px; font-weight:500; }
+.article-views { font-size:10px; color:var(--text-tertiary); font-family:var(--font-mono); margin-top:1px; }
+.article-score { font-size:15px; font-weight:700; font-family:var(--font-mono); text-align:right; }
+.spark-bars { display:flex; gap:2px; align-items:flex-end; height:16px; }
+
+.detail-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px; position:relative; box-shadow:var(--shadow-md); animation:fadeUp .3s ease; }
+.detail-panel .close-btn { position:absolute; top:10px; right:12px; background:none; border:none; cursor:pointer; font-size:16px; color:var(--text-muted); padding:2px; }
+.detail-panel .close-btn:hover { color:var(--text-primary); }
+.detail-panel .risk-label { font-size:11px; font-family:var(--font-mono); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:4px; }
+.detail-panel h3 { font-family:var(--font-serif); font-size:18px; font-weight:700; margin-bottom:3px; line-height:1.2; }
+.detail-panel .meta { font-size:11px; color:var(--text-tertiary); font-family:var(--font-mono); margin-bottom:14px; }
+.section-label { font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-muted); margin-bottom:7px; }
+.risk-row { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+.risk-row .name { font-size:11px; color:var(--text-tertiary); width:90px; flex-shrink:0; }
+.risk-row .track { flex:1; height:6px; background:#f0f1f3; border-radius:3px; overflow:hidden; }
+.risk-row .fill { height:100%; border-radius:3px; transition:width .5s ease; }
+.risk-row .pct { font-size:11px; font-family:var(--font-mono); width:34px; text-align:right; }
+.recommendation { margin-top:14px; padding:11px 13px; background:#f8f9fb; border-radius:8px; border:1px solid var(--border-light); }
+.recommendation p { font-size:12px; color:var(--text-secondary); line-height:1.55; }
+.recommendation .flag { margin-top:5px; font-size:11px; }
+
+.info-panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow-sm); }
+.info-panel p { font-size:12px; color:var(--text-secondary); line-height:1.6; margin-bottom:12px; }
+.risk-legend-item { display:flex; align-items:flex-start; gap:7px; margin-bottom:8px; }
+.risk-legend-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; margin-top:3px; }
+.risk-legend-item .lname { font-size:11px; font-weight:500; color:var(--text-primary); }
+.risk-legend-item .desc { font-size:10px; color:var(--text-tertiary); line-height:1.4; }
+.info-tip { margin-top:14px; padding:9px 12px; background:var(--accent-light); border-radius:8px; border:1px solid #d8deff; font-size:11px; color:var(--accent); line-height:1.45; }
+
+.sources-panel { margin-top:12px; padding:14px 16px; background:var(--surface); border-radius:var(--radius); border:1px solid var(--border-light); }
+.sources-panel a { display:block; font-size:10.5px; color:var(--text-tertiary); text-decoration:none; font-family:var(--font-mono); padding:2px 0; transition:color .15s; }
+.sources-panel a:hover { color:var(--accent); }
+
+footer { text-align:center; padding:22px 28px 26px; font-size:11px; color:var(--text-muted); border-top:1px solid var(--border-light); margin-top:16px; }
+footer a { color:var(--text-tertiary); text-decoration:none; } footer a:hover { color:var(--accent); }
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(5px); } to { opacity:1; transform:translateY(0); } }
+@media (max-width:960px) { .detail-col { flex:1 1 100%; } header, main { padding-left:16px; padding-right:16px; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo-group">
+      <div class="logo-mark">W</div>
+      <div class="logo-text"><h1>WikiHeatmap</h1><span>Content Risk Explorer</span></div>
+    </div>
+    <div class="header-badges">
+      <div class="badge">Prototype v0.4</div>
+      <div class="badge"><a href="https://meta.wikimedia.org/wiki/Machine_learning_models" target="_blank">ML Model Cards ↗</a></div>
+    </div>
+  </header>
+  <main>
+    <div class="stats-row" id="statsRow"></div>
+    <div class="breadcrumb" id="breadcrumb"></div>
+    <div class="gradient-bar"><span>LOW RISK</span><div class="bar"></div><span>HIGH RISK</span></div>
+    <div class="risk-filters" id="riskFilters"></div>
+    <div class="content-layout">
+      <div class="heatmap-col">
+        <div id="packContainer" class="pack-container">
+          <div class="depth-indicator" id="depthIndicator">
+            <div class="depth-dot filled" id="dot0"></div>
+            <div class="depth-dot" id="dot1"></div>
+            <div class="depth-dot" id="dot2"></div>
+            <div class="depth-label" id="depthLabel">All Wikipedia</div>
+          </div>
+          <div class="zoom-controls">
+            <button class="zoom-btn primary" id="zoomInBtn" title="Zoom in (or click a circle)">+</button>
+            <button class="zoom-btn" id="zoomOutBtn" title="Zoom out" disabled>−</button>
+            <button class="zoom-btn" id="zoomResetBtn" title="Reset to top level" style="font-size:13px">⌂</button>
+          </div>
+          <svg id="packSvg"></svg>
+        </div>
+        <div class="zoom-hint" id="zoomHint">Click a circle to zoom in · Scroll or use +/− · Right-click to zoom out</div>
+        <div id="articleSection" style="display:none; margin-top:14px;">
+          <div class="article-list-header">
+            <h3 id="articleTitle"></h3>
+            <div class="sort-btns">
+              <button class="sort-btn active" data-sort="risk">Sort: Risk</button>
+              <button class="sort-btn" data-sort="views">Sort: Views</button>
+            </div>
+          </div>
+          <div class="article-table-head"><span>Article</span><span>Risks</span><span style="text-align:right">Score</span></div>
+          <div class="article-list" id="articleList"></div>
+        </div>
+      </div>
+      <div class="detail-col">
+        <div id="detailPanel"></div>
+        <div class="sources-panel">
+          <div class="section-label" style="margin-bottom:7px">ML Model Sources</div>
+          <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_Wikipedia_article_quality" target="_blank">Article Quality ↗</a>
+          <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_reference_risk" target="_blank">Reference Risk ↗</a>
+          <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language-agnostic_revert_risk" target="_blank">Revert Risk ↗</a>
+          <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Multilingual_readability_model_card" target="_blank">Readability ↗</a>
+          <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Tone_Check" target="_blank">Tone Check ↗</a>
+          <a href="https://meta.wikimedia.org/wiki/Machine_learning_models/Production/Language_agnostic_link-based_article_topic" target="_blank">Article Topics ↗</a>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>WikiHeatmap Prototype · Built for Wikipedia product ideation · <a href="https://meta.wikimedia.org/wiki/Machine_learning_models" target="_blank">ML Model Cards</a> · Taxonomy: <a href="https://en.wikipedia.org/wiki/Wikipedia:Contents/Categories" target="_blank">Wikipedia:Contents/Categories</a></footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+const RISK_TYPES = [
+  { key:"quality", label:"Article Quality", color:"#e54d2e", desc:"Low structural quality per ORES articlequality model" },
+  { key:"reference", label:"Reference Risk", color:"#e5882e", desc:"Unreliable or missing references" },
+  { key:"revert", label:"Revert Risk", color:"#daa520", desc:"High likelihood of reverted edits" },
+  { key:"readability", label:"Low Readability", color:"#8b5cf6", desc:"Poor readability score per multilingual model" },
+  { key:"tone", label:"Biased Tone", color:"#3b82f6", desc:"Non-neutral point of view detected" },
+];
+
+const TAXONOMY = {
+  "General reference": { icon:"\u{1F4CB}", children: {
+    "Reference works":{ v:45000, ch:["Encyclopedias","Dictionaries","Almanacs","Bibliographies","Catalogs","Thesauri"] },
+    "Research":{ v:62000, ch:["Academic disciplines","Libraries","Databases","Peer review","Scientific method","Open access"] },
+    "Information":{ v:38000, ch:["Information science","Data","Knowledge management","Archival science","Metadata","Classification"] },
+    "Education":{ v:95000, ch:["Schools","Universities","Curricula","Pedagogy","E-learning","Literacy"] },
+  }},
+  "Culture & the arts": { icon:"\u{1F3AD}", children: {
+    "The arts":{ v:120000, ch:["Festivals","Humor","Celebrity","Museums","Handicrafts","Cultural movements"] },
+    "Literature":{ v:185000, ch:["Fiction","Poetry","Non-fiction","Drama","Mythology","Comics"] },
+    "Performing arts":{ v:210000, ch:["Dance","Film","Music","Opera","Theatre","Storytelling"] },
+    "Visual arts":{ v:95000, ch:["Architecture","Painting","Sculpture","Photography","Design","Animation"] },
+    "Games & Toys":{ v:78000, ch:["Board games","Card games","Video games","Puzzles","Role-playing games","Dolls"] },
+    "Sports & Recreation":{ v:420000, ch:["Football","Cricket","Olympic Games","Basketball","Tennis","Motor sport"] },
+    "Food & Drink":{ v:65000, ch:["Cuisines","Beverages","Cooking","Wine","Restaurants","Food science"] },
+    "Mass media":{ v:130000, ch:["Broadcasting","Journalism","Publishing","Internet media","Newspapers","Television"] },
+  }},
+  "Geography & places": { icon:"\u{1F30D}", children: {
+    "Africa":{ v:165000, ch:["North Africa","West Africa","East Africa","Southern Africa","Central Africa","Sahara"] },
+    "Americas":{ v:340000, ch:["North America","Central America","South America","Caribbean","United States","Canada"] },
+    "Asia":{ v:310000, ch:["East Asia","South Asia","Southeast Asia","Central Asia","Middle East","Siberia"] },
+    "Europe":{ v:420000, ch:["Western Europe","Eastern Europe","Northern Europe","Southern Europe","British Isles","Balkans"] },
+    "Oceania":{ v:72000, ch:["Australia","New Zealand","Polynesia","Melanesia","Micronesia","Pacific Islands"] },
+    "Bodies of water":{ v:88000, ch:["Oceans","Seas","Rivers","Lakes","Wetlands","Waterfalls"] },
+    "Landforms":{ v:67000, ch:["Mountains","Deserts","Islands","Valleys","Plateaus","Plains"] },
+    "Cities":{ v:280000, ch:["Capital cities","Megacities","Towns","Villages","Urban planning","Neighborhoods"] },
+  }},
+  "Health & fitness": { icon:"\u{1F3E5}", children: {
+    "Health":{ v:125000, ch:["Public health","Mental health","Nutrition","Hygiene","Health care","Aging"] },
+    "Medicine":{ v:195000, ch:["Diseases","Pharmacology","Surgery","Immunology","Oncology","Radiology"] },
+    "Self-care":{ v:32000, ch:["Skin care","Dental care","Hair care","Sleep","Stress management","Mindfulness"] },
+    "Fitness":{ v:45000, ch:["Exercise","Yoga","Weight training","Aerobics","Martial arts","Running"] },
+    "Safety":{ v:28000, ch:["Occupational safety","First aid","Emergency services","Fire prevention","Food safety","Road safety"] },
+  }},
+  "History & events": { icon:"\u{1F4DC}", children: {
+    "By period":{ v:245000, ch:["Ancient history","Medieval","Early modern","Modern history","21st century","Prehistory"] },
+    "By region":{ v:320000, ch:["History of Africa","History of Asia","History of Europe","History of Americas","Oceania history","Middle East history"] },
+    "By subject":{ v:180000, ch:["Military history","History of science","Economic history","Cultural history","Religious history","Legal history"] },
+    "Wars & Conflicts":{ v:210000, ch:["World War I","World War II","Cold War","Civil wars","Revolutions","Genocides"] },
+    "Events":{ v:95000, ch:["Disasters","Elections","Coronations","Treaties","Exhibitions","Discoveries"] },
+  }},
+  "Human activities": { icon:"\u{1F3C3}", children: {
+    "Business":{ v:145000, ch:["Companies","Finance","Marketing","Management","Industry","Entrepreneurship"] },
+    "Agriculture":{ v:68000, ch:["Farming","Fisheries","Forestry","Horticulture","Animal husbandry","Irrigation"] },
+    "Crime":{ v:78000, ch:["Organized crime","Cybercrime","Fraud","Theft","Homicide","Corruption"] },
+    "Entertainment":{ v:155000, ch:["Amusement parks","Circuses","Comedy","Gambling","Nightlife","Tourism"] },
+    "Transportation":{ v:112000, ch:["Aviation","Railways","Maritime","Roads","Public transit","Space transport"] },
+    "Warfare":{ v:135000, ch:["Military strategy","Weapons","Naval warfare","Aerial warfare","Cyber warfare","Espionage"] },
+    "Communication":{ v:88000, ch:["Languages","Telecommunications","Postal systems","Sign language","Semiotics","Translation"] },
+  }},
+  "Mathematics & logic": { icon:"\u{1F4D0}", children: {
+    "Mathematics":{ v:85000, ch:["Algebra","Calculus","Geometry","Number theory","Topology","Statistics"] },
+    "Logic":{ v:28000, ch:["Formal logic","Informal logic","Mathematical logic","Philosophical logic","Boolean algebra","Proof theory"] },
+    "Applied math":{ v:45000, ch:["Cryptography","Game theory","Optimization","Probability","Mathematical physics","Numerical analysis"] },
+    "Theoretical CS":{ v:32000, ch:["Algorithms","Computability","Complexity theory","Information theory","Automata theory","Formal languages"] },
+  }},
+  "Natural & physical sciences": { icon:"\u{1F52C}", children: {
+    "Biology":{ v:380000, ch:["Botany","Zoology","Ecology","Genetics","Microbiology","Marine biology"] },
+    "Chemistry":{ v:95000, ch:["Organic chemistry","Inorganic chemistry","Biochemistry","Analytical chemistry","Physical chemistry","Electrochemistry"] },
+    "Physics":{ v:78000, ch:["Quantum mechanics","Relativity","Thermodynamics","Optics","Particle physics","Astrophysics"] },
+    "Earth sciences":{ v:145000, ch:["Geology","Meteorology","Oceanography","Paleontology","Volcanology","Seismology"] },
+    "Astronomy":{ v:110000, ch:["Planets","Stars","Galaxies","Cosmology","Space exploration","Telescopes"] },
+    "Environment":{ v:92000, ch:["Climate change","Conservation","Pollution","Biodiversity","Ecosystems","Renewable energy"] },
+  }},
+  "People & self": { icon:"\u{1F464}", children: {
+    "Biography":{ v:890000, ch:["Scientists","Politicians","Artists","Athletes","Writers","Entrepreneurs"] },
+    "Gender":{ v:42000, ch:["Women","Men","Transgender","Non-binary","Gender studies","Feminism"] },
+    "Human body":{ v:55000, ch:["Anatomy","Physiology","Brain","Nervous system","Senses","Aging"] },
+    "Personal life":{ v:35000, ch:["Family","Childhood","Relationships","Marriage","Death","Identity"] },
+    "Consciousness":{ v:18000, ch:["Cognition","Emotion","Intelligence","Memory","Perception","Dreams"] },
+  }},
+  "Philosophy & thinking": { icon:"\u{1F4AD}", children: {
+    "Philosophy":{ v:72000, ch:["Ethics","Epistemology","Metaphysics","Aesthetics","Political philosophy","Logic"] },
+    "Traditions":{ v:45000, ch:["Western philosophy","Eastern philosophy","African philosophy","Existentialism","Pragmatism","Stoicism"] },
+    "Critical thinking":{ v:22000, ch:["Reasoning","Argumentation","Cognitive biases","Skepticism","Fallacies","Decision-making"] },
+    "Thought":{ v:15000, ch:["Concepts","Creativity","Imagination","Intuition","Judgment","Problem solving"] },
+  }},
+  "Religion & belief systems": { icon:"\u{1F54A}", children: {
+    "Major religions":{ v:185000, ch:["Christianity","Islam","Hinduism","Buddhism","Judaism","Sikhism"] },
+    "Other religions":{ v:65000, ch:["Taoism","Shinto","Baha'i","Jainism","Zoroastrianism","Indigenous religions"] },
+    "Religious concepts":{ v:48000, ch:["God","Prayer","Scripture","Salvation","Pilgrimage","Afterlife"] },
+    "Spirituality":{ v:32000, ch:["Meditation","Mysticism","New Age","Esotericism","Yoga traditions","Shamanism"] },
+    "Atheism & Secularism":{ v:18000, ch:["Agnosticism","Humanism","Secularism","Freethought","Rationalism","Irreligion"] },
+  }},
+  "Society & social sciences": { icon:"\u{1F3DB}", children: {
+    "Politics & Govt":{ v:245000, ch:["Democracy","Elections","Political parties","Intl relations","Human rights","Diplomacy"] },
+    "Law":{ v:135000, ch:["Criminal law","Constitutional law","International law","Civil rights","Intellectual property","Courts"] },
+    "Economics":{ v:155000, ch:["Macroeconomics","Trade","Poverty","Taxation","Monetary policy","Development"] },
+    "Social issues":{ v:88000, ch:["Inequality","Discrimination","Immigration","Homelessness","Disability rights","Poverty"] },
+    "Sociology":{ v:65000, ch:["Social groups","Culture","Demographics","Urbanization","Social movements","Media studies"] },
+    "Psychology":{ v:78000, ch:["Clinical psych","Cognitive psych","Developmental psych","Social psych","Neuropsychology","Behavioral psych"] },
+  }},
+  "Technology & applied sciences": { icon:"\u{2699}", children: {
+    "Computing":{ v:145000, ch:["Software","Hardware","Artificial intelligence","Cybersecurity","Internet","Databases"] },
+    "Engineering":{ v:112000, ch:["Civil engineering","Electrical engineering","Mechanical engineering","Aerospace","Bioengineering","Chemical engineering"] },
+    "Electronics":{ v:68000, ch:["Semiconductors","Circuit design","Consumer electronics","Microcontrollers","Sensors","Displays"] },
+    "Energy":{ v:75000, ch:["Fossil fuels","Nuclear power","Solar energy","Wind power","Batteries","Power grid"] },
+    "Biotechnology":{ v:42000, ch:["Genetic engineering","CRISPR","Bioinformatics","Bioethics","Synthetic biology","Cloning"] },
+    "Telecom":{ v:55000, ch:["5G","Fiber optics","Satellites","Radio","Mobile networks","Signal processing"] },
+    "Materials":{ v:35000, ch:["Metals","Polymers","Ceramics","Nanomaterials","Composites","Superconductors"] },
+  }},
+};
+
+// Article templates per leaf
+function getArticlesForLeaf(name) {
+  const map = {
+    "Football":["FIFA World Cup","Premier League","La Liga","Champions League","Pelé","Maradona"],
+    "Cricket":["Test cricket","ICC World Cup","Sachin Tendulkar","The Ashes","IPL","Don Bradman"],
+    "Film":["Cinema of India","Hollywood","Akira Kurosawa","Film noir","Documentary","Silent film"],
+    "Music":["Jazz","Classical music","K-pop","Hip hop","Beethoven","Electronic music"],
+    "Democracy":["Athenian democracy","Universal suffrage","Electoral systems","Parliament","Referendum","Federalism"],
+    "Climate change":["Global warming","Paris Agreement","Greenhouse gas","Sea level rise","Carbon footprint","IPCC"],
+    "Artificial intelligence":["Machine learning","Deep learning","Neural network","GPT","Computer vision","Robotics"],
+    "World War II":["D-Day","Holocaust","Pearl Harbor","Battle of Stalingrad","Hiroshima","Nuremberg trials"],
+    "Christianity":["Bible","Catholic Church","Protestant Reformation","Eastern Orthodoxy","Jesus","Vatican"],
+    "Islam":["Quran","Muhammad","Mecca","Sunni Islam","Shia Islam","Islamic golden age"],
+    "Quantum mechanics":["Wave function","Heisenberg uncertainty","Entanglement","Superposition","Quantum computing","Double-slit experiment"],
+    "Diseases":["Cancer","Diabetes","Malaria","HIV/AIDS","COVID-19","Tuberculosis"],
+    "Software":["Linux","Open source","Programming languages","Operating systems","Cloud computing","Version control"],
+    "Scientists":["Marie Curie","Einstein","Newton","Darwin","Hawking","Rosalind Franklin"],
+    "Politicians":["Abraham Lincoln","Winston Churchill","Nelson Mandela","Angela Merkel","Nehru","Bolívar"],
+    "Ancient history":["Roman Empire","Ancient Egypt","Ancient Greece","Mesopotamia","Indus Valley","Han Dynasty"],
+    "Fiction":["Novel","Short story","Fantasy fiction","Science fiction","Literary criticism","Book awards"],
+    "Painting":["Mona Lisa","Impressionism","Renaissance art","Abstract art","Frida Kahlo","Picasso"],
+    "Cybersecurity":["Hacking","Encryption","Phishing","Ransomware","Firewall","Zero-day exploit"],
+    "Genetics":["DNA","Gene","Heredity","Genome project","Epigenetics","Gene therapy"],
+    "Elections":["US elections","UK general elections","Indian elections","Electoral fraud","Voting systems","Gerrymandering"],
+  };
+  return map[name] || ["Overview","Key concepts","Major figures","History","Modern developments","Controversies"];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
+function sRng(seed) { let s=Math.abs(seed)||1; return()=>{ s=(s*16807)%2147483647; return(s-1)/2147483646; }; }
+function hsh(str) { let h=0; for(let i=0;i<str.length;i++) h=((h<<5)-h)+str.charCodeAt(i); return Math.abs(h); }
+
+function genRisk(path) {
+  const r = sRng(hsh(path));
+  const b = { quality:.15+r()*.55, reference:.10+r()*.60, revert:.05+r()*.45, readability:.10+r()*.50, tone:.05+r()*.40 };
+  if(/Politic|War|Military|Conflict|Crime|Genocide|Warfare/.test(path)) { b.tone=Math.min(1,b.tone+.28); b.revert=Math.min(1,b.revert+.22); }
+  if(/Biography|Sport|Football|Cricket|Olympic/.test(path)) { b.reference=Math.min(1,b.reference+.18); }
+  if(/Medicine|Chemistry|Pharm|Surgery|Disease|Immunol/.test(path)) { b.readability=Math.min(1,b.readability+.22); }
+  if(/Internet|Video game|Entertainment|Mass media|Celebrity/.test(path)) { b.quality=Math.min(1,b.quality+.18); }
+  if(/Religion|Belief|Atheism|Spirituality|God|Prayer/.test(path)) { b.tone=Math.min(1,b.tone+.18); }
+  return b;
+}
+
+function comp(s) { return s.quality*.3+s.reference*.25+s.revert*.15+s.readability*.15+s.tone*.15; }
+function riskVal(scores,f) { return f?scores[f]:comp(scores); }
+// Dynamic normalization range — set by render() based on the actual data shown.
+// This ensures the full color spectrum is always used, so every 2-point score
+// difference produces a visually distinct color.
+let _colorMin = 0.20, _colorMax = 0.60;
+
+function hc(v) {
+  // Normalize v into 0–1 relative to the actual data range
+  const t = Math.max(0, Math.min(1, (v - _colorMin) / (_colorMax - _colorMin)));
+  // Map through a vivid 4-stop scale: green → yellow → orange → red
+  const scale = d3.scaleLinear()
+    .domain([0, 0.33, 0.66, 1])
+    .range(["#1ac97a", "#f5d000", "#f06000", "#c0001a"])
+    .interpolate(d3.interpolateRgb);
+  return scale(t);
+}
+function hca(v,a) { const c=d3.color(hc(v)); c.opacity=a; return c+""; }
+
+// ═══════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════
+let state = { path:[], riskFilter:null, selectedItem:null, sortBy:"risk" };
+let gEl, packW, packH;
+const svg = d3.select("#packSvg");
+const ctr = document.getElementById("packContainer");
+
+// ═══════════════════════════════════════════════════════════════
+// HIERARCHY (3 levels)
+// ═══════════════════════════════════════════════════════════════
+function buildH() {
+  const cats = Object.entries(TAXONOMY).map(([cn, cd]) => {
+    const subs = Object.entries(cd.children).map(([sn, sd]) => {
+      const leaves = sd.ch.map(ln => {
+        const sc = genRisk(cn+"/"+sn+"/"+ln);
+        return { name:ln, value:Math.round(sd.v/sd.ch.length), scores:sc, composite:riskVal(sc,state.riskFilter), cat:cn, sub:sn, isLeaf:true };
+      });
+      const avg = {}; RISK_TYPES.forEach(rt=>{ avg[rt.key]=leaves.reduce((s,l)=>s+l.scores[rt.key],0)/leaves.length; });
+      return { name:sn, articles:sd.v, scores:avg, composite:riskVal(avg,state.riskFilter), children:leaves, cat:cn };
+    });
+    const tot = subs.reduce((s,c)=>s+c.articles,0);
+    const avg = {}; RISK_TYPES.forEach(rt=>{ avg[rt.key]=subs.reduce((s,c)=>s+c.scores[rt.key],0)/subs.length; });
+    return { name:cn, icon:cd.icon, articles:tot, scores:avg, composite:riskVal(avg,state.riskFilter), children:subs };
+  });
+  return { name:"Wikipedia", children:cats };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER — flat single-level circle pack (drill-down on click)
+// ═══════════════════════════════════════════════════════════════
+
+// Get the items for the current drill-down level
+function getItemsForLevel() {
+  const data = buildH();
+  if(state.path.length === 0) {
+    // Level 0: show top-level categories
+    return { items: data.children, levelLabel: "Categories", parent: null };
+  }
+  if(state.path.length === 1) {
+    // Level 1: show subcategories of chosen category
+    const cat = data.children.find(c => c.name === state.path[0]);
+    return { items: cat ? cat.children : [], levelLabel: "Subcategories", parent: cat };
+  }
+  if(state.path.length >= 2) {
+    // Level 2: show leaf topics of chosen subcategory
+    const cat = data.children.find(c => c.name === state.path[0]);
+    const sub = cat ? cat.children.find(s => s.name === state.path[1]) : null;
+    return { items: sub ? sub.children : [], levelLabel: "Topics", parent: sub };
+  }
+  return { items: [], levelLabel: "", parent: null };
+}
+
+function render() {
+  packW = ctr.offsetWidth;
+  packH = Math.max(460, Math.min(680, packW * 0.62));
+  svg.attr("viewBox", `0 0 ${packW} ${packH}`).attr("width", packW).attr("height", packH);
+  svg.selectAll("*").remove();
+
+  const { items } = getItemsForLevel();
+  if(!items.length) return;
+
+  // Compute the actual score range for this view and set the color normalization bounds.
+  // A small padding ensures extreme outliers don't compress all other colors,
+  // and a minimum spread of 0.10 (10 pts) ensures at least some color variation.
+  const scores = items.map(it => it.composite || 0);
+  const rawMin = Math.min(...scores), rawMax = Math.max(...scores);
+  const spread = Math.max(0.10, rawMax - rawMin);
+  _colorMin = rawMin - spread * 0.05;
+  _colorMax = rawMax + spread * 0.05;
+
+  // Build a flat hierarchy: single root with direct children only
+  const flatData = { name: "root", children: items.map(it => ({
+    ...it,
+    // Use article count or value as the circle sizing
+    value: it.articles || it.value || 10000,
+  }))};
+
+  const root = d3.hierarchy(flatData).sum(d => d.value || 0)
+    .sort((a, b) => (b.data.composite || 0) - (a.data.composite || 0));
+
+  d3.pack().size([packW, packH]).padding(18)(root);
+
+  // Defs
+  const defs = svg.append("defs");
+  const gl = defs.append("filter").attr("id", "gl");
+  gl.append("feGaussianBlur").attr("stdDeviation", "3").attr("result", "b");
+  const fm = gl.append("feMerge");
+  fm.append("feMergeNode").attr("in", "b");
+  fm.append("feMergeNode").attr("in", "SourceGraphic");
+
+  // Clip paths
+  root.children.forEach((d, i) => {
+    d._uid = "clip-" + i;
+    defs.append("clipPath").attr("id", d._uid)
+      .append("circle").attr("cx", 0).attr("cy", 0).attr("r", d.r * 0.88);
+  });
+
+  gEl = svg.append("g");
+
+  // Only render the children (not root)
+  const nodes = root.children || [];
+  const node = gEl.selectAll("g.node").data(nodes).join("g")
+    .attr("class", "node")
+    .attr("transform", d => `translate(${d.x},${d.y})`)
+    .style("cursor", "pointer");
+
+  // Background circle
+  node.append("circle").attr("r", d => d.r)
+    .attr("fill", d => hca(d.data.composite || 0, 0.28))
+    .attr("stroke", d => hc(d.data.composite || 0))
+    .attr("stroke-width", 1.5)
+    .attr("stroke-opacity", 0.65);
+
+  // Inner glow dot
+  node.append("circle").attr("r", d => Math.max(5, d.r * 0.25))
+    .attr("fill", d => hc(d.data.composite || 0))
+    .attr("opacity", 0.35)
+    .attr("filter", "url(#gl)");
+
+  // Clipped label group
+  const labelG = node.append("g")
+    .attr("clip-path", d => `url(#${d._uid})`)
+    .style("pointer-events", "none");
+
+  // Icon (for top-level categories)
+  if(state.path.length === 0) {
+    labelG.append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", d => d.r > 50 ? "-0.8em" : "-0.3em")
+      .attr("font-size", d => Math.max(10, Math.min(28, d.r * 0.32)))
+      .text(d => d.data.icon || "");
+  }
+
+  // Name label — multi-line word-wrapped
+  const nameText = labelG.append("text")
+    .attr("text-anchor", "middle")
+    .attr("font-family", state.path.length === 0 ? "var(--font-serif)" : "var(--font-sans)")
+    .attr("font-weight", state.path.length === 0 ? 700 : 600)
+    .attr("fill", "var(--text-primary)")
+    .attr("opacity", d => d.r > 22 ? 0.9 : 0);
+
+  nameText.each(function(d) {
+    const sel = d3.select(this);
+    const name = d.data.name;
+    // Slightly smaller font than before so text fits better
+    const fs = Math.max(7, Math.min(13, d.r * 0.20));
+    sel.attr("font-size", fs);
+    // Estimate chars that fit per line (approx 0.58× font-size per char)
+    const cpl = Math.max(5, Math.floor((d.r * 1.65) / (fs * 0.58)));
+    // Word-wrap
+    const words = name.split(/\s+/);
+    const lines = [];
+    let cur = "";
+    for (const w of words) {
+      const test = cur ? cur + " " + w : w;
+      if (test.length > cpl && cur.length > 0) { lines.push(cur); cur = w; }
+      else cur = test;
+    }
+    if (cur) lines.push(cur);
+    const lh = fs * 1.25;
+    // For top-level (with icon), offset the text block below the icon
+    const iconOff = state.path.length === 0 ? (d.r > 50 ? fs * 1.8 : fs * 1.4) : 0;
+    // Start position: vertically center the whole text block around iconOff
+    const startY = iconOff - (lines.length - 1) * lh / 2;
+    lines.forEach((line, i) => {
+      sel.append("tspan").attr("x", 0).attr("dy", i === 0 ? startY + "px" : lh + "px").text(line);
+    });
+    // Store bottom of name block so score/count labels can be placed below it
+    d._nameBottom = startY + (lines.length - 1) * lh;
+    d._fs = fs;
+  });
+
+  // Score label — positioned dynamically below name text
+  labelG.append("text")
+    .attr("text-anchor", "middle")
+    .attr("font-family", "var(--font-mono)")
+    .attr("font-weight", 700)
+    .attr("font-size", d => Math.max(7, Math.min(13, d.r * 0.18)))
+    .attr("fill", d => hc(d.data.composite || 0))
+    .attr("opacity", d => d.r > 22 ? 0.85 : 0)
+    .attr("dy", d => ((d._nameBottom || 0) + (d._fs || 11) * 1.7) + "px")
+    .text(d => Math.round((d.data.composite || 0) * 100));
+
+  // Article count — positioned below score
+  labelG.append("text")
+    .attr("text-anchor", "middle")
+    .attr("font-family", "var(--font-mono)")
+    .attr("font-size", d => Math.max(5, Math.min(9, d.r * 0.12)))
+    .attr("fill", "var(--text-muted)")
+    .attr("opacity", d => d.r > 40 ? 0.7 : 0)
+    .attr("dy", d => ((d._nameBottom || 0) + (d._fs || 11) * 3.0) + "px")
+    .text(d => {
+      const v = d.data.articles || d.data.value;
+      return v ? (v >= 1000 ? Math.round(v/1000) + "k articles" : v + " articles") : "";
+    });
+
+  // Hover effects
+  node.on("mouseenter", function(ev, d) {
+    d3.select(this).select("circle")
+      .transition().duration(120)
+      .attr("stroke-opacity", 0.9)
+      .attr("stroke-width", 2.5)
+      .attr("fill", hca(d.data.composite || 0, 0.40));
+  })
+  .on("mouseleave", function(ev, d) {
+    d3.select(this).select("circle")
+      .transition().duration(200)
+      .attr("stroke-opacity", 0.65)
+      .attr("stroke-width", 1.5)
+      .attr("fill", hca(d.data.composite || 0, 0.28));
+  });
+
+  // Click → drill down
+  node.on("click", function(ev, d) {
+    ev.stopPropagation();
+    const item = d.data;
+
+    if(item.isLeaf) {
+      // Leaf: show articles
+      state.path = [item.cat, item.sub, item.name];
+      state.selectedItem = item;
+      showArticles();
+    } else if(state.path.length < 2) {
+      // Drill into next level
+      if(state.path.length === 0) state.path = [item.name];
+      else state.path = [...state.path, item.name];
+      state.selectedItem = item;
+      document.getElementById("articleSection").style.display = "none";
+      render();
+    }
+    renderDetail(); renderBC(); renderSt(); updateDI(); updateCtrl();
+  });
+
+  // Entrance animation
+  node.attr("opacity", 0)
+    .transition().duration(400).delay((d, i) => i * 25)
+    .attr("opacity", 1);
+
+  // Click background to go up
+  svg.on("contextmenu", ev => { ev.preventDefault(); zoomOut(); });
+
+  updateCtrl(); updateDI();
+}
+
+function zoomIn() {
+  // Drill into highest-risk item
+  const { items } = getItemsForLevel();
+  if(!items.length) return;
+  const best = items.reduce((a, b) => (b.composite || 0) > (a.composite || 0) ? b : a);
+  if(best.isLeaf) {
+    state.path = [best.cat, best.sub, best.name];
+    state.selectedItem = best;
+    showArticles();
+  } else {
+    state.path = [...state.path, best.name];
+    state.selectedItem = best;
+    document.getElementById("articleSection").style.display = "none";
+    render();
+  }
+  renderDetail(); renderBC(); renderSt(); updateDI(); updateCtrl();
+}
+
+function zoomOut() {
+  if(state.path.length === 0) return;
+  state.path = state.path.slice(0, -1);
+  state.selectedItem = null;
+  document.getElementById("articleSection").style.display = "none";
+  render();
+  renderDetail(); renderBC(); renderSt(); updateDI(); updateCtrl();
+}
+
+function updateCtrl() {
+  document.getElementById("zoomOutBtn").disabled = state.path.length === 0;
+  const { items } = getItemsForLevel();
+  const hasChildren = items.some(i => !i.isLeaf);
+  document.getElementById("zoomInBtn").disabled = !hasChildren && state.path.length >= 2;
+}
+
+function updateDI() {
+  const d = state.path.length;
+  for(let i = 0; i < 3; i++) document.getElementById("dot" + i).className = "depth-dot" + (i <= d ? " filled" : "");
+  document.getElementById("depthLabel").textContent = ["All Wikipedia", "Category", "Subcategory", "Topic"][Math.min(d, 3)];
+  document.getElementById("zoomHint").textContent = [
+    "Click a circle to explore a category",
+    "Click a subcategory to see its topics \u00b7 \u2212 to go back",
+    "Click a topic to see articles \u00b7 \u2212 to go back",
+    "Viewing topic articles \u00b7 \u2212 to go back"
+  ][Math.min(d, 3)];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ARTICLES
+// ═══════════════════════════════════════════════════════════════
+function showArticles() {
+  if(state.path.length<3) return;
+  const ln=state.path[2], names=getArticlesForLeaf(ln);
+  const arts=names.map(n=>{
+    const r=sRng(hsh(state.path.join("/")+n));
+    const sc={quality:r()*.8+.1,reference:r()*.8+.05,revert:r()*.7+.05,readability:r()*.7+.1,tone:r()*.6+.05};
+    return{name:n,scores:sc,composite:riskVal(sc,state.riskFilter),views:Math.floor(r()*50000+500)};
+  });
+  if(state.sortBy==="risk") arts.sort((a,b)=>b.composite-a.composite); else arts.sort((a,b)=>b.views-a.views);
+  document.getElementById("articleTitle").textContent=ln+" \u2014 Sample Articles";
+  const list=document.getElementById("articleList"); list.innerHTML="";
+  arts.forEach((a,i)=>{
+    const row=document.createElement("div");
+    row.className="article-row"+(state.selectedItem?.name===a.name?" selected":"");
+    row.style.animationDelay=i*25+"ms";
+    row.onclick=()=>{state.selectedItem=a;renderDetail();list.querySelectorAll(".article-row").forEach(r=>r.classList.remove("selected"));row.classList.add("selected");};
+    const sp=RISK_TYPES.map(rt=>`<div style="width:3px;height:${Math.max(2,a.scores[rt.key]*16)}px;background:${rt.color};opacity:.7;border-radius:1px"></div>`).join("");
+    row.innerHTML=`<div><div class="article-name">${a.name}</div><div class="article-views">${a.views.toLocaleString()} views/mo</div></div><div class="spark-bars">${sp}</div><div class="article-score" style="color:${hc(a.composite)}">${Math.round(a.composite*100)}</div>`;
+    list.appendChild(row);
+  });
+  document.getElementById("articleSection").style.display="block";
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DETAIL
+// ═══════════════════════════════════════════════════════════════
+function renderDetail() {
+  const el=document.getElementById("detailPanel"), it=state.selectedItem;
+  if(!it){el.innerHTML=infoHTML();return;}
+  const sc=it.scores||{}, cv=it.composite??comp(sc);
+  const bars=RISK_TYPES.map(rt=>{const v=sc[rt.key]||0;return`<div class="risk-row"><span class="name">${rt.label}</span><div class="track"><div class="fill" style="width:${v*100}%;background:${rt.color};${v>.6?`box-shadow:0 0 5px ${rt.color}44`:""}"></div></div><span class="pct" style="color:${v>.6?rt.color:"var(--text-tertiary)"};font-weight:${v>.6?600:400}">${Math.round(v*100)}%</span></div>`;}).join("");
+  const flags=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,2).filter(([,v])=>v>.45).map(([k])=>{const rt=RISK_TYPES.find(r=>r.key===k);return`<div class="flag" style="color:${rt.color}">\u25b8 ${rt.label}: ${rt.desc}</div>`;}).join("");
+  const rec=cv>.55?"High priority. Multiple risk signals suggest immediate editorial review.":cv>.38?"Moderate priority. Some risk signals elevated \u2014 consider targeted improvements.":"Lower priority. Risk signals within acceptable ranges.";
+  el.innerHTML=`<div class="detail-panel"><button class="close-btn" onclick="state.selectedItem=null;renderDetail()">\u2715</button><div class="risk-label" style="color:${hc(cv)}">COMPOSITE RISK ${Math.round(cv*100)}%</div><h3>${it.icon?it.icon+" ":""}${it.name}</h3><div class="meta">${it.articles?it.articles.toLocaleString()+" articles":""}${it.views?it.views.toLocaleString()+" views/mo":""}</div><div class="section-label">Risk Breakdown</div>${bars}<div class="recommendation"><div class="section-label">Priority Recommendation</div><p>${rec}</p>${flags}</div></div>`;
+}
+function infoHTML() {
+  const lg=RISK_TYPES.map(rt=>`<div class="risk-legend-item"><div class="risk-legend-dot" style="background:${rt.color}"></div><div><div class="lname">${rt.label}</div><div class="desc">${rt.desc}</div></div></div>`).join("");
+  return`<div class="info-panel"><div class="section-label">About This Tool</div><p>WikiHeatmap visualizes content risk across Wikipedia's official category taxonomy using five ML model dimensions. Larger circles = more articles. Color intensity = risk severity. Navigate 3 levels: Category \u2192 Subcategory \u2192 Topic.</p><div class="section-label" style="margin-bottom:8px">Risk Dimensions</div>${lg}<div class="info-tip">\u2139 Click any circle to zoom in. Use +/\u2212 buttons or scroll wheel. Click a leaf topic to see sample articles with detailed risk breakdowns.</div></div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// BREADCRUMB
+// ═══════════════════════════════════════════════════════════════
+function renderBC() {
+  const el=document.getElementById("breadcrumb");
+  let h=`<button class="${state.path.length===0?"active":""}" onclick="navTo([])">All Wikipedia</button>`;
+  state.path.forEach((s,i)=>{const last=i===state.path.length-1;h+=`<span class="sep">\u203a</span><button class="${last?"active":""}" onclick="navTo(${JSON.stringify(state.path.slice(0,i+1))})">${s}</button>`;});
+  el.innerHTML=h;
+}
+function navTo(path) {
+  state.path=path; state.selectedItem=null;
+  document.getElementById("articleSection").style.display="none";
+  render();
+  if(path.length===3) {
+    // Find the leaf data
+    const data = buildH();
+    const cat = data.children.find(c=>c.name===path[0]);
+    const sub = cat?.children.find(s=>s.name===path[1]);
+    const leaf = sub?.children.find(l=>l.name===path[2]);
+    if(leaf) { state.selectedItem=leaf; showArticles(); }
+  }
+  renderDetail(); renderBC(); renderSt(); updateDI(); updateCtrl();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════════════
+function renderSt() {
+  const el=document.getElementById("statsRow"), d=buildH(), ac=d.children, as=ac.flatMap(c=>c.children||[]);
+  const tot=ac.reduce((s,c)=>s+c.articles,0);
+  let items,label;
+  if(state.path.length>=2){const sub=as.find(s=>s.name===state.path[1]&&s.cat===state.path[0]);items=sub?.children||[];label="Topics";}
+  else if(state.path.length===1){const cat=ac.find(c=>c.name===state.path[0]);items=cat?.children||[];label="Subcategories";}
+  else{items=ac;label="Categories";}
+  const avg=items.length?items.reduce((s,c)=>s+(c.composite||0),0)/items.length:0;
+  const hi=items.filter(c=>(c.composite||0)>.5).length;
+  el.innerHTML=[{l:"Total Articles",v:tot.toLocaleString()},{l:"Avg Risk",v:(avg*100).toFixed(1)+"%",c:hc(avg)},{l:"High Risk",v:hi,c:hi?"#e54d2e":""},{l:label,v:items.length}]
+    .map((s,i)=>`<div class="stat-card" style="animation-delay:${i*40}ms"><div class="label">${s.l}</div><div class="value" style="${s.c?`color:${s.c}`:""}">${s.v}</div></div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════════════════════════
+function renderF() {
+  const el=document.getElementById("riskFilters");
+  el.innerHTML=[{key:null,label:"Composite"},...RISK_TYPES].map(rt=>{
+    const a=state.riskFilter===rt.key;
+    const st=a&&rt.color?`background:${rt.color}11;border-color:${rt.color}44;color:${rt.color};font-weight:600`:a?`background:var(--text-primary);color:#fff;border-color:transparent;font-weight:600`:"";
+    return`<button class="risk-btn ${a?"active":""}" style="${st}" onclick="setF(${rt.key?`'${rt.key}'`:'null'})">${rt.label}</button>`;
+  }).join("");
+}
+function setF(k){state.riskFilter=k;renderF();render();renderSt();}
+
+// Events
+document.addEventListener("click",e=>{if(e.target.classList.contains("sort-btn")){state.sortBy=e.target.dataset.sort;document.querySelectorAll(".sort-btn").forEach(b=>b.classList.remove("active"));e.target.classList.add("active");showArticles();}});
+document.getElementById("zoomInBtn").onclick=e=>{e.stopPropagation();zoomIn();};
+document.getElementById("zoomOutBtn").onclick=e=>{e.stopPropagation();zoomOut();};
+document.getElementById("zoomResetBtn").onclick=e=>{e.stopPropagation();navTo([]);};
+document.getElementById("packContainer").onwheel=ev=>{ev.preventDefault();ev.deltaY<0?zoomIn():zoomOut();};
+
+// ═══════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════
+renderF(); renderBC(); renderSt(); renderDetail(); render();
+window.addEventListener("resize",()=>render());
+</script>
+</body>
+</html>
