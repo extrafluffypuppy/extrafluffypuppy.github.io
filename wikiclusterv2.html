@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WikiCluster — Content Clustering Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700;900&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF8;
+    --card-bg: #FFFFFF;
+    --border: #E8E5DF;
+    --text-primary: #1A1A18;
+    --text-secondary: #6B6B63;
+    --text-tertiary: #9B9B93;
+    --accent: #3366CC;
+    --tag-bg: #F0EDE8;
+    --hover-bg: #F5F3EE;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideInLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-5px); }
+  }
+
+  .header {
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card-bg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .header-logo {
+    width: 28px; height: 28px;
+    background: var(--text-primary);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--bg);
+    font-size: 13px; font-weight: 900;
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+  .header-title {
+    font-size: 15px; font-weight: 700;
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+  .header-badge {
+    font-size: 10px; font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--tag-bg);
+    padding: 2px 8px; border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+  }
+  .back-btn {
+    background: none; border: 1px solid var(--border);
+    padding: 5px 14px; border-radius: 8px;
+    font-size: 12px; color: var(--text-secondary);
+    cursor: pointer; font-family: 'DM Sans', sans-serif;
+    font-weight: 500; display: none;
+    transition: all 0.2s;
+  }
+  .back-btn:hover { background: var(--hover-bg); }
+
+  .container { max-width: 920px; margin: 0 auto; padding: 32px 20px; }
+
+  /* Selection screen */
+  .select-screen { animation: fadeUp 0.5s ease; }
+  .select-title {
+    font-size: 32px; font-weight: 900;
+    font-family: 'Source Serif 4', Georgia, serif;
+    text-align: center;
+    letter-spacing: -0.02em;
+    margin-bottom: 10px;
+  }
+  .select-subtitle {
+    font-size: 15px; color: var(--text-secondary);
+    text-align: center;
+    max-width: 520px; margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+
+  .user-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 12px;
+    animation: fadeUp 0.5s ease both;
+  }
+  .user-card:nth-child(2) { animation-delay: 0.1s; }
+  .user-card:nth-child(3) { animation-delay: 0.2s; }
+  .user-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+  }
+  .user-avatar {
+    width: 52px; height: 52px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .user-info { flex: 1; }
+  .user-name-row { display: flex; align-items: baseline; gap: 8px; }
+  .user-name {
+    font-size: 17px; font-weight: 700;
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+  .user-meta { font-size: 12px; color: var(--text-tertiary); }
+  .user-tagline { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+  .user-count {
+    font-size: 12px; font-weight: 600;
+    padding: 5px 14px; border-radius: 99px;
+    flex-shrink: 0;
+  }
+
+  /* Pipeline */
+  .pipeline {
+    margin-top: 40px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    animation: fadeUp 0.5s ease 0.3s both;
+  }
+  .pipeline-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+    font-family: 'DM Mono', monospace;
+  }
+  .pipeline-steps { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+  .pipeline-step {
+    font-size: 11px; color: var(--text-secondary);
+    background: var(--tag-bg);
+    padding: 5px 12px; border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    white-space: nowrap;
+  }
+  .pipeline-step .num { color: var(--text-tertiary); margin-right: 4px; }
+  .pipeline-arrow { color: var(--text-tertiary); margin: 0 6px; font-size: 10px; }
+
+  /* User header */
+  .user-header {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.4s ease;
+  }
+  .user-header-avatar {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+  }
+  .user-header-name {
+    font-size: 20px; font-weight: 800;
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+  .user-header-tagline { font-size: 12px; color: var(--text-secondary); }
+
+  /* Articles grid */
+  .articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+  .article-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  .article-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .article-card:hover { background: var(--hover-bg); }
+  .article-title {
+    font-size: 13px; font-weight: 700;
+    font-family: 'Source Serif 4', Georgia, serif;
+    line-height: 1.3;
+  }
+  .article-desc {
+    font-size: 11px; color: var(--text-secondary);
+    margin-top: 3px; line-height: 1.4;
+  }
+
+  /* Cluster button */
+  .cluster-btn-wrap {
+    display: flex; justify-content: center;
+    animation: fadeUp 0.4s ease;
+  }
+  .cluster-btn {
+    color: #fff; border: none;
+    padding: 12px 32px; border-radius: 12px;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s ease;
+  }
+  .cluster-btn:hover { transform: scale(1.03); }
+
+  /* Thinking */
+  .thinking-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    animation: scaleIn 0.4s ease;
+  }
+  .thinking-inner {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 20px 20px; gap: 20px;
+  }
+  .thinking-ring { position: relative; width: 80px; height: 80px; }
+  .thinking-ring svg { width: 80px; height: 80px; animation: spin 3s linear infinite; }
+  .thinking-pct {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .thinking-msg {
+    font-size: 13px; color: var(--text-secondary);
+    font-family: 'DM Mono', monospace;
+    text-align: center; min-height: 20px;
+    transition: opacity 0.3s ease;
+  }
+  .thinking-tags {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    justify-content: center; max-width: 500px; margin-top: 8px;
+  }
+  .thinking-tag {
+    font-size: 10px; color: var(--text-tertiary);
+    background: var(--tag-bg);
+    padding: 3px 10px; border-radius: 99px;
+    font-family: 'DM Mono', monospace;
+    opacity: 0.3; transition: opacity 0.5s ease;
+  }
+  .thinking-tag.active { opacity: 1; }
+  .thinking-articles {
+    padding: 0 20px 20px;
+    display: flex; flex-wrap: wrap; gap: 4px;
+    justify-content: center;
+  }
+  .thinking-article-tag {
+    font-size: 10px; padding: 3px 8px; border-radius: 6px;
+    background: var(--tag-bg); color: var(--text-secondary);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Clustered view */
+  .stats-row {
+    display: flex; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 16px;
+    animation: fadeUp 0.4s ease;
+  }
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 16px;
+    flex: 1 1 auto; min-width: 120px;
+  }
+  .stat-value {
+    font-size: 22px; font-weight: 800;
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+  .stat-label {
+    font-size: 11px; color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .clustered-layout {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 700px) {
+    .clustered-layout { grid-template-columns: 1fr; }
+  }
+
+  .section-label {
+    font-size: 11px; font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: 'DM Mono', monospace;
+    padding: 0 4px; margin-bottom: 8px;
+  }
+
+  .cluster-card {
+    border-radius: 16px;
+    padding: 16px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative; overflow: hidden;
+    margin-bottom: 10px;
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+  .cluster-card.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .cluster-card.inactive {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+  }
+  .cluster-card:hover { border-color: #ccc; }
+  .cluster-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .cluster-emoji { font-size: 20px; }
+  .cluster-name {
+    font-size: 14px; font-weight: 700;
+    font-family: 'Source Serif 4', Georgia, serif;
+  }
+  .cluster-type-badge {
+    font-size: 10px; font-weight: 600;
+    padding: 2px 8px; border-radius: 99px;
+    margin-left: auto;
+    font-family: 'DM Sans', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .cluster-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .cluster-article-tag {
+    font-size: 10px; color: var(--text-secondary);
+    padding: 3px 8px; border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.3s ease;
+  }
+  .cluster-glow {
+    position: absolute; top: 0; right: 0;
+    width: 60px; height: 60px;
+    border-radius: 0 16px 0 0;
+    pointer-events: none;
+  }
+
+  /* Sidebar */
+  .sidebar { position: sticky; top: 80px; }
+  .sidebar-list {
+    display: flex; flex-direction: column; gap: 4px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  .sidebar-card {
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar-card.dimmed {
+    opacity: 0.2;
+    transform: scale(0.95);
+  }
+  .sidebar-card.highlighted {
+    border-width: 2px;
+  }
+  .sidebar-card:hover { filter: brightness(0.97); }
+  .sidebar-card-title {
+    font-size: 11px; font-weight: 700;
+    font-family: 'Source Serif 4', Georgia, serif;
+    line-height: 1.3;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 40px 20px 20px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">W</div>
+    <span class="header-title">WikiCluster</span>
+    <span class="header-badge">Content Clustering Prototype</span>
+  </div>
+  <button class="back-btn" id="backBtn" onclick="resetToSelect()">← Choose different user</button>
+</div>
+
+<div class="container">
+  <!-- SELECT SCREEN -->
+  <div id="selectScreen" class="select-screen">
+    <h1 class="select-title">Content Clustering</h1>
+    <p class="select-subtitle">Select a reader's bookmarks to see how articles can be organized into meaningful clusters — by topic, reading length, popularity, or behavior patterns.</p>
+    <div id="userCards"></div>
+    <div class="pipeline">
+      <div class="pipeline-label">Processing pipeline</div>
+      <div class="pipeline-steps" id="pipelineSteps"></div>
+    </div>
+  </div>
+
+  <!-- MAIN SCREEN (articles / thinking / clustered) -->
+  <div id="mainScreen" class="hidden">
+    <div class="user-header" id="userHeader"></div>
+    <div id="articlesPhase" class="hidden">
+      <div class="articles-grid" id="articlesGrid"></div>
+      <div class="cluster-btn-wrap hidden" id="clusterBtnWrap">
+        <button class="cluster-btn" id="clusterBtn" onclick="startClustering()">✦ Cluster these articles</button>
+      </div>
+    </div>
+    <div id="thinkingPhase" class="hidden"></div>
+    <div id="clusteredPhase" class="hidden"></div>
+  </div>
+
+  <div class="footer">WikiCluster Prototype · Built for Wikipedia product ideation · Content clustering demonstration</div>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────
+const USERS = {
+  maya: {
+    name: "Maya", age: 19, location: "New York",
+    tagline: "Media & Communications · Pop culture · Crocheting · Romantic novels",
+    emoji: "🎀", color: "#E8457C",
+    bio: "College sophomore who falls down Wikipedia rabbit holes between lectures — usually starting from a TikTok she saw in bed.",
+    articles: [
+      { id:"m1", title:"Manufacturing Consent", desc:"Chomsky & Herman's media criticism framework", url:"https://en.wikipedia.org/wiki/Manufacturing_Consent" },
+      { id:"m2", title:"Uses and Gratifications Theory", desc:"Why people consume the media they do", url:"https://en.wikipedia.org/wiki/Uses_and_gratifications_theory" },
+      { id:"m3", title:"Parasocial Interaction", desc:"One-sided relationships with media figures", url:"https://en.wikipedia.org/wiki/Parasocial_interaction" },
+      { id:"m4", title:"Agenda-setting Theory", desc:"How media shapes public priorities", url:"https://en.wikipedia.org/wiki/Agenda-setting_theory" },
+      { id:"m5", title:"Noam Chomsky", desc:"Linguist and media critic", url:"https://en.wikipedia.org/wiki/Noam_Chomsky" },
+      { id:"m6", title:"Intersectionality", desc:"Framework for overlapping social identities", url:"https://en.wikipedia.org/wiki/Intersectionality" },
+      { id:"m7", title:"Roe v. Wade", desc:"Landmark U.S. Supreme Court case", url:"https://en.wikipedia.org/wiki/Roe_v._Wade" },
+      { id:"m8", title:"Gerrymandering", desc:"Manipulation of electoral district boundaries", url:"https://en.wikipedia.org/wiki/Gerrymandering" },
+      { id:"m9", title:"Colleen Hoover", desc:"Bestselling romance/drama novelist", url:"https://en.wikipedia.org/wiki/Colleen_Hoover" },
+      { id:"m10", title:"Bridgerton (TV series)", desc:"Netflix Regency-era romance drama", url:"https://en.wikipedia.org/wiki/Bridgerton_(TV_series)" },
+      { id:"m11", title:"Romance Novel", desc:"History and conventions of the genre", url:"https://en.wikipedia.org/wiki/Romance_novel" },
+      { id:"m12", title:"Crochet", desc:"Technique, history, and modern revival", url:"https://en.wikipedia.org/wiki/Crochet" },
+      { id:"m13", title:"Amigurumi", desc:"Crocheted or knitted stuffed figures", url:"https://en.wikipedia.org/wiki/Amigurumi" },
+      { id:"m14", title:"Granny Square", desc:"Iconic crochet motif", url:"https://en.wikipedia.org/wiki/Granny_square" },
+      { id:"m15", title:"Taylor Swift", desc:"Pop/country megastar and cultural force", url:"https://en.wikipedia.org/wiki/Taylor_Swift" },
+      { id:"m16", title:"Chappell Roan", desc:"Indie pop breakout artist", url:"https://en.wikipedia.org/wiki/Chappell_Roan" },
+      { id:"m17", title:"Sabrina Carpenter", desc:"Pop singer and actress", url:"https://en.wikipedia.org/wiki/Sabrina_Carpenter" },
+      { id:"m18", title:"Quiet Luxury", desc:"Fashion trend toward understated wealth", url:"https://en.wikipedia.org/wiki/Quiet_luxury" },
+      { id:"m19", title:"Fyre Festival", desc:"Infamous fraudulent luxury music festival", url:"https://en.wikipedia.org/wiki/Fyre_Festival" },
+      { id:"m20", title:"Monica Lewinsky", desc:"Political scandal and anti-bullying advocate", url:"https://en.wikipedia.org/wiki/Monica_Lewinsky" },
+      { id:"m21", title:"Deinfluencing", desc:"Social media counter-trend to overconsumption", url:"https://en.wikipedia.org/wiki/Deinfluencing" },
+      { id:"m22", title:"Fifth-wave Feminism", desc:"Digital and intersectional feminist movement", url:"https://en.wikipedia.org/wiki/Fifth-wave_feminism" },
+      { id:"m23", title:"Citizens United v. FEC", desc:"Landmark campaign finance ruling", url:"https://en.wikipedia.org/wiki/Citizens_United_v._FEC" },
+      { id:"m24", title:"Cottagecore", desc:"Aesthetic romanticizing rural and domestic life", url:"https://en.wikipedia.org/wiki/Cottagecore" },
+      { id:"m25", title:"BookTok", desc:"TikTok book recommendation community", url:"https://en.wikipedia.org/wiki/BookTok" },
+    ],
+  },
+  camille: {
+    name: "Aurélie", age: 40, location: "France",
+    tagline: "Interior designer · Parenting · Health · French current events",
+    emoji: "🏡", color: "#2D7D9A",
+    bio: "Reads Wikipedia on her phone while waiting for school pickup — design inspiration one minute, childhood illness symptoms the next.",
+    articles: [
+      { id:"c1", title:"Art Deco", desc:"Influential decorative style in French design", url:"https://en.wikipedia.org/wiki/Art_Deco" },
+      { id:"c2", title:"Bauhaus", desc:"Foundational modernist design school", url:"https://en.wikipedia.org/wiki/Bauhaus" },
+      { id:"c3", title:"Haussmann's Renovation of Paris", desc:"The redesign that shaped Parisian interiors", url:"https://en.wikipedia.org/wiki/Haussmann%27s_renovation_of_Paris" },
+      { id:"c4", title:"Feng Shui", desc:"Spatial arrangement philosophy", url:"https://en.wikipedia.org/wiki/Feng_shui" },
+      { id:"c5", title:"Terrazzo", desc:"Composite flooring material trending in interiors", url:"https://en.wikipedia.org/wiki/Terrazzo" },
+      { id:"c6", title:"Limewash", desc:"Traditional paint finish popular in renovation", url:"https://en.wikipedia.org/wiki/Limewash" },
+      { id:"c7", title:"Biophilic Design", desc:"Integrating nature into built environments", url:"https://en.wikipedia.org/wiki/Biophilic_design" },
+      { id:"c8", title:"Le Corbusier", desc:"Pioneer of modern architecture and interiors", url:"https://en.wikipedia.org/wiki/Le_Corbusier" },
+      { id:"c9", title:"Color Theory", desc:"Science and application of color", url:"https://en.wikipedia.org/wiki/Color_theory" },
+      { id:"c10", title:"Montessori Education", desc:"Child-centered educational approach", url:"https://en.wikipedia.org/wiki/Montessori_education" },
+      { id:"c11", title:"Screen Time", desc:"Effects of digital device use on children", url:"https://en.wikipedia.org/wiki/Screen_time" },
+      { id:"c12", title:"ADHD", desc:"Common childhood neurodevelopmental condition", url:"https://en.wikipedia.org/wiki/Attention_deficit_hyperactivity_disorder" },
+      { id:"c13", title:"Hand, Foot, and Mouth Disease", desc:"Common childhood illness", url:"https://en.wikipedia.org/wiki/Hand,_foot,_and_mouth_disease" },
+      { id:"c14", title:"Sleep Hygiene", desc:"Practices for better sleep quality", url:"https://en.wikipedia.org/wiki/Sleep_hygiene" },
+      { id:"c15", title:"Gut–brain Axis", desc:"Connection between digestive and mental health", url:"https://en.wikipedia.org/wiki/Gut%E2%80%93brain_axis" },
+      { id:"c16", title:"Intermittent Fasting", desc:"Popular dietary pattern", url:"https://en.wikipedia.org/wiki/Intermittent_fasting" },
+      { id:"c17", title:"Burnout (psychology)", desc:"Chronic workplace stress syndrome", url:"https://en.wikipedia.org/wiki/Occupational_burnout" },
+      { id:"c18", title:"Pension Reform in France", desc:"Recent political upheaval", url:"https://en.wikipedia.org/wiki/2023_French_pension_reform_unrest" },
+      { id:"c19", title:"Emmanuel Macron", desc:"Current President of France", url:"https://en.wikipedia.org/wiki/Emmanuel_Macron" },
+      { id:"c20", title:"2024 Summer Olympics", desc:"Paris-hosted Games", url:"https://en.wikipedia.org/wiki/2024_Summer_Olympics" },
+      { id:"c21", title:"Baguette", desc:"Cultural and UNESCO heritage status", url:"https://en.wikipedia.org/wiki/Baguette" },
+      { id:"c22", title:"European Energy Crisis", desc:"Energy price impacts across Europe", url:"https://en.wikipedia.org/wiki/2021%E2%80%932023_global_energy_crisis" },
+      { id:"c23", title:"Tadelakt", desc:"Waterproof plaster technique for bathrooms", url:"https://en.wikipedia.org/wiki/Tadelakt" },
+      { id:"c24", title:"Wabi-sabi", desc:"Aesthetic of imperfection in design", url:"https://en.wikipedia.org/wiki/Wabi-sabi" },
+      { id:"c25", title:"Pierre Jeanneret", desc:"Designer behind the iconic Chandigarh chair", url:"https://en.wikipedia.org/wiki/Pierre_Jeanneret" },
+    ],
+  },
+  hiroshi: {
+    name: "Hiroshi", age: 81, location: "Japan",
+    tagline: "Retired biochemical engineer · Science enthusiast · Birdwatcher",
+    emoji: "🔬", color: "#7C3AED",
+    bio: "Keeps up with the science he spent a career in — and catalogs every bird he spots from his kitchen window.",
+    articles: [
+      { id:"h1", title:"CRISPR Gene Editing", desc:"Revolutionary genome-editing technology", url:"https://en.wikipedia.org/wiki/CRISPR_gene_editing" },
+      { id:"h2", title:"AlphaFold", desc:"AI system for protein structure prediction", url:"https://en.wikipedia.org/wiki/AlphaFold" },
+      { id:"h3", title:"mRNA Vaccine", desc:"Breakthrough vaccine platform", url:"https://en.wikipedia.org/wiki/MRNA_vaccine" },
+      { id:"h4", title:"Catalytic Mechanism", desc:"Enzyme catalysis fundamentals", url:"https://en.wikipedia.org/wiki/Enzyme_catalysis" },
+      { id:"h5", title:"Solid-state Battery", desc:"Next-generation energy storage technology", url:"https://en.wikipedia.org/wiki/Solid-state_battery" },
+      { id:"h6", title:"Nuclear Fusion", desc:"Progress toward fusion energy", url:"https://en.wikipedia.org/wiki/Nuclear_fusion" },
+      { id:"h7", title:"Perovskite Solar Cell", desc:"Emerging photovoltaic technology", url:"https://en.wikipedia.org/wiki/Perovskite_solar_cell" },
+      { id:"h8", title:"James Webb Space Telescope", desc:"Deep-space observatory and discoveries", url:"https://en.wikipedia.org/wiki/James_Webb_Space_Telescope" },
+      { id:"h9", title:"Carbon Capture and Storage", desc:"Climate mitigation technology", url:"https://en.wikipedia.org/wiki/Carbon_capture_and_storage" },
+      { id:"h10", title:"Quantum Computing", desc:"Next frontier in computation", url:"https://en.wikipedia.org/wiki/Quantum_computing" },
+      { id:"h11", title:"Akira Yoshino", desc:"Nobel laureate for lithium-ion battery development", url:"https://en.wikipedia.org/wiki/Akira_Yoshino" },
+      { id:"h12", title:"Hayabusa2", desc:"Japanese asteroid sample-return mission", url:"https://en.wikipedia.org/wiki/Hayabusa2" },
+      { id:"h13", title:"Noto Earthquake (2024)", desc:"Major seismic event in Japan", url:"https://en.wikipedia.org/wiki/2024_Noto_earthquake" },
+      { id:"h14", title:"Fumio Kishida", desc:"Recent Prime Minister of Japan", url:"https://en.wikipedia.org/wiki/Fumio_Kishida" },
+      { id:"h15", title:"Aging of Japan", desc:"Demographic crisis facing the nation", url:"https://en.wikipedia.org/wiki/Aging_of_Japan" },
+      { id:"h16", title:"Green Pheasant", desc:"Japan's national bird", url:"https://en.wikipedia.org/wiki/Green_pheasant" },
+      { id:"h17", title:"Japanese White-eye", desc:"Common garden bird across Japan", url:"https://en.wikipedia.org/wiki/Warbling_white-eye" },
+      { id:"h18", title:"Steller's Sea Eagle", desc:"Massive raptor wintering in Hokkaido", url:"https://en.wikipedia.org/wiki/Steller%27s_sea_eagle" },
+      { id:"h19", title:"Red-crowned Crane", desc:"Iconic symbol of longevity in Japan", url:"https://en.wikipedia.org/wiki/Red-crowned_crane" },
+      { id:"h20", title:"Japanese Bush Warbler", desc:"Harbinger of spring in Japanese culture", url:"https://en.wikipedia.org/wiki/Japanese_bush_warbler" },
+      { id:"h21", title:"Blakiston's Fish Owl", desc:"Endangered owl of Hokkaido forests", url:"https://en.wikipedia.org/wiki/Blakiston%27s_fish_owl" },
+      { id:"h22", title:"Bull-headed Shrike", desc:"Distinctive passerine of East Asia", url:"https://en.wikipedia.org/wiki/Bull-headed_shrike" },
+      { id:"h23", title:"Synthetic Biology", desc:"Engineering new biological systems", url:"https://en.wikipedia.org/wiki/Synthetic_biology" },
+      { id:"h24", title:"Graphene", desc:"Single-layer carbon with extraordinary properties", url:"https://en.wikipedia.org/wiki/Graphene" },
+      { id:"h25", title:"Nobel Prize in Chemistry 2024", desc:"Recent prize for computational protein design", url:"https://en.wikipedia.org/wiki/Nobel_Prize_in_Chemistry" },
+    ],
+  },
+};
+
+const CLUSTERS = {
+  maya: [
+    { name:"How Media Shapes Your Brain", emoji:"🧠", type:"topic", color:"#7C3AED", articleIds:["m1","m2","m3","m4","m5"] },
+    { name:"Power & Justice", emoji:"⚖️", type:"topic", color:"#DC2626", articleIds:["m6","m7","m8","m22","m23"] },
+    { name:"Love Stories & Swoons", emoji:"💕", type:"topic", color:"#EC4899", articleIds:["m9","m10","m11","m25"] },
+    { name:"Yarn & Thread", emoji:"🧶", type:"topic", color:"#F59E0B", articleIds:["m12","m13","m14","m24"] },
+    { name:"Main Character Energy", emoji:"⭐", type:"popularity", color:"#8B5CF6", articleIds:["m15","m16","m17","m20"] },
+    { name:"Vibes & Aesthetics", emoji:"✨", type:"behavior", color:"#06B6D4", articleIds:["m18","m21","m24","m19"] },
+    { name:"Quick Reads", emoji:"⚡", type:"length", color:"#10B981", articleIds:["m13","m14","m16","m21","m25"] },
+    { name:"Topics You've Searched For", emoji:"🔍", type:"behavior", color:"#6366F1", articleIds:["m15","m10","m19","m9"] },
+  ],
+  camille: [
+    { name:"Design DNA", emoji:"📐", type:"topic", color:"#0D9488", articleIds:["c1","c2","c3","c8","c25"] },
+    { name:"Textures & Surfaces", emoji:"🪨", type:"topic", color:"#92400E", articleIds:["c5","c6","c23","c9"] },
+    { name:"Philosophy of Spaces", emoji:"🌿", type:"topic", color:"#15803D", articleIds:["c4","c7","c24"] },
+    { name:"The Mom Bookshelf", emoji:"👶", type:"topic", color:"#7C3AED", articleIds:["c10","c11","c12","c13"] },
+    { name:"Body & Mind", emoji:"🧘", type:"topic", color:"#E11D48", articleIds:["c14","c15","c16","c17"] },
+    { name:"La France", emoji:"🇫🇷", type:"topic", color:"#1D4ED8", articleIds:["c18","c19","c20","c21","c3"] },
+    { name:"Hidden Gems", emoji:"💎", type:"popularity", color:"#A855F7", articleIds:["c6","c23","c24","c25","c4"] },
+    { name:"Late-Night Rabbit Holes", emoji:"🐇", type:"behavior", color:"#F97316", articleIds:["c15","c22","c7","c17"] },
+  ],
+  hiroshi: [
+    { name:"The Lab Bench", emoji:"🧬", type:"topic", color:"#0891B2", articleIds:["h1","h3","h4","h23","h2"] },
+    { name:"Energy Frontiers", emoji:"⚡", type:"topic", color:"#EA580C", articleIds:["h5","h6","h7","h9"] },
+    { name:"Beyond Earth", emoji:"🔭", type:"topic", color:"#6D28D9", articleIds:["h8","h10","h12"] },
+    { name:"Birds of Japan", emoji:"🐦", type:"topic", color:"#059669", articleIds:["h16","h17","h18","h19","h20","h21","h22"] },
+    { name:"Japan Today", emoji:"🇯🇵", type:"topic", color:"#DC2626", articleIds:["h13","h14","h15"] },
+    { name:"Nobel-Adjacent", emoji:"🏅", type:"popularity", color:"#CA8A04", articleIds:["h11","h25","h2","h1","h24"] },
+    { name:"Deep Dives", emoji:"📚", type:"length", color:"#4338CA", articleIds:["h6","h10","h1","h15"] },
+    { name:"Materials Science Corner", emoji:"🔩", type:"topic", color:"#475569", articleIds:["h24","h5","h7"] },
+  ],
+};
+
+const TYPE_LABELS = { topic:"By Topic", popularity:"By Popularity", length:"By Reading Length", behavior:"By Behavior Pattern" };
+const TYPE_COLORS = { topic:"#64748B", popularity:"#EAB308", length:"#22C55E", behavior:"#A855F7" };
+
+const THINKING_MESSAGES = [
+  "Scanning article metadata…",
+  "Extracting semantic embeddings…",
+  "Computing pairwise similarity…",
+  "Identifying topic boundaries…",
+  "Resolving overlapping clusters…",
+  "Naming cluster centroids…",
+  "Assigning articles to clusters…",
+  "Optimizing cluster coherence…",
+  "Finalizing layout…",
+];
+
+const PIPELINE_STEPS = ["Load bookmarks","Extract metadata","Compute embeddings","Cluster articles","Name clusters","Render"];
+const TECH_TAGS = ["semantic similarity","tf-idf vectors","topic modeling","LDA","cosine distance"];
+
+let selectedUserKey = null;
+let activeClusterIdx = null;
+
+// ── INIT ──────────────────────────────────────────────────────────
+function init() {
+  renderUserCards();
+  renderPipeline();
+}
+
+function renderPipeline() {
+  const el = document.getElementById('pipelineSteps');
+  el.innerHTML = PIPELINE_STEPS.map((s, i) =>
+    `<span class="pipeline-step"><span class="num">0${i+1}</span> ${s}</span>${i < PIPELINE_STEPS.length-1 ? '<span class="pipeline-arrow">→</span>' : ''}`
+  ).join('');
+}
+
+function renderUserCards() {
+  const el = document.getElementById('userCards');
+  el.innerHTML = Object.entries(USERS).map(([key, u]) => `
+    <div class="user-card" onclick="selectUser('${key}')">
+      <div class="user-avatar" style="background:${u.color}15;border:2px solid ${u.color}30">${u.emoji}</div>
+      <div class="user-info">
+        <div class="user-name-row">
+          <span class="user-name">${u.name}</span>
+          <span class="user-meta">${u.age} · ${u.location}</span>
+        </div>
+        <div class="user-tagline">${u.tagline}</div>
+        <div style="font-size:12px;color:var(--text-tertiary);margin-top:2px;font-style:italic">${u.bio}</div>
+      </div>
+      <div class="user-count" style="color:${u.color};background:${u.color}12">${u.articles.length} articles</div>
+    </div>
+  `).join('');
+}
+
+// ── SELECT USER ───────────────────────────────────────────────────
+function selectUser(key) {
+  selectedUserKey = key;
+  activeClusterIdx = null;
+  const user = USERS[key];
+
+  document.getElementById('selectScreen').classList.add('hidden');
+  document.getElementById('mainScreen').classList.remove('hidden');
+  document.getElementById('backBtn').style.display = 'block';
+
+  // User header
+  document.getElementById('userHeader').innerHTML = `
+    <div class="user-header-avatar" style="background:${user.color}15;border:2px solid ${user.color}30">${user.emoji}</div>
+    <div>
+      <div class="user-header-name">${user.name}'s Reading List</div>
+      <div class="user-header-tagline">${user.tagline}</div>
+    </div>
+  `;
+
+  showArticlesPhase(user);
+}
+
+// ── ARTICLES PHASE ────────────────────────────────────────────────
+function showArticlesPhase(user) {
+  const phase = document.getElementById('articlesPhase');
+  const grid = document.getElementById('articlesGrid');
+  const btnWrap = document.getElementById('clusterBtnWrap');
+  const btn = document.getElementById('clusterBtn');
+
+  document.getElementById('thinkingPhase').classList.add('hidden');
+  document.getElementById('clusteredPhase').classList.add('hidden');
+  phase.classList.remove('hidden');
+  btnWrap.classList.add('hidden');
+
+  grid.innerHTML = user.articles.map(a => `
+    <div class="article-card" id="ac-${a.id}" onclick="window.open('${a.url}','_blank')">
+      <div class="article-title">${a.title}</div>
+      <div class="article-desc">${a.desc}</div>
+    </div>
+  `).join('');
+
+  btn.style.background = user.color;
+  btn.style.boxShadow = `0 4px 20px ${user.color}40`;
+
+  // Stagger reveal
+  let count = 0;
+  const cards = grid.querySelectorAll('.article-card');
+  const iv = setInterval(() => {
+    if (count < cards.length) {
+      cards[count].classList.add('visible');
+      count++;
+    } else {
+      clearInterval(iv);
+      btnWrap.classList.remove('hidden');
+    }
+  }, 40);
+}
+
+// ── THINKING PHASE ────────────────────────────────────────────────
+function startClustering() {
+  const user = USERS[selectedUserKey];
+  document.getElementById('articlesPhase').classList.add('hidden');
+
+  const thinkingEl = document.getElementById('thinkingPhase');
+  thinkingEl.classList.remove('hidden');
+  thinkingEl.innerHTML = `
+    <div class="thinking-box">
+      <div class="thinking-inner">
+        <div class="thinking-ring">
+          <svg viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border)" stroke-width="3"/>
+            <circle id="progressCircle" cx="40" cy="40" r="34" fill="none" stroke="${user.color}" stroke-width="3"
+              stroke-dasharray="0 214" stroke-linecap="round"/>
+          </svg>
+          <div class="thinking-pct" id="thinkingPct">0%</div>
+        </div>
+        <div class="thinking-msg" id="thinkingMsg">${THINKING_MESSAGES[0]}</div>
+        <div class="thinking-tags">
+          ${TECH_TAGS.map((t,i) => `<span class="thinking-tag" id="ttag-${i}">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="thinking-articles">
+        ${user.articles.map((a,i) => `<span class="thinking-article-tag" style="animation:pulse 1.5s ease ${i*0.08}s infinite">${a.title}</span>`).join('')}
+      </div>
+    </div>
+  `;
+
+  let progress = 0;
+  const iv = setInterval(() => {
+    progress += Math.random() * 6 + 2;
+    if (progress >= 100) progress = 100;
+
+    document.getElementById('progressCircle').setAttribute('stroke-dasharray', `${progress * 2.14} 214`);
+    document.getElementById('thinkingPct').textContent = Math.round(progress) + '%';
+
+    const msgIdx = Math.min(Math.floor(progress / 12), THINKING_MESSAGES.length - 1);
+    document.getElementById('thinkingMsg').textContent = THINKING_MESSAGES[msgIdx];
+
+    TECH_TAGS.forEach((_, i) => {
+      const tag = document.getElementById('ttag-' + i);
+      if (tag) tag.classList.toggle('active', progress > i * 18);
+    });
+
+    if (progress >= 100) {
+      clearInterval(iv);
+      setTimeout(() => showClusteredPhase(), 500);
+    }
+  }, 120);
+}
+
+// ── CLUSTERED PHASE ───────────────────────────────────────────────
+function showClusteredPhase() {
+  const user = USERS[selectedUserKey];
+  const clusters = CLUSTERS[selectedUserKey];
+
+  document.getElementById('thinkingPhase').classList.add('hidden');
+  const el = document.getElementById('clusteredPhase');
+  el.classList.remove('hidden');
+
+  const multiCount = user.articles.filter(a =>
+    clusters.filter(c => c.articleIds.includes(a.id)).length > 1
+  ).length;
+  const typeCount = [...new Set(clusters.map(c => c.type))].length;
+
+  el.innerHTML = `
+    <div class="stats-row">
+      ${[
+        { label:'Articles', value: user.articles.length },
+        { label:'Clusters found', value: clusters.length },
+        { label:'Multi-cluster articles', value: multiCount },
+        { label:'Cluster types', value: typeCount },
+      ].map(s => `
+        <div class="stat-card">
+          <div class="stat-value" style="color:${user.color}">${s.value}</div>
+          <div class="stat-label">${s.label}</div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="clustered-layout">
+      <div>
+        <div class="section-label">Discovered Clusters</div>
+        <div id="clustersList">
+          ${clusters.map((c, i) => renderClusterCard(c, i, user)).join('')}
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="section-label" id="sidebarLabel">All Articles</div>
+        <div class="sidebar-list" id="sidebarList">
+          ${user.articles.map(a => `
+            <div class="sidebar-card" id="sc-${a.id}"
+              style="background:var(--card-bg);border:1px solid var(--border)"
+              onclick="window.open('${a.url}','_blank')">
+              <div class="sidebar-card-title">${a.title}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Stagger cluster reveal
+  const cards = document.querySelectorAll('.cluster-card');
+  let count = 0;
+  const iv = setInterval(() => {
+    if (count < cards.length) {
+      cards[count].classList.add('visible');
+      count++;
+    } else {
+      clearInterval(iv);
+    }
+  }, 150);
+}
+
+function renderClusterCard(cluster, idx, user) {
+  const arts = user.articles.filter(a => cluster.articleIds.includes(a.id));
+  return `
+    <div class="cluster-card inactive" id="cc-${idx}" onclick="toggleCluster(${idx})">
+      <div class="cluster-header">
+        <span class="cluster-emoji">${cluster.emoji}</span>
+        <span class="cluster-name">${cluster.name}</span>
+        <span class="cluster-type-badge" style="color:${TYPE_COLORS[cluster.type]};background:${TYPE_COLORS[cluster.type]}18">
+          ${TYPE_LABELS[cluster.type]}
+        </span>
+      </div>
+      <div class="cluster-tags">
+        ${arts.map(a => `<span class="cluster-article-tag" style="background:var(--tag-bg)">${a.title}</span>`).join('')}
+      </div>
+      <div class="cluster-glow" style="background:radial-gradient(circle at top right,${cluster.color}15,transparent)"></div>
+    </div>
+  `;
+}
+
+function toggleCluster(idx) {
+  const user = USERS[selectedUserKey];
+  const clusters = CLUSTERS[selectedUserKey];
+
+  if (activeClusterIdx === idx) {
+    activeClusterIdx = null;
+  } else {
+    activeClusterIdx = idx;
+  }
+
+  // Update cluster card styles
+  clusters.forEach((c, i) => {
+    const card = document.getElementById('cc-' + i);
+    if (!card) return;
+    if (activeClusterIdx === i) {
+      card.style.background = c.color + '15';
+      card.style.border = `2px solid ${c.color}`;
+      card.querySelectorAll('.cluster-article-tag').forEach(t => t.style.background = c.color + '20');
+    } else {
+      card.style.background = 'var(--card-bg)';
+      card.style.border = '1px solid var(--border)';
+      card.querySelectorAll('.cluster-article-tag').forEach(t => t.style.background = 'var(--tag-bg)');
+    }
+  });
+
+  // Update sidebar
+  const highlightedIds = activeClusterIdx !== null ? clusters[activeClusterIdx].articleIds : [];
+  const cluster = activeClusterIdx !== null ? clusters[activeClusterIdx] : null;
+  const sidebarLabel = document.getElementById('sidebarLabel');
+  sidebarLabel.textContent = cluster ? `${cluster.emoji} ${cluster.name}` : 'All Articles';
+
+  user.articles.forEach(a => {
+    const card = document.getElementById('sc-' + a.id);
+    if (!card) return;
+    const isHighlighted = highlightedIds.includes(a.id);
+    const isDimmed = activeClusterIdx !== null && !isHighlighted;
+
+    card.className = 'sidebar-card' + (isDimmed ? ' dimmed' : '') + (isHighlighted ? ' highlighted' : '');
+
+    if (isHighlighted && cluster) {
+      card.style.background = cluster.color + '11';
+      card.style.border = `2px solid ${cluster.color}`;
+    } else {
+      card.style.background = 'var(--card-bg)';
+      card.style.border = '1px solid var(--border)';
+    }
+  });
+}
+
+// ── RESET ─────────────────────────────────────────────────────────
+function resetToSelect() {
+  selectedUserKey = null;
+  activeClusterIdx = null;
+  document.getElementById('selectScreen').classList.remove('hidden');
+  document.getElementById('mainScreen').classList.add('hidden');
+  document.getElementById('backBtn').style.display = 'none';
+  document.getElementById('articlesPhase').classList.add('hidden');
+  document.getElementById('thinkingPhase').classList.add('hidden');
+  document.getElementById('clusteredPhase').classList.add('hidden');
+}
+
+init();
+</script>
+</body>
+</html>
