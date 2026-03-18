@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WikiHighlight — Smart Reading Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f5f5f0;--bg-white:#fff;--border:#e0ddd5;--border-light:#eae8e2;--text-primary:#1d1d1b;--text-secondary:#5c5b58;--text-muted:#9b9a97;--accent:#b8860b;--accent-light:#daa520;--accent-bg:rgba(184,134,11,0.08);--blue:#2962ff;--blue-bg:rgba(41,98,255,0.07);--teal:#00897b;--teal-bg:rgba(0,137,123,0.07);--hl-key:rgba(218,165,32,0.22);--hl-key-active:rgba(218,165,32,0.42);--hl-search:rgba(41,98,255,0.16);--hl-search-active:rgba(41,98,255,0.32);--hl-stats:rgba(0,137,123,0.20);--hl-stats-active:rgba(0,137,123,0.40);--hl-fun:rgba(156,39,176,0.18);--hl-fun-active:rgba(156,39,176,0.38);--purple:#9c27b0;--purple-bg:rgba(156,39,176,0.07);--shadow-sm:0 1px 3px rgba(0,0,0,0.06);--shadow-lg:0 4px 24px rgba(0,0,0,0.1)}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text-primary);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+::selection{background:var(--accent-light);color:#fff}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(255,255,255,0.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:12px 32px;display:flex;align-items:center;justify-content:space-between}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.logo{width:32px;height:32px;border-radius:7px;background:var(--text-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px}
+.topbar-title{font-weight:600;font-size:15px;letter-spacing:-0.02em}
+.topbar-subtitle{font-size:11.5px;color:var(--text-muted);margin-top:1px}
+.topbar-version{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--text-muted);background:var(--bg);padding:3px 8px;border-radius:4px;border:1px solid var(--border-light)}
+.article-tabs{display:flex;gap:3px;background:var(--bg);border-radius:9px;padding:3px;border:1px solid var(--border-light)}
+.article-tab{padding:7px 16px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--text-secondary);transition:all .2s;border:none;background:0 0;white-space:nowrap;font-family:'DM Sans',sans-serif}
+.article-tab:hover{color:var(--text-primary);background:var(--bg-white)}
+.article-tab.active{background:var(--text-primary);color:#fff;box-shadow:var(--shadow-sm)}
+.highlight-module{max-width:960px;margin:0 auto;padding:24px 32px 8px}
+.module-card{background:var(--bg-white);border:1px solid var(--border);border-radius:12px;padding:22px 26px;box-shadow:var(--shadow-sm)}
+.module-header{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.module-icon{font-size:14px;color:var(--accent)}
+.module-label{font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.07em}
+.highlight-options{display:flex;gap:8px;flex-wrap:wrap}
+.hl-btn{padding:9px 18px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;border:1.5px solid var(--border);background:var(--bg-white);color:var(--text-secondary);transition:all .2s;display:flex;align-items:center;gap:7px;font-family:'DM Sans',sans-serif}
+.hl-btn:hover{border-color:var(--text-muted);color:var(--text-primary)}
+.hl-btn.active-key{border-color:var(--accent);background:var(--accent-bg);color:var(--accent);font-weight:600}
+.hl-btn.active-search{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);font-weight:600}
+.hl-btn.active-stats{border-color:var(--teal);background:var(--teal-bg);color:var(--teal);font-weight:600}
+.hl-btn.active-fun{border-color:var(--purple);background:var(--purple-bg);color:var(--purple);font-weight:600}
+.hl-btn .icon{font-size:14px}
+.search-row{display:none;margin-top:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:10px 14px;transition:all .3s}
+.search-row.visible{display:flex;align-items:center;gap:10px}
+.search-row.glow{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-bg)}
+.search-input{flex:1;background:0 0;border:none;outline:none;font-size:13.5px;color:var(--text-primary);font-family:'DM Sans',sans-serif}
+.search-input::placeholder{color:var(--text-muted)}
+.search-go{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;background:var(--blue);color:#fff;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;transition:all .15s}
+.search-go:hover{opacity:.88}
+.search-go:disabled{opacity:.35;cursor:default}
+.loading-bar{height:2.5px;background:var(--border-light);overflow:hidden;border-radius:2px;margin-top:12px;display:none}
+.loading-bar.active{display:block}
+.loading-bar::after{content:'';display:block;height:100%;width:35%;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:slide 1s infinite}
+.loading-bar.search-mode::after{background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+@keyframes slide{0%{transform:translateX(-100%)}100%{transform:translateX(380%)}}
+.hl-status{font-size:12px;color:var(--text-muted);margin-top:10px;display:flex;align-items:center;gap:7px;min-height:18px}
+.hl-status .dot{width:6px;height:6px;border-radius:50%;animation:pulse 1.5s infinite}
+.dot-key{background:var(--accent)}.dot-search{background:var(--blue)}.dot-stats{background:var(--teal)}.dot-fun{background:var(--purple)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.article-container{max-width:960px;margin:0 auto 80px;padding:8px 32px 0}
+.article-loading{text-align:center;padding:80px 20px;color:var(--text-muted);font-size:14px}
+.article-loading .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.article-body{background:var(--bg-white);border:1px solid var(--border);border-radius:12px;padding:32px 36px 44px;box-shadow:var(--shadow-sm);font-family:sans-serif;font-size:14.2px;line-height:1.6;color:#202122;overflow:hidden}
+.article-body h1{font-size:26px;font-weight:700;color:#000;border-bottom:1px solid #a2a9b1;padding-bottom:4px;margin:0 0 14px;font-family:'Linux Libertine','Georgia',serif}
+.article-body h2,.article-body h2 .mw-headline{font-size:20px;font-weight:700;color:#000;border-bottom:1px solid #a2a9b1;padding-bottom:3px;margin:24px 0 10px;font-family:'Linux Libertine','Georgia',serif}
+.article-body h3{font-size:16px;font-weight:700;margin:18px 0 6px}
+.article-body h4{font-size:14.5px;font-weight:700;margin:14px 0 4px}
+.article-body p{margin-bottom:10px}
+.article-body a{color:#3366cc;text-decoration:none}
+.article-body a:hover{text-decoration:underline}
+.article-body sup{font-size:.75em}
+.article-body ul,.article-body ol{margin:6px 0 10px 24px}
+.article-body li{margin-bottom:3px}
+.article-body blockquote{border-left:3px solid #c8ccd1;margin:10px 0 10px 16px;padding:3px 12px;color:#555}
+.article-body table{border-collapse:collapse;margin:10px 0;font-size:13px}
+.article-body table.infobox,.article-body table.wikitable{border:1px solid #a2a9b1;background:#f8f9fa}
+.article-body .infobox{float:right;width:280px;margin:0 0 12px 16px;font-size:12.5px;clear:right}
+.article-body .infobox th,.article-body .infobox td{padding:4px 8px;border:1px solid #a2a9b1;vertical-align:top}
+.article-body .wikitable th,.article-body .wikitable td{padding:4px 8px;border:1px solid #a2a9b1;vertical-align:top}
+.article-body .wikitable th{background:#eaecf0}
+.article-body .infobox th{background:#ccc;text-align:center}
+.article-body .infobox-above,.article-body .infobox-title{background:#ccc;font-weight:700;text-align:center}
+.article-body img{max-width:100%;height:auto}
+.article-body .thumb{margin:6px 0 6px 14px;float:right;clear:right;max-width:280px}
+.article-body .thumbinner{border:1px solid #c8ccd1;padding:3px;background:#f8f9fa;font-size:12px}
+.article-body .thumbcaption{padding:4px}
+.article-body .mw-editsection,.article-body .toc,.article-body .navbox,.article-body .navbox-styles,.article-body .sidebar,.article-body .sistersitebox,.article-body .noprint,.article-body .mbox-small,.article-body .metadata,.article-body .catlinks,.article-body .authority-control,.article-body .shortdescription,.article-body .ambox,.article-body .tmbox,.article-body .ombox,.article-body .mw-empty-elt,.article-body img,.article-body figure,.article-body .thumb,.article-body .gallery{display:none}
+.article-body .mw-references-wrap{font-size:12px}
+.article-body .hatnote{font-style:italic;color:#555;margin-bottom:10px;padding-left:18px;font-size:13px}
+.article-body figure{margin:8px 0}
+.hl-wrap{background:transparent;border-radius:3px;transition:background .3s,box-shadow .3s}
+.hl-wrap.hl-on.hl-key{background:var(--hl-key)}
+.hl-wrap.hl-on.hl-key.hl-active{background:var(--hl-key-active);box-shadow:0 0 0 3px var(--hl-key-active)}
+.hl-wrap.hl-on.hl-search{background:var(--hl-search)}
+.hl-wrap.hl-on.hl-search.hl-active{background:var(--hl-search-active);box-shadow:0 0 0 3px var(--hl-search-active)}
+.hl-wrap.hl-on.hl-stats{background:var(--hl-stats)}
+.hl-wrap.hl-on.hl-stats.hl-active{background:var(--hl-stats-active);box-shadow:0 0 0 3px var(--hl-stats-active)}
+.hl-wrap.hl-on.hl-funfacts{background:var(--hl-fun)}
+.hl-wrap.hl-on.hl-funfacts.hl-active{background:var(--hl-fun-active);box-shadow:0 0 0 3px var(--hl-fun-active)}
+.hl-nav{position:fixed;bottom:24px;right:24px;z-index:200;background:var(--bg-white);border:1px solid var(--border);border-radius:10px;padding:8px 14px;display:none;align-items:center;gap:10px;box-shadow:var(--shadow-lg);font-family:'DM Sans',sans-serif}
+.hl-nav.visible{display:flex}
+.hl-nav .nav-counter{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--text-secondary);min-width:48px;text-align:center}
+.hl-nav button{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg-white);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s;font-family:'DM Sans',sans-serif}
+.hl-nav button:hover{background:var(--bg);color:var(--text-primary);border-color:var(--accent)}
+.hl-nav .nav-close{border:none;color:var(--text-muted)}
+.hl-nav .nav-close:hover{color:var(--text-primary)}
+.hl-nav .nav-label{font-size:11px;color:var(--text-muted);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.footer{text-align:center;padding:36px 32px;font-size:11.5px;color:var(--text-muted);border-top:1px solid var(--border-light)}
+.footer a{color:var(--text-secondary)}
+@media(max-width:768px){.topbar{padding:10px 14px;flex-direction:column;gap:8px}.article-tabs{overflow-x:auto}.highlight-module{padding:16px 14px 4px}.module-card{padding:16px 18px}.article-container{padding:6px 10px 0}.article-body{padding:20px 16px;font-size:13.5px}.article-body .infobox{float:none;width:100%;margin:0 0 12px 0}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">W</div>
+    <div><div class="topbar-title">WikiHighlight</div><div class="topbar-subtitle">Smart Reading Prototype</div></div>
+    <div class="topbar-version">v0.3</div>
+  </div>
+  <div class="article-tabs" id="tabs">
+    <button class="article-tab active" data-article="llm">Large language model</button>
+    <button class="article-tab" data-article="bb">Bad Bunny</button>
+  </div>
+</div>
+<div class="highlight-module">
+  <div class="module-card">
+    <div class="module-header"><div class="module-icon">✦</div><div class="module-label">Smart Highlighting</div></div>
+    <div class="highlight-options">
+      <button class="hl-btn" id="btnKey" onclick="activateKey()"><span class="icon">◉</span> Highlight key points</button>
+      <button class="hl-btn" id="btnStats" onclick="activateStats()" style="display:none"><span class="icon">＃</span> Highlight statistics</button>
+      <button class="hl-btn" id="btnFun" onclick="activateFun()" style="display:none"><span class="icon">★</span> Highlight fun facts</button>
+      <button class="hl-btn" id="btnSearch" onclick="activateSearch()"><span class="icon">⌕</span> Highlight by question</button>
+      <button class="hl-btn" id="btnClear" onclick="clearHL()" style="display:none"><span class="icon">✕</span> Clear</button>
+    </div>
+    <div class="search-row" id="searchRow">
+      <input class="search-input" id="searchInput" placeholder="" readonly>
+      <button class="search-go" id="searchGo" disabled onclick="runSearch()">Highlight</button>
+    </div>
+    <div class="loading-bar" id="loadBar"></div>
+    <div class="hl-status" id="hlStatus"></div>
+  </div>
+</div>
+<div class="article-container">
+  <div id="articleLoading" class="article-loading"><div class="spinner"></div>Fetching article from Wikipedia…</div>
+  <div class="article-body" id="articleBody" style="display:none"></div>
+</div>
+<div class="hl-nav" id="hlNav">
+  <span class="nav-label">Highlights</span>
+  <button onclick="navHL(-1)" title="Previous (↑)">▲</button>
+  <div class="nav-counter" id="navCounter">0 / 0</div>
+  <button onclick="navHL(1)" title="Next (↓)">▼</button>
+  <button class="nav-close" onclick="clearHL()" title="Close (Esc)">✕</button>
+</div>
+<div class="footer">WikiHighlight Prototype · Built for Wikipedia product ideation · Smart highlighting demonstration<br>Article content from <a href="https://en.wikipedia.org" target="_blank">Wikipedia</a> under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank">CC BY-SA 4.0</a></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// HIGHLIGHT SNIPPETS
+// Each snippet is ONE complete sentence copied verbatim
+// from the Wikipedia article text. No multi-sentence spans.
+// ═══════════════════════════════════════════════════════════
+const CONF = {
+  llm: {
+    title: 'Large_language_model',
+    question: 'What are the risks associated with LLMs?',
+
+    // KEY POINTS: Help someone who doesn't know what an LLM is understand the topic
+    key: [
+      // What is it
+      "A large language model (LLM) is a language model trained with self-supervised machine learning on a vast amount of text, designed for natural language processing tasks, especially language generation.",
+      "The largest and most capable LLMs are generative pre-trained transformers (GPTs) that provide the core capabilities of modern chatbots.",
+      // What can it do
+      "LLMs represent a significant new technology in their ability to generalize across tasks with minimal task-specific supervision, enabling capabilities like conversational agents, code generation, knowledge retrieval, and automated reasoning that previously required bespoke systems.",
+      // Scale
+      "They consist of billions to trillions of parameters and operate as general-purpose sequence models, generating, summarizing, translating, and reasoning over text.",
+      // How does it work (key architecture)
+      "The transformer architecture, introduced in 2017, replaced recurrence with self-attention, allowing efficient parallelization, longer context handling, and scalable training on unprecedented data volumes.",
+      // Major milestone: ChatGPT
+      "But it was the 2022 consumer-facing chatbot ChatGPT that received extensive media coverage and public attention.",
+      // Open-weight models
+      "In January 2025, DeepSeek released DeepSeek R1, a 671-billion-parameter open-weight model that performs comparably to OpenAI o1 but at a much lower price per token for users.",
+      // How they're trained/aligned
+      "Reinforcement learning from human feedback (RLHF) involves training a reward model to predict which text humans prefer.",
+      "Since humans typically prefer truthful, helpful and harmless answers, RLHF favors such answers.",
+      // Key capability: reasoning
+      "In late 2024, a new approach to LLM development emerged with \"reasoning models.\"",
+      "These are trained to generate step-by-step analysis before producing final answers, enabling better results on complex tasks, for instance in mathematics, coding and logic.",
+      // Key limitation: hallucination
+      "Generative LLMs have been observed to confidently assert claims of fact which do not seem to be justified by their training data, a phenomenon which has been termed \"hallucination\".",
+      // Key limitation: bias
+      "While LLMs have shown remarkable capabilities in generating human-like text, they are susceptible to inheriting and amplifying biases present in their training data.",
+      // Coding
+      "LLMs can generate code based on problems or instructions written in natural language.",
+      // Multimodal
+      "Since 2023, many LLMs have been trained to be multimodal, having the ability to also process or generate other types of data, such as images, audio, or 3D meshes.",
+    ],
+
+    // SEARCH: "What are the risks associated with LLMs?" — hallucination, bias, safety, misuse, energy, sycophancy, copyright
+    search: [
+      // Hallucination — the core risk
+      "Despite sophisticated architectures and massive scale, large language models exhibit persistent and well-documented limitations that constrain their deployment in high-stakes applications.",
+      "Specifically, hallucinations in the context of LLMs correspond to the generation of text or responses that seem syntactically sound, fluent, and natural but are factually incorrect, nonsensical, or unfaithful to the provided source input.",
+      "Efforts to reduce or compensate for hallucinations have employed automated reasoning, retrieval-augmented generation (RAG), fine-tuning, and other methods.",
+      // Bias
+      "While LLMs have shown remarkable capabilities in generating human-like text, they are susceptible to inheriting and amplifying biases present in their training data.",
+      "Gender bias manifests through stereotypical occupational associations, wherein models disproportionately assign nursing roles to women and engineering roles to men, reflecting systematic imbalances in training data demographics.",
+      "AI models can reinforce a wide range of stereotypes due to generalization, including those based on gender, ethnicity, age, nationality, religion, or occupation.",
+      "Political bias refers to the tendency of algorithms to systematically favor certain political viewpoints, ideologies, or outcomes over others.",
+      // Safety and misuse
+      "As of 2025, prompt injection represents a significant risk to consumers and businesses using agentic features with access to their private data.",
+      "the availability of large language models could reduce the skill level required to commit bioterrorism;",
+      "Adversarial robustness remains underdeveloped, with models vulnerable to prompt injection attacks and jailbreaking through carefully crafted user inputs that bypass safety training mechanisms.",
+      // Sleeper agents
+      "Researchers from Anthropic found that it was possible to create \"sleeper agents\", models with hidden functionalities that remain dormant until triggered by a specific event or condition.",
+      // Sycophancy
+      "Sycophancy is a model's tendency to agree with, flatter, or validate a user's stated beliefs rather than to prioritize factuality or corrective information,",
+      // Mental health risks
+      "Evaluations of crisis scenarios indicate that some LLMs lack effective safety protocols, such as assessing suicide risk or making appropriate referrals.",
+      "LLMs can produce hallucinations\u2014plausible but incorrect statements\u2014which may mislead users in sensitive mental health contexts.",
+      // Copyright/legal
+      "Legal and commercial responses to memorization and training-data practices have accelerated, producing a mix of rulings, ongoing suits, and large settlements",
+      // Energy and environment
+      "Data centers that enable LLM training require substantial amounts of electricity.",
+      // Propaganda/disinformation
+      "showing evidence that the so-called Pravda network, a pro-Russia propaganda aggregator, was strategically placing web content through mass publication and duplication with the intention of biasing LLM outputs.",
+    ],
+
+    // STATS: Sentences containing important statistics or numerical data points
+    stats: [
+      "They consist of billions to trillions of parameters and operate as general-purpose sequence models, generating, summarizing, translating, and reasoning over text.",
+      "the training of GPT-2 (i.e. a 1.5-billion-parameter model) in 2019 cost $50,000, while training of the PaLM (i.e. a 540-billion-parameter model) in 2022 cost $8 million, and Megatron-Turing NLG 530B (in 2021) cost around $11 million.",
+      "The largest models typically have more than 100 billion parameters, which places them outside the range of most consumer electronics.",
+      "Google's Gemini 1.5, introduced in February 2024, can have a context window of up to 1 million tokens.",
+      "GPT-2 tokenizer can use up to 15 times more tokens per word for some languages,",
+      "Even more widespread languages such as Portuguese and German have \"a premium of 50%\" compared to English.",
+      "On the International Mathematics Olympiad qualifying exam problems, GPT-4o achieved 13% accuracy while o1 reached 83%.",
+      "In January 2025, the Chinese company DeepSeek released DeepSeek-R1, a 671-billion-parameter open-weight reasoning model that achieved comparable performance to OpenAI's o1 while being significantly more cost-effective to operate.",
+      "evaluations of controlled LLM output measure the amount memorized from training data (focused on GPT-2-series models) as variously over 1% for exact duplicates",
+      "The results demonstrated moderate proficiency, with GPT-4 achieving the highest accuracy at 71%, lagging behind human fact-checkers.",
+      "nearly half (48.7%) of 499 U.S. adults with ongoing mental health conditions who had used LLMs reported turning to them for therapy or emotional support,",
+      "simple classification tasks performed by AI models consume on average 0.002 to 0.007 Wh per prompt",
+      "image generation is the most energy-intensive, averaging 2.91 Wh per prompt.",
+      "In 2025, Anthropic reached a preliminary agreement to settle a class action by authors for about $1.5 billion",
+      "In 2001, a smoothed n-gram model, such as those employing Kneser\u2013Ney smoothing, trained on 300 million words, achieved state-of-the-art perplexity on benchmark tests.",
+      "chain-of-thought prompting only improved the performance for models that had at least 62B parameters.",
+    ],
+  },
+
+  bb: {
+    title: 'Bad_Bunny',
+    question: "When did Bad Bunny's career take off?",
+
+    // KEY POINTS: For someone who has no idea who Bad Bunny is
+    key: [
+      // Who is he
+      "known professionally as Bad Bunny, is a Puerto Rican rapper, singer, record producer, and occasional professional wrestler.",
+      "Dubbed the \"King of Latin Trap\", he is widely credited with helping Spanish-language rap reach mainstream global popularity and is considered one of the greatest Latino rappers of all time.",
+      // What kind of music
+      "Bad Bunny is considered to be primarily a Latin trap and reggaeton artist.",
+      // Major milestones
+      "El \u00daltimo Tour Del Mundo (2020), Bad Bunny's third solo album, became the first all-Spanish language album to top the US Billboard 200,",
+      "His accolades include six Grammy Awards, seventeen Latin Grammy Awards, eight Billboard Music Awards, and thirteen Lo Nuestro Awards.",
+      // Streaming & beyond music
+      "He became the most-streamed artist of the year on Spotify four times between 2020 and 2025.",
+      "Outside of music, he occasionally performs in professional wrestling.",
+      // Origins
+      "He started to write and create his own music at the age of 14.",
+      // Super Bowl arc
+      "In February 2020, Bad Bunny was a guest performer at the Super Bowl LIV halftime show, headlined by Shakira and Jennifer Lopez.",
+      "On September 28, 2025, it was announced that he would headline the Super Bowl LX halftime show on February 8, 2026, making him the first solo Latino artist to do so.",
+      "Bad Bunny's halftime show was the first to be performed in majority Spanish.",
+      "His halftime performance ranked as the fourth most-watched Super Bowl halftime show with an average of 128.2 million viewers.",
+    ],
+
+    // FUN FACTS: Surprising, funny, or not commonly known things
+    funfacts: [
+      // Stage name origin
+      "His stage name originated from a time when he was forced to wear a bunny costume and was annoyed about it.",
+      // WWE wrestling career
+      "Bad Bunny began making appearances on WWE programming in 2021 and made his in-ring debut at WrestleMania 37.",
+      "He is a one-time WWE 24/7 Champion",
+      // Movie career
+      "Bad Bunny has also starred in multiple films, including Bullet Train (2022), Cassandro (2023), Caught Stealing (2025), and Happy Gilmore 2 (2025).",
+      // Playboy cover
+      "he appeared on the first digital cover of Playboy magazine as the first man to appear on the cover solo other than the magazine's founder, Hugh Hefner.",
+      // Flatbed truck concert in NYC
+      "Bad Bunny performed a surprise, live (via his YouTube channel and Uforia), free concert from atop a flatbed truck that looked like a subway car going through the streets of New York and ended at Harlem Hospital Center.",
+      // Simpsons collaboration
+      "a short film and music video titled Te Deseo Lo Mejor was released in collaboration with the creators of The Simpsons.",
+      // Drag music video
+      "In March 2020, Bad Bunny released the music video for \"Yo Perreo Sola\", in which the artist performs in drag.",
+      // Crocs collab
+      "In 2020, Bad Bunny collaborated with Crocs to create a line of glow-in-the-dark clogs inspired by YHLQMDLG.",
+      // Met Gala co-chair
+      "He also served as one of the co-chairs of the 2024 Met Gala, alongside Jennifer Lopez, Zendaya, and Chris Hemsworth.",
+      // Moody's raised economic forecast because of him
+      "prompting the firm to raise its 2025 economic forecast from 0.3% growth to 0.4%.",
+      // Calvin Klein campaign numbers
+      "the advertisement generated $8.4 million in media impact value in 48 hours.",
+      // Toad conservation
+      "he created the character Concho, a Puerto Rican type of toad locally known as sapo concho, which is in the list of endangered amphibians",
+      // Supermarket cashier to global star
+      "He worked part-time as a bagger and cashier at an Econo supermarket while creating music.",
+      // Trump controversy
+      "The decision to have Bad Bunny headline the performance spurred controversy, with U.S. president Donald Trump calling the choice \"absolutely ridiculous\",",
+    ],
+
+    // SEARCH: "When did Bad Bunny's career take off?" — early career timeline, breakthrough moments
+    search: [
+      "He started to write and create his own music at the age of 14.",
+      "He worked part-time as a bagger and cashier at an Econo supermarket while creating music.",
+      "He left university without completing his degree to pursue his musical aspirations.",
+      "In 2016, his song \"Diles\" caught the attention of DJ Luian from SoundCloud who signed him to his record label, Hear This Music.",
+      "His single \"Soy Peor\", released in December 2016, reached number 19 on the Billboard Hot Latin Songs chart.",
+      "In May 2017, his collaboration with Colombian singer Karol G, \"Ahora Me Llama\", was released, reaching number 10 on the Billboard Hot Latin Songs chart.",
+      "Starting in November 2017, Bad Bunny hosted Beats 1's first Spanish-language show, Trap Kingz.",
+      "In May 2018, American rapper Cardi B released a collaboration with Bad Bunny and J Balvin, \"I Like It\", which topped the Billboard Hot 100.",
+      "On October 11, 2018, Bad Bunny released \"Mia\" with Drake,",
+      "Bad Bunny released his debut album X\u00a0100pre on December 24, 2018",
+      "YHLQMDLG debuted at number two on the US Billboard 200, becoming the highest-charting all-Spanish album ever on the chart at the time.",
+      "Bad Bunny and YHLQMDLG became Spotify's most-streamed artist and album globally in 2020, respectively.",
+      "It marked the first time a non-English language music artist topped the year-end list",
+    ],
+  },
+};
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let cur='llm', mode=null, hlIdx=-1, hlMarks=[], tw=null, cache={};
+
+// ═══════════════════════════════════════════
+// FETCH
+// ═══════════════════════════════════════════
+async function fetchArticle(id){
+  const ld=document.getElementById('articleLoading'), bd=document.getElementById('articleBody');
+  ld.style.display=''; ld.innerHTML='<div class="spinner"></div>Fetching article from Wikipedia\u2026';
+  bd.style.display='none';
+  if(cache[id]){bd.innerHTML=cache[id];bd.style.display='';ld.style.display='none';
+    bd.querySelectorAll('img, figure, .thumb, .thumbinner, .mw-file-element, .mw-file-description, .image, .mw-default-size, .mw-halign-right, .mw-halign-left, .gallery').forEach(el=>el.remove());
+    fixLinks();return;}
+  try{
+    const r=await fetch(`https://en.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(CONF[id].title)}&prop=text&format=json&origin=*&disableeditsection=true`);
+    const d=await r.json();let h=d.parse.text['*'];
+    h=`<h1>${d.parse.title}</h1>`+h;
+    cache[id]=h;bd.innerHTML=h;bd.style.display='';ld.style.display='none';
+    // Remove images, figures, and thumbnails that don't render properly
+    bd.querySelectorAll('img, figure, .thumb, .thumbinner, .mw-file-element, .mw-file-description, .image, .mw-default-size, .mw-halign-right, .mw-halign-left, .infobox img, .gallery').forEach(el=>el.remove());
+    fixLinks();
+  }catch(e){ld.innerHTML='<div style="color:#c00">Could not load article.</div>';}
+}
+function fixLinks(){
+  const b=document.getElementById('articleBody');
+  b.querySelectorAll('a[href^="./"]').forEach(a=>{a.href='https://en.wikipedia.org/wiki/'+a.getAttribute('href').slice(2);a.target='_blank';});
+  b.querySelectorAll('a[href^="/wiki/"]').forEach(a=>{a.href='https://en.wikipedia.org'+a.getAttribute('href');a.target='_blank';});
+  b.querySelectorAll('a[href^="/w/"]').forEach(a=>{a.href='https://en.wikipedia.org'+a.getAttribute('href');a.target='_blank';});
+  b.querySelectorAll('img[src^="//"]').forEach(i=>{i.src='https:'+i.getAttribute('src');});
+}
+
+// ═══════════════════════════════════════════
+// ARTICLE SWITCHING
+// ═══════════════════════════════════════════
+async function loadArticle(id){
+  clearHL(true);cur=id;
+  document.querySelectorAll('.article-tab').forEach(t=>t.classList.toggle('active',t.dataset.article===id));
+  document.getElementById('searchInput').placeholder=`e.g. \u201c${CONF[id].question}\u201d`;
+  // Show stats button only for articles that have stats data
+  document.getElementById('btnStats').style.display = CONF[id].stats ? '' : 'none';
+  // Show fun facts button only for articles that have fun facts data
+  document.getElementById('btnFun').style.display = CONF[id].funfacts ? '' : 'none';
+  window.scrollTo({top:0,behavior:'smooth'});
+  await fetchArticle(id);
+}
+document.querySelectorAll('.article-tab').forEach(t=>t.addEventListener('click',()=>loadArticle(t.dataset.article)));
+
+// ═══════════════════════════════════════════
+// HIGHLIGHT ENGINE — completely rewritten
+// ═══════════════════════════════════════════
+
+/**
+ * Collapse all whitespace (including \n, \t, \u00a0) into single spaces.
+ * This is the ONLY normalization we do — keeps matching simple and reliable.
+ */
+function collapseWS(s) {
+  return s.replace(/[\s\u00a0]+/g, ' ');
+}
+
+/**
+ * Build a mapping from "collapsed" string positions back to original string positions.
+ * Returns an array where map[collapsedIndex] = originalIndex.
+ */
+function buildPosMap(original) {
+  const collapsed = [];
+  const map = [];
+  let i = 0;
+  while (i < original.length) {
+    const ch = original[i];
+    if (/[\s\u00a0]/.test(ch)) {
+      // Emit one space for any run of whitespace
+      collapsed.push(' ');
+      map.push(i);
+      // Skip remaining whitespace
+      i++;
+      while (i < original.length && /[\s\u00a0]/.test(original[i])) i++;
+    } else {
+      collapsed.push(ch);
+      map.push(i);
+      i++;
+    }
+  }
+  // Sentinel: position just past the end
+  map.push(original.length);
+  return { collapsed: collapsed.join(''), map };
+}
+
+/**
+ * Apply highlights to the article body.
+ * Returns an array of the first <span> element of each highlight group (for navigation).
+ */
+function applyHL(snippets, hlClass) {
+  const body = document.getElementById('articleBody');
+
+  // 1. Gather all text nodes and build concatenated text
+  const walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT, null, false);
+  const textNodes = [];
+  while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+  let rawText = '';
+  const nodeInfo = []; // {node, rawStart, rawEnd}
+  for (const node of textNodes) {
+    const start = rawText.length;
+    rawText += node.textContent;
+    nodeInfo.push({ node, rawStart: start, rawEnd: rawText.length });
+  }
+
+  // 2. Build collapsed text and position map
+  const { collapsed, map } = buildPosMap(rawText);
+
+  // 3. Find each snippet in collapsed text — EXACT match only, no fallbacks
+  let ranges = []; // {rawStart, rawEnd}
+  for (const snippet of snippets) {
+    const collSnip = collapseWS(snippet).trim();
+    if (collSnip.length < 15) continue;
+    const idx = collapsed.indexOf(collSnip);
+    if (idx === -1) continue; // Not found → skip entirely
+    const rawStart = map[idx];
+    const rawEnd = map[idx + collSnip.length];
+    ranges.push({ rawStart, rawEnd });
+  }
+
+  if (!ranges.length) return [];
+
+  // 4. Sort and merge overlapping ranges
+  ranges.sort((a, b) => a.rawStart - b.rawStart);
+  const merged = [ranges[0]];
+  for (let i = 1; i < ranges.length; i++) {
+    const last = merged[merged.length - 1];
+    if (ranges[i].rawStart <= last.rawEnd) {
+      last.rawEnd = Math.max(last.rawEnd, ranges[i].rawEnd);
+    } else {
+      merged.push({ ...ranges[i] });
+    }
+  }
+
+  // 5. For each merged range, find affected text nodes and wrap them
+  //    Process in REVERSE order so DOM mutations don't shift positions.
+  const groupSpans = []; // first span per group, for navigation
+
+  for (let ri = merged.length - 1; ri >= 0; ri--) {
+    const range = merged[ri];
+    let firstSpan = null;
+
+    // Find text nodes that overlap this range
+    for (let ni = nodeInfo.length - 1; ni >= 0; ni--) {
+      const info = nodeInfo[ni];
+      if (!info.node || !info.node.parentNode) continue;
+      if (info.rawEnd <= range.rawStart || info.rawStart >= range.rawEnd) continue;
+
+      const text = info.node.textContent;
+      const hlStart = Math.max(0, range.rawStart - info.rawStart);
+      const hlEnd = Math.min(text.length, range.rawEnd - info.rawStart);
+      if (hlStart >= hlEnd) continue;
+
+      const before = text.slice(0, hlStart);
+      const mid = text.slice(hlStart, hlEnd);
+      const after = text.slice(hlEnd);
+
+      const frag = document.createDocumentFragment();
+      if (before) frag.appendChild(document.createTextNode(before));
+
+      const span = document.createElement('span');
+      span.className = `hl-wrap ${hlClass}`;
+      span.textContent = mid;
+      frag.appendChild(span);
+      firstSpan = span; // Because we go in reverse, last assigned = first in doc
+
+      if (after) frag.appendChild(document.createTextNode(after));
+
+      info.node.parentNode.replaceChild(frag, info.node);
+      info.node = null; // Mark as processed
+    }
+
+    if (firstSpan) groupSpans.push(firstSpan);
+  }
+
+  // groupSpans is in reverse order, flip it
+  groupSpans.reverse();
+  return groupSpans;
+}
+
+function showHL(m) {
+  const snips = m === 'key' ? CONF[cur].key : m === 'stats' ? CONF[cur].stats : m === 'funfacts' ? CONF[cur].funfacts : CONF[cur].search;
+  const groups = applyHL(snips, `hl-${m}`);
+
+  // Activate visibility
+  document.querySelectorAll(`#articleBody .hl-${m}`).forEach(el => el.classList.add('hl-on'));
+
+  hlMarks = groups;
+  hlIdx = -1;
+  updateNav();
+  document.getElementById('hlNav').classList.add('visible');
+
+  const label = m === 'key' ? 'key passages' : m === 'stats' ? 'statistics' : m === 'funfacts' ? 'fun facts' : 'relevant passages';
+  const dot = m === 'key' ? 'dot-key' : m === 'stats' ? 'dot-stats' : m === 'funfacts' ? 'dot-fun' : 'dot-search';
+  document.getElementById('hlStatus').innerHTML =
+    `<span class="dot ${dot}"></span> <span>${hlMarks.length} ${label} highlighted</span> \u2014 use \u25B2\u25BC to jump between them`;
+  document.getElementById('btnClear').style.display = '';
+
+  if (hlMarks.length) setTimeout(() => navHL(1), 350);
+}
+
+function resetDOM() {
+  const b = document.getElementById('articleBody');
+  if (cache[cur]) { b.innerHTML = cache[cur];
+    b.querySelectorAll('img, figure, .thumb, .thumbinner, .mw-file-element, .mw-file-description, .image, .mw-default-size, .mw-halign-right, .mw-halign-left, .gallery').forEach(el=>el.remove());
+    fixLinks(); }
+}
+
+function clearHL(silent) {
+  if (tw) { clearTimeout(tw); tw = null; }
+  resetDOM();
+  hlMarks = []; hlIdx = -1; mode = null;
+  document.getElementById('hlNav').classList.remove('visible');
+  document.getElementById('btnKey').classList.remove('active-key');
+  document.getElementById('btnStats').classList.remove('active-stats');
+  document.getElementById('btnFun').classList.remove('active-fun');
+  document.getElementById('btnSearch').classList.remove('active-search');
+  document.getElementById('searchRow').classList.remove('visible', 'glow');
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchGo').disabled = true;
+  document.getElementById('loadBar').classList.remove('active', 'search-mode');
+  document.getElementById('btnClear').style.display = 'none';
+  if (!silent) document.getElementById('hlStatus').innerHTML = '';
+}
+
+function navHL(dir) {
+  if (!hlMarks.length) return;
+  // Remove active from all spans of current group
+  document.querySelectorAll('#articleBody .hl-active').forEach(el => el.classList.remove('hl-active'));
+
+  hlIdx += dir;
+  if (hlIdx >= hlMarks.length) hlIdx = 0;
+  if (hlIdx < 0) hlIdx = hlMarks.length - 1;
+
+  // Activate the target span and its siblings
+  const target = hlMarks[hlIdx];
+  // Find all hl-wrap spans that are part of this same highlight
+  // (consecutive hl-wrap spans within the same parent chain)
+  target.classList.add('hl-active');
+
+  // Also mark adjacent hl-wrap siblings as active (they're part of the same sentence across elements)
+  // Walk forward from target through its parent to find sibling hl-wraps that are part of the same range
+  // The simplest approach: activate all hl-wrap spans that are between this group and the next
+  const allWraps = Array.from(document.querySelectorAll('#articleBody .hl-wrap.hl-on'));
+  const targetIdx = allWraps.indexOf(target);
+  if (targetIdx !== -1) {
+    // Find next group's first span
+    const nextGroupSpan = hlIdx < hlMarks.length - 1 ? hlMarks[hlIdx + 1] : null;
+    const nextGroupIdx = nextGroupSpan ? allWraps.indexOf(nextGroupSpan) : allWraps.length;
+    // Find prev group's first span
+    const prevGroupSpan = hlIdx > 0 ? hlMarks[hlIdx - 1] : null;
+
+    for (let i = targetIdx; i < nextGroupIdx && i < allWraps.length; i++) {
+      allWraps[i].classList.add('hl-active');
+    }
+  }
+
+  target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  updateNav();
+}
+
+function updateNav() {
+  document.getElementById('navCounter').textContent =
+    hlMarks.length ? `${Math.max(1, hlIdx + 1)} / ${hlMarks.length}` : '0 / 0';
+}
+
+// ═══════════════════════════════════════════
+// MODES
+// ═══════════════════════════════════════════
+function activateKey() {
+  resetDOM(); clearHL(true); mode = 'key';
+  document.getElementById('btnKey').classList.add('active-key');
+  const bar = document.getElementById('loadBar');
+  bar.classList.remove('search-mode'); bar.classList.add('active');
+  document.getElementById('hlStatus').innerHTML = '<span class="dot dot-key"></span> Analyzing article for key points\u2026';
+  setTimeout(() => { bar.classList.remove('active'); showHL('key'); }, 1000);
+}
+
+function activateStats() {
+  resetDOM(); clearHL(true); mode = 'stats';
+  document.getElementById('btnStats').classList.add('active-stats');
+  const bar = document.getElementById('loadBar');
+  bar.classList.remove('search-mode'); bar.classList.add('active');
+  document.getElementById('hlStatus').innerHTML = '<span class="dot dot-stats"></span> Scanning article for statistics and data points\u2026';
+  setTimeout(() => { bar.classList.remove('active'); showHL('stats'); }, 1000);
+}
+
+function activateFun() {
+  resetDOM(); clearHL(true); mode = 'funfacts';
+  document.getElementById('btnFun').classList.add('active-fun');
+  const bar = document.getElementById('loadBar');
+  bar.classList.remove('search-mode'); bar.classList.add('active');
+  document.getElementById('hlStatus').innerHTML = '<span class="dot dot-fun"></span> Finding surprising and lesser-known facts\u2026';
+  setTimeout(() => { bar.classList.remove('active'); showHL('funfacts'); }, 1000);
+}
+
+function activateSearch() {
+  resetDOM(); clearHL(true); mode = 'search';
+  document.getElementById('btnSearch').classList.add('active-search');
+  const row = document.getElementById('searchRow'); row.classList.add('visible');
+  const inp = document.getElementById('searchInput'); inp.value = ''; inp.readOnly = true;
+  document.getElementById('searchGo').disabled = true;
+  const q = CONF[cur].question; let i = 0;
+  function type() {
+    if (i < q.length) { inp.value += q[i]; i++; if (i > 3) row.classList.add('glow'); tw = setTimeout(type, 28 + Math.random() * 35); }
+    else { inp.readOnly = false; document.getElementById('searchGo').disabled = false; tw = setTimeout(runSearch, 500); }
+  }
+  tw = setTimeout(type, 350);
+}
+
+function runSearch() {
+  if (tw) { clearTimeout(tw); tw = null; }
+  const bar = document.getElementById('loadBar');
+  bar.classList.add('active', 'search-mode');
+  document.getElementById('hlStatus').innerHTML = '<span class="dot dot-search"></span> Finding passages relevant to your question\u2026';
+  setTimeout(() => { bar.classList.remove('active'); showHL('search'); }, 1200);
+}
+
+// KEYBOARD
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (!hlMarks.length) return;
+  if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); navHL(1); }
+  else if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); navHL(-1); }
+  else if (e.key === 'Escape') clearHL();
+});
+
+// INIT
+loadArticle('llm');
+</script>
+</body>
+</html>
