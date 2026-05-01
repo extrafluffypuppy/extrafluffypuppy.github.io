@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chrome Skill: /dailyupdates — prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:wght@300;400;500;700&family=Google+Sans+Text:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --google-blue: #1a73e8;
+    --google-blue-hover: #1967d2;
+    --text-primary: #202124;
+    --text-secondary: #4d5156;
+    --text-tertiary: #5f6368;
+    --link: #1558d6;
+    --link-visited: #6c00a2;
+    --border: #dadce0;
+    --bg-pill: #f1f3f4;
+    --bg-pill-hover: #e8eaed;
+    --bg-pill-selected: #fce4d6;
+    --gemini-bg: #f0f4f9;
+    --gemini-surface: #ffffff;
+    --gemini-text: #1f1f1f;
+    --gemini-secondary: #444746;
+    --gemini-input-bg: #e9eef6;
+    --gemini-chip: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Google Sans Text', 'Roboto', arial, sans-serif;
+    background: #fff;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* The "browser viewport" that contains all scenes */
+  .stage {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  /* Each scene occupies the full stage */
+  .scene {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+    overflow-y: auto;
+  }
+  .scene.active { opacity: 1; pointer-events: auto; }
+
+  /* ---------- HOMEPAGE ---------- */
+  .homepage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 22vh;
+    background: #fff;
+  }
+  .homepage .top-right {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .top-right a {
+    color: var(--text-primary);
+    font-size: 13px;
+    text-decoration: none;
+  }
+  .top-right a:hover { text-decoration: underline; }
+  .apps-icon {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+  }
+  .apps-icon:hover { background: rgba(60,64,67,0.08); }
+  .apps-icon svg { width: 22px; height: 22px; fill: #5f6368; }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#c4a48a,#a07b5a);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 500; font-size: 13px;
+    cursor: pointer;
+    overflow: hidden;
+  }
+
+  .google-logo {
+    font-family: 'Product Sans', 'Google Sans', arial, sans-serif;
+    font-size: 92px;
+    font-weight: 400;
+    letter-spacing: -2px;
+    margin-bottom: 28px;
+    user-select: none;
+  }
+  .gl-G1 { color: #4285f4; }
+  .gl-o1 { color: #ea4335; }
+  .gl-o2 { color: #fbbc04; }
+  .gl-g2 { color: #4285f4; }
+  .gl-l  { color: #34a853; }
+  .gl-e  { color: #ea4335; }
+
+  .search-pill {
+    width: 580px;
+    max-width: 90%;
+    height: 46px;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 12px;
+    background: #fff;
+    transition: box-shadow 150ms ease, border-color 150ms ease;
+  }
+  .search-pill:hover, .search-pill.focused {
+    box-shadow: 0 1px 6px rgba(32,33,36,0.18);
+    border-color: rgba(223,225,229,0);
+  }
+  .search-pill .lens-icon { width: 20px; height: 20px; flex-shrink: 0; }
+  .search-input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    font-family: inherit;
+    background: transparent;
+    color: var(--text-primary);
+    height: 100%;
+  }
+  .search-icons {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-shrink: 0;
+  }
+  .search-icons .icon { width: 22px; height: 22px; cursor: pointer; }
+  .search-icons .clear { width: 20px; height: 20px; opacity: 0; pointer-events: none; transition: opacity 150ms; }
+  .search-icons .clear.visible { opacity: 1; pointer-events: auto; }
+  .icon-divider {
+    width: 1px; height: 24px; background: var(--border);
+  }
+
+  .home-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+  }
+  .home-btn {
+    background: #f8f9fa;
+    border: 1px solid #f8f9fa;
+    color: #3c4043;
+    font-size: 14px;
+    font-family: inherit;
+    padding: 0 16px;
+    height: 36px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .home-btn:hover { box-shadow: 0 1px 1px rgba(0,0,0,0.1); border-color: #dadce0; }
+
+  .home-langs {
+    margin-top: 22px;
+    color: var(--text-secondary);
+    font-size: 13px;
+  }
+  .home-langs a { color: var(--link); text-decoration: none; margin: 0 4px; }
+  .home-langs a:hover { text-decoration: underline; }
+
+  /* ---------- SERP HEADER ---------- */
+  .serp-header {
+    display: flex;
+    align-items: center;
+    padding: 16px 24px 0 24px;
+    gap: 28px;
+  }
+  .serp-logo {
+    font-family: 'Product Sans', 'Google Sans', arial, sans-serif;
+    font-size: 30px;
+    letter-spacing: -1px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .serp-search {
+    flex: 1;
+    max-width: 690px;
+  }
+  .serp-search .search-pill { height: 44px; width: 100%; }
+  .serp-right {
+    margin-left: auto;
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .serp-tabs {
+    margin-top: 6px;
+    padding: 0 24px 0 calc(24px + 92px + 28px);
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    border-bottom: 1px solid #ebebeb;
+  }
+  .serp-tab {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    padding: 14px 0 14px 0;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .serp-tab.active {
+    color: var(--google-blue);
+    border-bottom: 3px solid var(--google-blue);
+    margin-bottom: -1px;
+  }
+  .serp-tab .caret { font-size: 10px; }
+
+  .serp-body {
+    padding: 24px 24px 64px calc(24px + 92px + 28px);
+    max-width: 1280px;
+  }
+
+  /* ---------- SCHITT'S CREEK KNOWLEDGE PANEL ---------- */
+  .kp-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    margin-bottom: 24px;
+  }
+  .kp-poster {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .kp-poster::before {
+    content: 'SC';
+    color: #fff;
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -1px;
+  }
+  .kp-title-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .kp-title {
+    font-family: 'Google Sans', arial, sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+  .kp-subtitle {
+    font-size: 14px;
+    color: var(--text-tertiary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .kp-pills {
+    display: flex;
+    gap: 10px;
+    margin-left: 32px;
+    align-items: center;
+    align-self: center;
+  }
+  .kp-pill {
+    background: #fce4d6;
+    color: #5d3a14;
+    border: none;
+    border-radius: 24px;
+    padding: 10px 22px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 120ms;
+  }
+  .kp-pill:hover { background: #fad7c2; }
+  .kp-pill.selected {
+    border: 1.5px solid #5d3a14;
+    background: #fce4d6;
+  }
+
+  .cast-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    margin-bottom: 24px;
+    scrollbar-width: none;
+  }
+  .cast-row::-webkit-scrollbar { display: none; }
+  .cast-card {
+    flex-shrink: 0;
+    width: 140px;
+  }
+  .cast-photo {
+    width: 140px;
+    height: 168px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background-size: cover;
+    background-position: center top;
+    background-color: #e8eaed;
+    position: relative;
+    overflow: hidden;
+  }
+  .cast-photo .initials {
+    position: absolute;
+    inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(255,255,255,0.85);
+    font-family: 'Google Sans', sans-serif;
+    font-size: 38px;
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .cast-name {
+    font-size: 14px;
+    color: var(--link);
+    font-weight: 400;
+    line-height: 1.3;
+  }
+  .cast-role {
+    font-size: 13px;
+    color: var(--text-tertiary);
+    margin-top: 2px;
+  }
+
+  .show-more-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 800px;
+    margin: 8px 0 32px 0;
+    padding: 14px;
+    background: #f1f3f4;
+    border: none;
+    border-radius: 24px;
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .show-more-btn:hover { background: #e8eaed; }
+
+  .paa-section { margin-top: 8px; max-width: 800px; }
+  .paa-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .paa-item {
+    border-bottom: 1px solid #ebebeb;
+    padding: 18px 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 16px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+  .paa-caret {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    background: #f1f3f4;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    color: var(--text-tertiary);
+  }
+
+  /* Watch show panel on right */
+  .serp-body.with-side {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 60px;
+    max-width: 1280px;
+  }
+  .watch-panel {
+    border: 1px solid #ebebeb;
+    border-radius: 12px;
+    padding: 18px;
+    height: fit-content;
+    margin-top: 220px;
+  }
+  .watch-panel-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .watch-panel-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .edit-services { color: var(--link); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer;}
+  .watch-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .watch-card {
+    text-align: center;
+    cursor: pointer;
+  }
+  .watch-card .circle {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    margin: 0 auto 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    color: #000;
+  }
+  .watch-card .label-main { font-size: 13px; color: var(--text-primary); font-weight: 500;}
+  .watch-card .label-sub { font-size: 12px; color: var(--text-tertiary); }
+
+  /* ---------- FUNNIEST TV SERP ---------- */
+  .wtw-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px;
+  }
+  .wtw-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 28px;
+    font-weight: 500;
+  }
+  .wtw-edit {
+    border: 1px solid #dadce0;
+    border-radius: 24px;
+    padding: 8px 18px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: #fff;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .wtw-edit:hover { background: #f8f9fa; }
+
+  .wtw-chips {
+    display: flex; gap: 8px; margin-bottom: 24px;
+    flex-wrap: wrap;
+    padding-bottom: 18px;
+    border-bottom: 1px solid #ebebeb;
+  }
+  .chip {
+    border: 1px solid #dadce0;
+    border-radius: 24px;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    background: #fff;
+    color: var(--text-primary);
+    display: flex; align-items: center; gap: 6px;
+    font-family: inherit;
+  }
+  .chip.active {
+    background: #e8f0fe;
+    border-color: #d2e3fc;
+    color: var(--google-blue);
+  }
+  .chip:hover { background: #f8f9fa; }
+  .chip.active:hover { background: #d2e3fc; }
+
+  .wtw-section { margin-bottom: 32px; }
+  .wtw-section-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+  .poster-row {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .poster-row::-webkit-scrollbar { display: none; }
+  .poster {
+    flex-shrink: 0;
+    width: 168px;
+    height: 240px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 150ms;
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+    color: #fff;
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-size: 22px;
+    line-height: 1.1;
+    padding: 16px;
+  }
+  .poster:hover { transform: scale(1.02); }
+
+  /* ---------- GEMINI SIDEBAR (overlay) ---------- */
+  .gemini-overlay {
+    position: absolute;
+    top: 0; right: 0;
+    width: 420px;
+    height: 100vh;
+    background: var(--gemini-bg);
+    border-left: 1px solid #dadce0;
+    transform: translateX(100%);
+    transition: transform 480ms cubic-bezier(0.2, 0, 0, 1);
+    display: flex;
+    flex-direction: column;
+    z-index: 50;
+    box-shadow: -4px 0 20px rgba(0,0,0,0.05);
+    font-family: 'Google Sans Text', 'Roboto', sans-serif;
+  }
+  .gemini-overlay.open { transform: translateX(0); }
+
+  .gemini-header {
+    height: 56px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--gemini-bg);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    flex-shrink: 0;
+  }
+  .gemini-header .title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--gemini-text);
+    margin-right: auto;
+  }
+  .gemini-header .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--gemini-secondary);
+  }
+  .gemini-header .icon-btn:hover { background: rgba(0,0,0,0.06); }
+  .gemini-header .icon-btn svg { width: 20px; height: 20px; }
+
+  /* Gemini sparkle gradient icon */
+  .gemini-sparkle {
+    width: 24px; height: 24px;
+    flex-shrink: 0;
+  }
+
+  .gemini-chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 16px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .gemini-chat::-webkit-scrollbar { width: 6px; }
+  .gemini-chat::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 3px; }
+
+  .chat-divider {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gemini-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    padding: 6px 0;
+  }
+
+  .msg-user {
+    background: var(--gemini-surface);
+    border-radius: 16px 16px 4px 16px;
+    padding: 12px 14px;
+    font-size: 14px;
+    color: var(--gemini-text);
+    line-height: 1.45;
+    align-self: flex-end;
+    max-width: 84%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .msg-gemini {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    max-width: 100%;
+  }
+  .msg-gemini .avatar-g {
+    width: 28px; height: 28px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .msg-gemini .body {
+    flex: 1;
+    font-size: 14px;
+    color: var(--gemini-text);
+    line-height: 1.5;
+  }
+  .msg-gemini .body p + p { margin-top: 8px; }
+
+  /* Slash menu */
+  .slash-menu {
+    position: absolute;
+    bottom: 78px;
+    left: 14px;
+    right: 14px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 150ms, transform 150ms;
+    pointer-events: none;
+  }
+  .slash-menu.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  .slash-menu .header {
+    padding: 10px 14px 6px;
+    font-size: 11px;
+    color: var(--gemini-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-weight: 500;
+  }
+  .slash-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 100ms;
+  }
+  .slash-item:hover, .slash-item.highlighted { background: rgba(26,115,232,0.08); }
+  .slash-item .ico {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #4285f4, #9b72cb 50%, #d96570);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .slash-item .ico svg { width: 18px; height: 18px; fill: #fff; }
+  .slash-item .name {
+    font-size: 14px;
+    color: var(--gemini-text);
+    font-weight: 500;
+  }
+  .slash-item .desc {
+    font-size: 12px;
+    color: var(--gemini-secondary);
+    margin-top: 1px;
+  }
+
+  .gemini-input-area {
+    padding: 12px 14px 16px;
+    background: var(--gemini-bg);
+    flex-shrink: 0;
+    position: relative;
+  }
+  .gemini-input-pill {
+    background: var(--gemini-input-bg);
+    border-radius: 26px;
+    padding: 6px 6px 6px 18px;
+    display: flex;
+    align-items: center;
+    min-height: 52px;
+    cursor: text;
+    transition: box-shadow 150ms, background 150ms;
+  }
+  .gemini-input-pill.focused {
+    box-shadow: 0 0 0 1px rgba(26,115,232,0.3);
+    background: #fff;
+  }
+  .gemini-input-pill.awaiting-user {
+    animation: pillBreath 2.4s ease-in-out infinite;
+  }
+  @keyframes pillBreath {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(66,133,244,0); }
+    50%      { box-shadow: 0 0 0 4px rgba(66,133,244,0.10); }
+  }
+  .gemini-input-text {
+    flex: 1;
+    font-size: 15px;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: inherit;
+    color: var(--gemini-text);
+    padding: 8px 0;
+  }
+  .gemini-input-text:empty::before {
+    content: 'Ask Gemini';
+    color: var(--gemini-secondary);
+  }
+  .gemini-input-actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .gemini-input-actions .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--gemini-secondary);
+  }
+  .gemini-input-actions .icon-btn:hover { background: rgba(0,0,0,0.06); }
+  .gemini-input-actions .icon-btn svg { width: 20px; height: 20px; }
+  .gemini-input-actions .send-btn {
+    background: #c2e7ff;
+    color: #001d35;
+  }
+  .gemini-input-actions .send-btn:hover { background: #a8dafc; }
+
+  .gemini-footer {
+    text-align: center;
+    font-size: 11px;
+    color: var(--gemini-secondary);
+    padding: 0 0 8px;
+  }
+
+  /* ---------- DAILY UPDATES FEED ---------- */
+  .updates-header {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 4px 4px 14px;
+  }
+  .updates-header .avatar-g {
+    width: 28px; height: 28px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .updates-header .header-text {
+    flex: 1;
+  }
+  .updates-header .greeting {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--gemini-text);
+    margin-bottom: 4px;
+  }
+  .updates-header .subtitle {
+    font-size: 13px;
+    color: var(--gemini-secondary);
+    line-height: 1.45;
+  }
+
+  .updates-section-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-weight: 600;
+    color: var(--gemini-secondary);
+    padding: 14px 4px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .updates-section-label .accent {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #4285f4, #9b72cb);
+  }
+
+  .update-card {
+    background: var(--gemini-surface);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: box-shadow 150ms, transform 150ms;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+  }
+  .update-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    transform: translateY(-1px);
+  }
+  .update-card-top {
+    display: flex; align-items: center;
+    gap: 8px; margin-bottom: 8px;
+    font-size: 11px;
+    color: var(--gemini-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+  .update-type-pill {
+    background: #e3f2fd;
+    color: #0c4a8a;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 10.5px;
+  }
+  .update-type-pill.talk {
+    background: #fff4d6;
+    color: #6c4a00;
+  }
+  .update-type-pill.featured {
+    background: #e6f4ea;
+    color: #0d652d;
+  }
+  .update-card-title {
+    font-family: 'Google Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--gemini-text);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+  .update-card-summary {
+    font-size: 13px;
+    color: var(--gemini-secondary);
+    line-height: 1.45;
+  }
+  .update-card-meta {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--gemini-secondary);
+  }
+  .wiki-favicon {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #dadce0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Linux Libertine', 'Georgia', serif;
+    font-weight: 700;
+    font-size: 9px;
+    color: #000;
+  }
+  .why-card {
+    background: linear-gradient(135deg, rgba(66,133,244,0.06), rgba(155,114,203,0.06));
+    border: 1px dashed rgba(66,133,244,0.3);
+    border-radius: 14px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    font-size: 12.5px;
+    color: var(--gemini-secondary);
+    line-height: 1.5;
+  }
+  .why-card strong { color: var(--gemini-text); font-weight: 600; }
+
+  /* ---------- CARET (typing animation) ---------- */
+  .caret {
+    display: inline-block;
+    width: 1px;
+    height: 1.05em;
+    background: var(--text-primary);
+    vertical-align: text-bottom;
+    margin-left: 1px;
+    animation: blink 1s steps(2, end) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- CONTROLS ---------- */
+  .controls {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    background: rgba(32,33,36,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 6px 8px;
+    z-index: 100;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .ctrl-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-family: inherit;
+    font-size: 12.5px;
+    padding: 6px 12px;
+    border-radius: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .ctrl-btn:hover { background: rgba(255,255,255,0.12); }
+  .ctrl-btn.primary { background: var(--google-blue); }
+  .ctrl-btn.primary:hover { background: #1967d2; }
+  .ctrl-progress {
+    width: 100px;
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 6px;
+  }
+  .ctrl-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #4285f4, #9b72cb);
+    width: 0%;
+    transition: width 300ms;
+  }
+
+  /* Pointer / fake mouse cursor */
+  .pointer {
+    position: fixed;
+    width: 22px;
+    height: 22px;
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 200ms;
+  }
+  .pointer.visible { opacity: 1; }
+  .pointer svg { width: 100%; height: 100%; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+
+  /* Helpers */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <!-- =================== SCENE 1: HOMEPAGE =================== -->
+  <section class="scene homepage active" data-scene="home">
+    <div class="top-right">
+      <a href="#" tabindex="-1">Gmail</a>
+      <a href="#" tabindex="-1">Images</a>
+      <div class="apps-icon" title="Google apps">
+        <svg viewBox="0 0 24 24"><path d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM6 14c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM6 20c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+      </div>
+      <div class="avatar">S</div>
+    </div>
+    <div class="google-logo">
+      <span class="gl-G1">G</span><span class="gl-o1">o</span><span class="gl-o2">o</span><span class="gl-g2">g</span><span class="gl-l">l</span><span class="gl-e">e</span>
+    </div>
+    <div class="search-pill" id="home-search-pill">
+      <svg class="lens-icon" viewBox="0 0 24 24" fill="#9aa0a6"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      <span class="search-input" id="home-input"></span>
+      <div class="search-icons">
+        <svg class="icon" viewBox="0 0 24 24" fill="#4285f4"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+        <svg class="icon" viewBox="0 0 192 192"><rect width="192" height="192" fill="none"/><g><circle cx="96" cy="105" r="20" fill="#fbbc04"/><path d="M96 64v32" stroke="#34a853" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M58 90 L58 126 A8 8 0 0 0 66 134 L126 134 A8 8 0 0 0 134 126 L134 90" stroke="#4285f4" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="96" cy="74" r="10" fill="#ea4335"/></g></svg>
+        <svg class="icon" viewBox="0 0 24 24" fill="#4285f4"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      </div>
+    </div>
+    <div class="home-buttons">
+      <button class="home-btn">Google Search</button>
+      <button class="home-btn">I'm Feeling Lucky</button>
+    </div>
+    <div class="home-langs">
+      Google offered in: <a href="#">Español</a> <a href="#">Français</a> <a href="#">中文</a>
+    </div>
+  </section>
+
+  <!-- =================== SCENE 2: SCHITT'S CREEK SERP =================== -->
+  <section class="scene" data-scene="serp1">
+    <div class="serp-header">
+      <div class="serp-logo">
+        <span class="gl-G1">G</span><span class="gl-o1">o</span><span class="gl-o2">o</span><span class="gl-g2">g</span><span class="gl-l">l</span><span class="gl-e">e</span>
+      </div>
+      <div class="serp-search">
+        <div class="search-pill">
+          <span class="search-input" id="serp1-query">cast of schitt's creek</span>
+          <div class="search-icons">
+            <svg class="icon clear visible" viewBox="0 0 24 24" fill="#70757a"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24" fill="#4285f4"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            <svg class="icon" viewBox="0 0 192 192"><g><circle cx="96" cy="105" r="20" fill="#fbbc04"/><path d="M96 64v32" stroke="#34a853" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M58 90 L58 126 A8 8 0 0 0 66 134 L126 134 A8 8 0 0 0 134 126 L134 90" stroke="#4285f4" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="96" cy="74" r="10" fill="#ea4335"/></g></svg>
+            <div class="icon-divider"></div>
+            <svg class="icon" viewBox="0 0 24 24" fill="#4285f4"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="serp-right">
+        <div class="apps-icon">
+          <svg viewBox="0 0 24 24"><path d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM6 14c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM6 20c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+        </div>
+        <div class="avatar">S</div>
+      </div>
+    </div>
+    <div class="serp-tabs">
+      <div class="serp-tab active">All</div>
+      <div class="serp-tab">Images</div>
+      <div class="serp-tab">News</div>
+      <div class="serp-tab">Forums</div>
+      <div class="serp-tab">Videos</div>
+      <div class="serp-tab">Shopping</div>
+      <div class="serp-tab">More <span class="caret">▾</span></div>
+      <div class="serp-tab" style="margin-left: auto;">Tools <span class="caret">▾</span></div>
+    </div>
+
+    <div class="serp-body with-side">
+      <div>
+        <div class="kp-header">
+          <div class="kp-poster"></div>
+          <div class="kp-title-block">
+            <div class="kp-title">Schitt's Creek</div>
+            <div class="kp-subtitle">2015 · Sitcom · 6 seasons <span style="margin-left:8px; cursor:pointer;">⋮</span></div>
+          </div>
+          <div class="kp-pills">
+            <button class="kp-pill">Overview</button>
+            <button class="kp-pill selected">Cast</button>
+            <button class="kp-pill">Episode guide</button>
+          </div>
+        </div>
+
+        <div class="cast-row" id="cast-row">
+          <!-- Cast cards inserted by JS -->
+        </div>
+
+        <button class="show-more-btn">Show more <span style="font-size:10px;">▼</span></button>
+
+        <div class="paa-section">
+          <div class="paa-title">People also ask</div>
+          <div class="paa-item">Why was Mutt removed from Schitt's Creek? <div class="paa-caret">▾</div></div>
+          <div class="paa-item">What did Dan Levy say about Catherine O'Hara's death? <div class="paa-caret">▾</div></div>
+          <div class="paa-item">How many actors on Schitt's Creek are related? <div class="paa-caret">▾</div></div>
+        </div>
+      </div>
+
+      <div class="watch-panel">
+        <div class="watch-panel-header">
+          <div class="watch-panel-title">Watch show</div>
+          <div class="edit-services">EDIT SERVICES</div>
+        </div>
+        <div class="watch-row">
+          <div class="watch-card">
+            <div class="circle" style="background:#1ce783;">hulu</div>
+            <div class="label-main">Watch now</div>
+            <div class="label-sub">Subscription</div>
+          </div>
+          <div class="watch-card">
+            <div class="circle" style="background:#fff; border:1.5px solid #dadce0;">✓</div>
+            <div class="label-main">Already watched</div>
+          </div>
+          <div class="watch-card">
+            <div class="circle" style="background:#fff; border:1.5px solid #dadce0;">🔖</div>
+            <div class="label-main">Want to watch</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SCENE 3: FUNNIEST TV SERP =================== -->
+  <section class="scene" data-scene="serp2">
+    <div class="serp-header">
+      <div class="serp-logo">
+        <span class="gl-G1">G</span><span class="gl-o1">o</span><span class="gl-o2">o</span><span class="gl-g2">g</span><span class="gl-l">l</span><span class="gl-e">e</span>
+      </div>
+      <div class="serp-search">
+        <div class="search-pill">
+          <span class="search-input" id="serp2-query">funniest tv shows of all time</span>
+          <div class="search-icons">
+            <svg class="icon clear visible" viewBox="0 0 24 24" fill="#70757a"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            <svg class="icon" viewBox="0 0 24 24" fill="#4285f4"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            <svg class="icon" viewBox="0 0 192 192"><g><circle cx="96" cy="105" r="20" fill="#fbbc04"/><path d="M96 64v32" stroke="#34a853" stroke-width="14" stroke-linecap="round" fill="none"/><path d="M58 90 L58 126 A8 8 0 0 0 66 134 L126 134 A8 8 0 0 0 134 126 L134 90" stroke="#4285f4" stroke-width="14" stroke-linecap="round" fill="none"/><circle cx="96" cy="74" r="10" fill="#ea4335"/></g></svg>
+            <div class="icon-divider"></div>
+            <svg class="icon" viewBox="0 0 24 24" fill="#4285f4"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="serp-right">
+        <div class="apps-icon">
+          <svg viewBox="0 0 24 24"><path d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM6 14c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM6 20c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+        </div>
+        <div class="avatar">S</div>
+      </div>
+    </div>
+    <div class="serp-tabs">
+      <div class="serp-tab active">All</div>
+      <div class="serp-tab">Short videos</div>
+      <div class="serp-tab">Videos</div>
+      <div class="serp-tab">Images</div>
+      <div class="serp-tab">Forums</div>
+      <div class="serp-tab">News</div>
+      <div class="serp-tab">More <span class="caret">▾</span></div>
+      <div class="serp-tab" style="margin-left:auto;">Tools <span class="caret">▾</span></div>
+    </div>
+
+    <div class="serp-body">
+      <div class="wtw-header">
+        <div class="wtw-title">What to watch</div>
+        <button class="wtw-edit"><svg width="14" height="14" viewBox="0 0 24 24" fill="#1a73e8"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg> Edit your services</button>
+      </div>
+
+      <div class="wtw-chips">
+        <button class="chip active">All services <span style="font-size:10px;">▾</span></button>
+        <button class="chip active">Shows</button>
+        <button class="chip active">Comedy</button>
+        <button class="chip">Drama</button>
+        <button class="chip">Romance</button>
+        <button class="chip">Comedy drama</button>
+        <button class="chip">Outstanding Comedy Series</button>
+        <button class="chip">Free</button>
+        <button class="chip">Dark comedy</button>
+        <button class="chip">Sport</button>
+        <button class="chip" style="padding: 8px 10px;">▾</button>
+      </div>
+
+      <div class="wtw-section">
+        <div class="wtw-section-title">Top comedy show picks</div>
+        <div class="poster-row" id="poster-row-1"></div>
+      </div>
+
+      <div class="wtw-section">
+        <div class="wtw-section-title">Drama comedies</div>
+        <div class="poster-row" id="poster-row-2"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== GEMINI SIDEBAR (overlay) =================== -->
+  <aside class="gemini-overlay" id="gemini">
+    <div class="gemini-header">
+      <svg class="gemini-sparkle" viewBox="0 0 24 24">
+        <defs>
+          <linearGradient id="gem-grad-1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4285f4"/>
+            <stop offset="50%" stop-color="#9b72cb"/>
+            <stop offset="100%" stop-color="#d96570"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/>
+      </svg>
+      <div class="title">Gemini</div>
+      <div class="icon-btn" title="History"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 3a9 9 0 0 0-9 9H1l4 4 4-4H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></div>
+      <div class="icon-btn" title="New chat"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+      <div class="icon-btn" title="Close"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div>
+    </div>
+
+    <div class="gemini-chat" id="gemini-chat">
+      <!-- chat history -->
+      <div class="chat-divider">Yesterday · 11:42 AM</div>
+
+      <div class="msg-user">honestly which is funnier — Arrested Development or 30 Rock?</div>
+      <div class="msg-gemini">
+        <svg class="avatar-g" viewBox="0 0 24 24"><path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/></svg>
+        <div class="body">
+          <p>Hard one. Arrested Development rewards rewatches more — the running gags pay off across seasons. 30 Rock is denser per minute, more jokes-per-square-inch.</p>
+          <p>If you want something you can quote forever, AD. If you want something you can dip into for 22 minutes, 30 Rock.</p>
+        </div>
+      </div>
+      <div class="msg-user">ok adding both to the list. is abbott elementary in the same league?</div>
+      <div class="msg-gemini">
+        <svg class="avatar-g" viewBox="0 0 24 24"><path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/></svg>
+        <div class="body">
+          <p>Different lineage — workplace mockumentary, more in the Office / Parks & Rec tradition. Quinta Brunson keeps it warm where 30 Rock goes cold and absurdist. Critically it's been one of the most-praised network comedies of the last decade.</p>
+        </div>
+      </div>
+
+      <div class="chat-divider">Yesterday · 4:18 PM</div>
+
+      <div class="msg-user">switching topics — flying into JFK June 12, leaving June 19. first real NYC trip. where should we stay?</div>
+      <div class="msg-gemini">
+        <svg class="avatar-g" viewBox="0 0 24 24"><path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/></svg>
+        <div class="body">
+          <p>Depends what you want the week to feel like. A few solid bases:</p>
+          <p><strong>West Village / Greenwich Village</strong> — quiet streets, walkable to almost everything, classic NYC.<br>
+          <strong>Lower East Side</strong> — younger energy, food and bars at every step.<br>
+          <strong>Williamsburg</strong> — across the river but easy on the L, a different kind of trip.</p>
+          <p>Want me to look at hotels in one of those?</p>
+        </div>
+      </div>
+      <div class="msg-user">west village. and what about food — i want at least one really memorable meal</div>
+      <div class="msg-gemini">
+        <svg class="avatar-g" viewBox="0 0 24 24"><path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/></svg>
+        <div class="body">
+          <p>Three tiers depending on how much of a thing you want it to be:</p>
+          <p><strong>Splurge:</strong> Via Carota (no res, get there early) or Don Angie. Both West Village.<br>
+          <strong>Hard reservation but worth it:</strong> Carbone, Lilia.<br>
+          <strong>Walk-in spectacular:</strong> Raoul's, Joseph Leonard.</p>
+        </div>
+      </div>
+
+      <div class="chat-divider">Today · 9:04 AM</div>
+
+      <div class="msg-user">one more dumb question — am i underdressing if i wear sneakers in the village in june?</div>
+      <div class="msg-gemini">
+        <svg class="avatar-g" viewBox="0 0 24 24"><path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/></svg>
+        <div class="body">
+          <p>No. The village basically runs on sneakers. The only places you'd feel underdressed are a handful of old-school Italian spots and the fancier hotel bars — and even there you'd be fine in clean white sneakers.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="gemini-input-area">
+      <!-- Slash command suggestions -->
+      <div class="slash-menu" id="slash-menu">
+        <div class="header">Skills</div>
+        <div class="slash-item highlighted">
+          <div class="ico">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+          </div>
+          <div>
+            <div class="name">/dailyupdates</div>
+            <div class="desc">Wikipedia changes on topics you're following</div>
+          </div>
+        </div>
+        <div class="slash-item">
+          <div class="ico" style="background: linear-gradient(135deg, #34a853, #4285f4);">
+            <svg viewBox="0 0 24 24"><path d="M9 11H7v6h2v-6zm4 0h-2v6h2v-6zm4 0h-2v6h2v-6zm2.5-9h-15A1.5 1.5 0 0 0 3 3.5v17A1.5 1.5 0 0 0 4.5 22h15a1.5 1.5 0 0 0 1.5-1.5v-17A1.5 1.5 0 0 0 19.5 2zM19 20H5V8h14v12zm0-14H5V4h14v2z"/></svg>
+          </div>
+          <div>
+            <div class="name">/summarizetab</div>
+            <div class="desc">Summarize the page you're reading</div>
+          </div>
+        </div>
+        <div class="slash-item">
+          <div class="ico" style="background: linear-gradient(135deg, #ea4335, #fbbc04);">
+            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+          </div>
+          <div>
+            <div class="name">/tripplan</div>
+            <div class="desc">Build itineraries from your tabs and chats</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="gemini-input-pill" id="gemini-pill">
+        <span class="gemini-input-text" id="gemini-input"></span>
+        <div class="gemini-input-actions">
+          <div class="icon-btn" title="Add"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div>
+          <div class="icon-btn" title="Mic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg></div>
+          <div class="icon-btn send-btn" title="Send"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg></div>
+        </div>
+      </div>
+      <div class="gemini-footer">Gemini can make mistakes. Check important info.</div>
+    </div>
+  </aside>
+
+  <!-- Pointer -->
+  <div class="pointer" id="pointer">
+    <svg viewBox="0 0 24 24"><path d="M5.5 3.21V20.8c0 .45.54.67.85.35l4.86-4.86h6.84c.43 0 .69-.49.43-.84L6.27 2.86c-.27-.34-.77-.15-.77.35z" fill="#fff" stroke="#202124" stroke-width="1.2"/></svg>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="ctrl-btn" id="btn-restart" title="Restart">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+      Restart
+    </button>
+    <div class="ctrl-progress"><div class="ctrl-progress-bar" id="progress-bar"></div></div>
+    <button class="ctrl-btn primary" id="btn-skip">Skip ▸</button>
+  </div>
+
+</div>
+
+<script>
+  // =====================================================
+  // DATA
+  // =====================================================
+  const cast = [
+    { name: "Dan Levy",       role: "David Rose",     gradient: "linear-gradient(135deg,#5a4634,#3a2a1c)" },
+    { name: "Eugene Levy",    role: "Johnny Rose",    gradient: "linear-gradient(135deg,#6a4f37,#3d2a1a)" },
+    { name: "Annie Murphy",   role: "Alexis Rose",    gradient: "linear-gradient(135deg,#d4a373,#a07951)" },
+    { name: "Catherine O'Hara", role: "Moira Rose",   gradient: "linear-gradient(135deg,#bda797,#8a7460)" },
+    { name: "Sarah Levy",     role: "Twyla Sands",    gradient: "linear-gradient(135deg,#7a5a48,#4a3122)" },
+    { name: "Emily Hampshire", role: "Stevie Budd",   gradient: "linear-gradient(135deg,#a89280,#7a6450)" },
+    { name: "Chris Elliott",  role: "Roland Schitt",  gradient: "linear-gradient(135deg,#666,#3a3a3a)" },
+    { name: "Jennifer Robertson", role: "Jocelyn Schitt", gradient: "linear-gradient(135deg,#c5a888,#9a7a58)" },
+  ];
+  const castRow = document.getElementById("cast-row");
+  cast.forEach(c => {
+    const initials = c.name.split(/\s+/).map(p => p[0]).join("").slice(0,2).toUpperCase();
+    const card = document.createElement("div");
+    card.className = "cast-card";
+    card.innerHTML = `
+      <div class="cast-photo" style="background: ${c.gradient};">
+        <div class="initials">${initials}</div>
+      </div>
+      <div class="cast-name">${c.name}</div>
+      <div class="cast-role">${c.role}</div>`;
+    castRow.appendChild(card);
+  });
+
+  // Posters for funniest TV SERP
+  const posters1 = [
+    { title: "It's Always Sunny in Philadelphia", bg: "linear-gradient(180deg, #f0a830 0%, #e0521a 100%)" },
+    { title: "30 Rock", bg: "linear-gradient(135deg, #d8d8d8, #b0b0b0)", color: "#222" },
+    { title: "Curb Your Enthusiasm", bg: "linear-gradient(180deg, #6db4d4 0%, #2d6a8a 100%)" },
+    { title: "Letterkenny", bg: "linear-gradient(135deg, #b03a2a, #6f2418)" },
+    { title: "Modern Family", bg: "linear-gradient(135deg, #f5e6d3, #e3c9a8)", color: "#3a2818" },
+    { title: "Community", bg: "linear-gradient(135deg, #5a3a2a, #2e1d12)" },
+    { title: "Scrubs", bg: "linear-gradient(135deg, #d4d4d2, #9c9c9a)", color: "#1c3a5a" },
+    { title: "Arrested Development", bg: "linear-gradient(135deg, #5a2828, #2a1010)" },
+  ];
+  const posters2 = [
+    { title: "Modern Family", bg: "linear-gradient(135deg, #f5e6d3, #e3c9a8)", color: "#3a2818" },
+    { title: "Scrubs", bg: "linear-gradient(135deg, #d4d4d2, #9c9c9a)", color: "#1c3a5a" },
+    { title: "Arrested Development", bg: "linear-gradient(135deg, #5a2828, #2a1010)" },
+    { title: "Brooklyn Nine-Nine", bg: "linear-gradient(135deg, #c47a2a, #7a4818)" },
+    { title: "Veep", bg: "linear-gradient(135deg, #f0e8d8, #d8c8a8)", color: "#7a1818" },
+    { title: "Psych", bg: "linear-gradient(135deg, #d4a838, #a07820)" },
+    { title: "30 Rock", bg: "linear-gradient(135deg, #d8d8d8, #b0b0b0)", color: "#222" },
+    { title: "The Office", bg: "linear-gradient(135deg, #d8e8f0, #a8c8d8)", color: "#1856a8" },
+  ];
+  function renderPosters(rowId, list) {
+    const row = document.getElementById(rowId);
+    list.forEach(p => {
+      const el = document.createElement("div");
+      el.className = "poster";
+      el.style.background = p.bg;
+      if (p.color) el.style.color = p.color;
+      el.textContent = p.title;
+      row.appendChild(el);
+    });
+  }
+  renderPosters("poster-row-1", posters1);
+  renderPosters("poster-row-2", posters2);
+
+  // =====================================================
+  // SCENE CONTROL
+  // =====================================================
+  const sceneEls = {
+    home: document.querySelector('[data-scene="home"]'),
+    serp1: document.querySelector('[data-scene="serp1"]'),
+    serp2: document.querySelector('[data-scene="serp2"]'),
+  };
+  function showScene(name) {
+    Object.values(sceneEls).forEach(s => s.classList.remove("active"));
+    sceneEls[name].classList.add("active");
+  }
+
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  // Resolve when user clicks `element`, when timeoutMs elapses, or when the
+  // current run is cancelled. Always cleans up its listener and timers.
+  function waitForClickOrTimeout(element, timeoutMs, isCancelled) {
+    return new Promise(resolve => {
+      let resolved = false;
+      let timeoutId = null;
+      let intervalId = null;
+      const finish = (reason) => {
+        if (resolved) return;
+        resolved = true;
+        element.removeEventListener("click", onClick);
+        if (timeoutId) clearTimeout(timeoutId);
+        if (intervalId) clearInterval(intervalId);
+        resolve(reason);
+      };
+      const onClick = () => finish("click");
+      element.addEventListener("click", onClick);
+      timeoutId = setTimeout(() => finish("timeout"), timeoutMs);
+      intervalId = setInterval(() => {
+        if (isCancelled()) finish("cancelled");
+      }, 200);
+    });
+  }
+
+  // Typing animation
+  async function typeInto(el, text, speed = 55) {
+    el.textContent = "";
+    const caret = document.createElement("span");
+    caret.className = "caret";
+    el.appendChild(caret);
+    for (let i = 0; i < text.length; i++) {
+      el.firstChild ? el.insertBefore(document.createTextNode(text[i]), caret)
+                    : el.appendChild(document.createTextNode(text[i]));
+      await sleep(speed + Math.random() * 40);
+    }
+    await sleep(180);
+    caret.remove();
+  }
+
+  // Pointer move
+  const pointer = document.getElementById("pointer");
+  function showPointer(x, y) {
+    pointer.style.left = x + "px";
+    pointer.style.top = y + "px";
+    pointer.classList.add("visible");
+  }
+  function hidePointer() { pointer.classList.remove("visible"); }
+  async function movePointerTo(x, y, duration = 700) {
+    pointer.style.transition = `left ${duration}ms cubic-bezier(0.4,0.1,0.2,1), top ${duration}ms cubic-bezier(0.4,0.1,0.2,1), opacity 200ms`;
+    pointer.style.left = x + "px";
+    pointer.style.top = y + "px";
+    await sleep(duration);
+    pointer.style.transition = "opacity 200ms";
+  }
+
+  // Daily updates feed data
+  const updates = {
+    tv: [
+      {
+        type: "edit",
+        typeLabel: "MAJOR EDIT",
+        title: "Catherine O'Hara",
+        summary: "Posthumous Outstanding Performance by a Female Actor in a Comedy Series for The Studio (32nd Actor Awards, March 1) added — first woman to win that trophy posthumously. Cause of death updated per Feb 9 LA County medical examiner release: pulmonary embolism, with rectal cancer as the underlying condition.",
+        url: "https://en.wikipedia.org/wiki/Catherine_O%27Hara",
+        time: "Edited 4 hours ago · 23 revisions today",
+      },
+      {
+        type: "edit",
+        typeLabel: "EDIT",
+        title: "Schitt's Creek",
+        summary: "New paragraph in the 'Continuation' section: Dan Levy's April 6 statement to CBC ruling out a Schitt's Creek follow-up — 'You can't' do it without Catherine O'Hara — alongside his earlier remarks about a possible film. Tribute to O'Hara folded into the Cast section.",
+        url: "https://en.wikipedia.org/wiki/Schitt%27s_Creek",
+        time: "Edited yesterday",
+      },
+      {
+        type: "edit",
+        typeLabel: "EDIT",
+        title: "Abbott Elementary",
+        summary: "Season 5 finale plot summaries added — the two-part 'Ava & Fest' / 'Miami' that aired April 22, including the Phillies cameo and Janine–Gregory storyline resolution. Season 6 renewal (March 4) confirmed in the production timeline.",
+        url: "https://en.wikipedia.org/wiki/Abbott_Elementary",
+        time: "Edited yesterday · 8 revisions",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:Schitt's Creek",
+        summary: "Active discussion on whether the article should add a 'Legacy and tributes' section following Dan Levy's April 6 statement that there will be no Schitt's Creek sequel without Catherine O'Hara. 14 editors weighing in.",
+        url: "https://en.wikipedia.org/wiki/Talk:Schitt%27s_Creek",
+        time: "12 new comments · 2 days",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:Catherine O'Hara",
+        summary: "Editors debating how to handle the cancer details. The family kept the rectal cancer diagnosis private until the death certificate was released February 9 — question is whether the disclosure justifies an expanded health subsection or a brief footnote, with WP:BLP and WP:NOTNEWS both invoked.",
+        url: "https://en.wikipedia.org/wiki/Talk:Catherine_O%27Hara",
+        time: "27 new comments · this week",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:Abbott Elementary",
+        summary: "Following Quinta Brunson's April 26 Deadline interview, editors are debating where her stated inspiration — schools displaced into malls after the 2025 LA wildfires — should sit on the page. Three drafts on the table: a new 'Real-world inspirations' subsection, an addition to 'Themes,' or a brief mention in 'Production.'",
+        url: "https://en.wikipedia.org/wiki/Talk:Abbott_Elementary",
+        time: "11 new comments · 2 days",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:Quinta Brunson",
+        summary: "Disagreement on how much of the April 26 Deadline panel to quote directly versus paraphrase. Some editors argue her remarks on Season 5's wildfire-school inspiration are clearly attributable and notable; others want any direct quotes confined to the Abbott Elementary article and only summarized here.",
+        url: "https://en.wikipedia.org/wiki/Talk:Quinta_Brunson",
+        time: "8 new comments · today",
+      },
+    ],
+    nyc: [
+      {
+        type: "edit",
+        typeLabel: "MAJOR EDIT",
+        title: "Zohran Mamdani",
+        summary: "First 100 days policy section expanded with subsections on the housing-voucher pilot, the NYPD subway-safety review, and the rollback of late-Adams-era zoning changes. Also adds the early April Cabinet appointments and his March address to the Association for a Better New York.",
+        url: "https://en.wikipedia.org/wiki/Zohran_Mamdani",
+        time: "Edited 6 hours ago · 41 revisions today",
+      },
+      {
+        type: "edit",
+        typeLabel: "EDIT",
+        title: "Eric Adams",
+        summary: "Post-mayoralty section: April 10 honorary Albanian citizenship granted by President Bajram Begaj at Adams's request. Notes his earlier stated wish to retire abroad and his October 2025 Albania trip to meet PM Edi Rama.",
+        url: "https://en.wikipedia.org/wiki/Eric_Adams",
+        time: "Edited 4 days ago",
+      },
+      {
+        type: "edit",
+        typeLabel: "EDIT",
+        title: "MTA Regional Bus Operations",
+        summary: "New section added on the Mamdani administration's fare-free bus initiative — a campaign promise now in early implementation, with pilot routes selected across all five boroughs and projected ridership and funding details from the City Hall transportation briefing.",
+        url: "https://en.wikipedia.org/wiki/MTA_Regional_Bus_Operations",
+        time: "Edited 2 days ago",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:New York City",
+        summary: "Editors debating whether to include the Mamdani administration's free-bus pilot in the lead Transportation paragraph or only in the dedicated transportation article. Active for 3 days.",
+        url: "https://en.wikipedia.org/wiki/Talk:New_York_City",
+        time: "9 new comments · today",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:Zohran Mamdani",
+        summary: "NPOV concern raised over how to describe the housing-voucher pilot. Proposals range from 'expanded eligibility' to 'sweeping reform of city housing assistance' — debate is over whether neutral phrasing should mirror mainstream coverage or hew closer to the city's own framing. 18 comments since Friday.",
+        url: "https://en.wikipedia.org/wiki/Talk:Zohran_Mamdani",
+        time: "18 new comments · this week",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:Eric Adams",
+        summary: "Editors disagreeing on how to describe the April 10 Albanian citizenship in the lead. The decree from President Begaj uses 'honorary,' but coverage in the Albanian press has framed it as full citizenship granted at his request. Question is whether to defer to the decree's wording or report the dispute in-text.",
+        url: "https://en.wikipedia.org/wiki/Talk:Eric_Adams",
+        time: "13 new comments · 3 days",
+      },
+      {
+        type: "talk",
+        typeLabel: "TALK PAGE",
+        title: "Talk:2025 New York City mayoral election",
+        summary: "Discussion over the 'highest turnout since 1993' line. Some editors want per-borough breakdowns added now that Board of Elections final certification numbers are out; others argue the citywide figure (currently AP-sourced) is the cleanest summary for the lead. Side thread on whether to include the late-September Adams withdrawal in the timeline of the lead.",
+        url: "https://en.wikipedia.org/wiki/Talk:2025_New_York_City_mayoral_election",
+        time: "16 new comments · 4 days",
+      },
+    ],
+  };
+
+  function renderUpdatesFeed() {
+    const chat = document.getElementById("gemini-chat");
+    // Add a divider for the new exchange
+    const divider = document.createElement("div");
+    divider.className = "chat-divider";
+    divider.textContent = "Today · just now";
+    chat.appendChild(divider);
+
+    // User message
+    const userMsg = document.createElement("div");
+    userMsg.className = "msg-user";
+    userMsg.textContent = "/dailyupdates";
+    chat.appendChild(userMsg);
+
+    // Gemini reply container
+    const reply = document.createElement("div");
+    reply.className = "msg-gemini";
+    reply.innerHTML = `
+      <svg class="avatar-g" viewBox="0 0 24 24"><path d="M12 1 L13.5 8.5 L21 10 L13.5 11.5 L12 19 L10.5 11.5 L3 10 L10.5 8.5 Z M19 14 L19.7 17.3 L23 18 L19.7 18.7 L19 22 L18.3 18.7 L15 18 L18.3 17.3 Z" fill="url(#gem-grad-1)"/></svg>
+      <div class="body" id="updates-body"></div>`;
+    chat.appendChild(reply);
+
+    const body = document.getElementById("updates-body");
+
+    // Header
+    body.innerHTML = `
+      <div class="updates-header" style="padding:0 0 12px;">
+        <div class="header-text">
+          <div class="greeting">Here's what's new on Wikipedia today</div>
+          <div class="subtitle">Significant edits and active talk pages on topics you've been following — sorted by what's been on your mind this week.</div>
+        </div>
+      </div>
+      <div class="why-card">
+        <strong>Why these:</strong> You searched comedies and Schitt's Creek today, and you've been chatting about Abbott Elementary and your June NYC trip. I pulled the most active articles and talk pages in those areas over the last 72 hours.
+      </div>
+    `;
+
+    // TV section
+    const tvLabel = document.createElement("div");
+    tvLabel.className = "updates-section-label";
+    tvLabel.innerHTML = `<span class="accent"></span> TV &amp; comedy · 7 items`;
+    body.appendChild(tvLabel);
+    updates.tv.forEach(u => body.appendChild(makeCard(u)));
+
+    // NYC section
+    const nycLabel = document.createElement("div");
+    nycLabel.className = "updates-section-label";
+    nycLabel.innerHTML = `<span class="accent" style="background: linear-gradient(135deg,#34a853,#4285f4);"></span> NYC · for your June trip · 7 items`;
+    body.appendChild(nycLabel);
+    updates.nyc.forEach(u => body.appendChild(makeCard(u)));
+
+    // Scroll the new exchange to the top of the chat viewport, so the user
+    // sees their /dailyupdates command and the start of the response — not
+    // the very bottom of the feed.
+    requestAnimationFrame(() => {
+      const target = Math.max(0, divider.offsetTop - 8);
+      chat.scrollTo({ top: target, behavior: "smooth" });
+    });
+  }
+  function makeCard(u) {
+    const a = document.createElement("a");
+    a.className = "update-card";
+    a.href = u.url;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.innerHTML = `
+      <div class="update-card-top">
+        <span class="update-type-pill ${u.type}">${u.typeLabel}</span>
+        <span style="margin-left:auto;">${u.time}</span>
+      </div>
+      <div class="update-card-title">${u.title}</div>
+      <div class="update-card-summary">${u.summary}</div>
+      <div class="update-card-meta">
+        <span class="wiki-favicon">W</span>
+        en.wikipedia.org
+      </div>`;
+    return a;
+  }
+
+  // =====================================================
+  // SCRIPTED FLOW
+  // =====================================================
+  // Step-based progress so the bar stays meaningful across the
+  // variable-length pause where the user controls when to click.
+  function setProgress(pct) {
+    document.getElementById("progress-bar").style.width = pct + "%";
+  }
+
+  let currentRun = 0;
+  async function run() {
+    const myRun = ++currentRun;
+    const isCancelled = () => myRun !== currentRun;
+
+    // Reset
+    showScene("home");
+    document.getElementById("home-input").innerHTML = "";
+    document.getElementById("home-search-pill").classList.remove("focused");
+    document.getElementById("gemini").classList.remove("open");
+    document.getElementById("gemini-input").innerHTML = "";
+    document.getElementById("gemini-pill").classList.remove("focused");
+    document.getElementById("slash-menu").classList.remove("visible");
+    // Reset progress bar
+    document.getElementById("progress-bar").style.width = "0%";
+    // Remove any prior /dailyupdates results
+    const chat = document.getElementById("gemini-chat");
+    // Re-scroll to top so the existing history shows from the top
+    chat.scrollTop = 0;
+    // Remove any added results blocks (anything beyond the originals)
+    while (chat.children.length > 12) chat.removeChild(chat.lastChild);
+
+    hidePointer();
+    setProgress(2);
+    await sleep(800);
+    if (isCancelled()) return;
+    setProgress(8);
+
+    // === Scene 1: type into Google search ===
+    const homePill = document.getElementById("home-search-pill");
+    homePill.classList.add("focused");
+    await typeInto(document.getElementById("home-input"), "cast of schitt's creek", 60);
+    if (isCancelled()) return;
+    setProgress(18);
+    await sleep(650);
+
+    // === Scene 2: Schitt's Creek SERP ===
+    showScene("serp1");
+    if (isCancelled()) return;
+    setProgress(28);
+    await sleep(4000);
+
+    // === Scene 3: type new query (re-use serp1's search box visual) ===
+    const q1 = document.getElementById("serp1-query");
+    q1.textContent = "";
+    const caret1 = document.createElement("span");
+    caret1.className = "caret";
+    q1.appendChild(caret1);
+    await sleep(220);
+    if (isCancelled()) return;
+
+    const newQuery = "funniest tv shows of all time";
+    for (let i = 0; i < newQuery.length; i++) {
+      q1.insertBefore(document.createTextNode(newQuery[i]), caret1);
+      await sleep(45 + Math.random() * 35);
+      if (isCancelled()) return;
+    }
+    caret1.remove();
+    setProgress(42);
+    await sleep(450);
+    if (isCancelled()) return;
+
+    // === Scene 4: funniest TV shows SERP ===
+    showScene("serp2");
+    if (isCancelled()) return;
+    setProgress(52);
+    await sleep(4000);
+
+    // === Scene 5: Open Gemini sidebar ===
+    document.getElementById("gemini").classList.add("open");
+    if (isCancelled()) return;
+    setProgress(62);
+    await sleep(1100);
+
+    // Reset chat scroll to top so the user starts at the beginning of history
+    const geminiChat = document.getElementById("gemini-chat");
+    geminiChat.scrollTop = 0;
+
+    // Hand control to the user: wait for them to click the input,
+    // or fall through automatically after 20 seconds.
+    const pill = document.getElementById("gemini-pill");
+    pill.classList.add("awaiting-user");
+    const waitResult = await waitForClickOrTimeout(pill, 20000, isCancelled);
+    pill.classList.remove("awaiting-user");
+    if (waitResult === "cancelled" || isCancelled()) return;
+    setProgress(72);
+    // Brief beat before typing starts, regardless of whether click or timeout fired
+    await sleep(280);
+    if (isCancelled()) return;
+
+    // === Scene 6: focus input, type /dailyupdates ===
+    pill.classList.add("focused");
+    const input = document.getElementById("gemini-input");
+    input.innerHTML = "";
+    const caret2 = document.createElement("span");
+    caret2.className = "caret";
+    input.appendChild(caret2);
+    await sleep(380);
+    if (isCancelled()) return;
+
+    const cmd = "/dailyupdates";
+    for (let i = 0; i < cmd.length; i++) {
+      input.insertBefore(document.createTextNode(cmd[i]), caret2);
+      // After "/" appears, show the slash menu
+      if (cmd[i] === "/") {
+        document.getElementById("slash-menu").classList.add("visible");
+      }
+      await sleep(75 + Math.random() * 60);
+      if (isCancelled()) return;
+    }
+    caret2.remove();
+    await sleep(400);
+    if (isCancelled()) return;
+
+    // Hide menu, render the response
+    document.getElementById("slash-menu").classList.remove("visible");
+    pill.classList.remove("focused");
+    input.innerHTML = "";
+    await sleep(280);
+    if (isCancelled()) return;
+
+    renderUpdatesFeed();
+    setProgress(100);
+  }
+
+  document.getElementById("btn-restart").addEventListener("click", () => run());
+  document.getElementById("btn-skip").addEventListener("click", async () => {
+    // Skip directly to end state
+    currentRun++; // cancel any running flow
+    showScene("serp2");
+    document.getElementById("home-input").innerHTML = "";
+    document.getElementById("gemini").classList.add("open");
+    document.getElementById("slash-menu").classList.remove("visible");
+    document.getElementById("gemini-pill").classList.remove("focused");
+    document.getElementById("gemini-pill").classList.remove("awaiting-user");
+    const chat = document.getElementById("gemini-chat");
+    while (chat.children.length > 12) chat.removeChild(chat.lastChild);
+    document.getElementById("gemini-input").innerHTML = "";
+    renderUpdatesFeed();
+    setProgress(100);
+  });
+
+  // Auto-start on load
+  window.addEventListener("load", () => {
+    setTimeout(run, 400);
+  });
+</script>
+</body>
+</html>
